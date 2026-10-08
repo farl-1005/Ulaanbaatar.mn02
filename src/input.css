@@ -349,10 +349,12 @@ p { text-wrap: pretty; }
 .on-navy .aqi-line { filter: drop-shadow(0 0 8px rgb(240 140 26 / .6)); }
 .on-navy .live-badge { background: rgb(255 255 255 / .06); border-color: rgb(255 255 255 / .1); }
 
-/* ============ Masthead: white header + clean animated skyline ============ */
-:root { --c-solid: 11 29 69; --sk-b1: 214 228 246; --sk-b2: 193 213 240; --sk-b3: 170 197 234; --sk-b4: 143 177 226; --sk-acc: 50 102 196; --sk-acc2: 104 148 218; --sk-m1: 221 232 247; --sk-m2: 200 218 242; --sk-cloud: 226 236 249; --sk-sun: 255 222 140; --sk-win: 255 255 255; --sk-win-o: .75; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-solid: 52 88 176; --sk-b1: 32 46 80; --sk-b2: 38 56 96; --sk-b3: 46 68 114; --sk-b4: 58 84 138; --sk-acc: 90 140 234; --sk-acc2: 70 108 182; --sk-m1: 22 31 54; --sk-m2: 27 39 68; --sk-cloud: 36 48 80; --sk-sun: 250 226 160; --sk-win: 255 208 120; --sk-win-o: .8; } }
-:root[data-theme="dark"] { --c-solid: 52 88 176; --sk-b1: 32 46 80; --sk-b2: 38 56 96; --sk-b3: 46 68 114; --sk-b4: 58 84 138; --sk-acc: 90 140 234; --sk-acc2: 70 108 182; --sk-m1: 22 31 54; --sk-m2: 27 39 68; --sk-cloud: 36 48 80; --sk-sun: 250 226 160; --sk-win: 255 208 120; --sk-win-o: .8; }
+/* ============ Masthead: white header + monoline line-art skyline ============
+   Шугам: --sk-ink (landmarks) > --sk-ink2 (ridges, blocks) > --sk-ink3 (hatching); occluding fills = --c-card.
+   --sk-day / --sk-night: display toggles (inline | none); --sk-lit-o: warm night lights (0 by day). */
+:root { --c-solid: 11 29 69; --sk-ink: 11 29 69; --sk-ink2: 96 118 166; --sk-ink3: 172 186 216; --sk-far: 206 216 236; --sk-mist: 226 235 251; --sk-tint: 232 240 255; --sk-glint: 255 255 255; --sk-cloud: 206 218 240; --sk-sun: 255 241 212; --sk-halo: 255 206 140; --sk-halo-o: .45; --sk-moon: 242 236 214; --sk-star: 214 224 250; --sk-lit: 255 196 110; --sk-lit-o: 0; --sk-gold: 250 186 20; --sk-red: 216 30 52; --sk-day: inline; --sk-night: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --c-solid: 52 88 176; --sk-ink: 176 198 244; --sk-ink2: 100 124 178; --sk-ink3: 70 92 140; --sk-far: 40 54 92; --sk-mist: 26 38 70; --sk-tint: 28 44 84; --sk-glint: 84 122 210; --sk-cloud: 40 54 92; --sk-halo: 214 220 255; --sk-halo-o: .3; --sk-lit-o: .9; --sk-gold: 255 202 60; --sk-red: 255 82 100; --sk-day: none; --sk-night: inline; } }
+:root[data-theme="dark"] { --c-solid: 52 88 176; --sk-ink: 176 198 244; --sk-ink2: 100 124 178; --sk-ink3: 70 92 140; --sk-far: 40 54 92; --sk-mist: 26 38 70; --sk-tint: 28 44 84; --sk-glint: 84 122 210; --sk-cloud: 40 54 92; --sk-halo: 214 220 255; --sk-halo-o: .3; --sk-lit-o: .9; --sk-gold: 255 202 60; --sk-red: 255 82 100; --sk-day: none; --sk-night: inline; }
 .hdr-white { background: rgb(var(--c-card) / .94); backdrop-filter: saturate(170%) blur(14px); -webkit-backdrop-filter: saturate(170%) blur(14px); border-bottom: 1px solid rgb(var(--c-line)); color: rgb(var(--c-ink)); }
 @media (min-width: 1024px) { .hdr-white { background: rgb(var(--c-card)); backdrop-filter: none; -webkit-backdrop-filter: none; border-bottom: 3px solid rgb(var(--c-red)); } }
 #hdr-scene { height: clamp(60px, 9vw, 92px); background: rgb(var(--c-card)); border-bottom: 3px solid rgb(var(--c-red)); }
@@ -360,37 +362,47 @@ p { text-wrap: pretty; }
 .btn-navy:hover { filter: brightness(1.2); }
 .btn-navy:active { transform: scale(.96); }
 .sky-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent); }
-.sk-b1 { fill: rgb(var(--sk-b1)); } .sk-b2 { fill: rgb(var(--sk-b2)); } .sk-b3 { fill: rgb(var(--sk-b3)); } .sk-b4 { fill: rgb(var(--sk-b4)); }
-.sk-acc { fill: rgb(var(--sk-acc)); } .sk-acc2 { fill: rgb(var(--sk-acc2)); } .sk-m1 { fill: rgb(var(--sk-m1)); } .sk-m2 { fill: rgb(var(--sk-m2)); }
-.sk-cloud { fill: rgb(var(--sk-cloud)); } .sk-sun { fill: rgb(var(--sk-sun)); } .sk-win { fill: rgb(var(--sk-win)); opacity: var(--sk-win-o); }
-.sk-stroke { stroke: rgb(var(--sk-b4)); } .sk-stroke-acc { stroke: rgb(var(--sk-acc)); }
+/* strokes stay the same css px at every band size (non-scaling), so no per-breakpoint widths */
+.sk-ln, .sk-ln2, .sk-hat, .sk-far, .sk-cl, .sk-stair, .sk-wl { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.sk-ln { stroke: rgb(var(--sk-ink)); stroke-width: 1.45; }
+.sk-ln2 { stroke: rgb(var(--sk-ink2)); stroke-width: 1.05; }
+.sk-hat { stroke: rgb(var(--sk-ink3)); stroke-width: .8; }
+.sk-far { stroke: rgb(var(--sk-far)); stroke-width: .8; }
+.sk-cl { stroke: rgb(var(--sk-cloud)); stroke-width: 1.6; }
+.sk-stair { stroke: rgb(var(--sk-ink2)); stroke-width: 2.2; stroke-dasharray: .8 1.2; stroke-linecap: butt; }
+.sk-wl { stroke: rgb(var(--sk-lit) / var(--sk-lit-o)); stroke-width: 1.6; stroke-linecap: butt; }
+.sk-o { fill: rgb(var(--c-card)); } .sk-tn { fill: rgb(var(--sk-tint)); } .sk-sun { fill: rgb(var(--sk-sun)); } .sk-moon { fill: rgb(var(--sk-moon)); }
+.sk-gd { fill: rgb(var(--sk-lit) / var(--sk-lit-o)); } .sk-gold { fill: rgb(var(--sk-gold)); }
+.sk-s-mist { stop-color: rgb(var(--sk-mist)); } .sk-s-card { stop-color: rgb(var(--c-card)); } .sk-s-halo { stop-color: rgb(var(--sk-halo)); } .sk-s-lit { stop-color: rgb(var(--sk-lit)); }
+.sk-dy { display: var(--sk-day); } .sk-nt { display: var(--sk-night); } .sk-street { opacity: .32; }
 .sk-paused * { animation-play-state: paused !important; }
-.sk-rise { animation: skRise 1.2s cubic-bezier(.2,.8,.2,1) both; }
-@keyframes skRise { from { transform: translateY(16px); opacity: 0; } }
-.sk-roll { animation: skRoll linear infinite; }
-@keyframes skRoll { to { transform: translateX(-640px); } }
-.sk-cloud-g { animation: skCloud linear infinite; }
-@keyframes skCloud { from { transform: translateX(-90px); } to { transform: translateX(730px); } }
-.sk-sun-g { transform-box: fill-box; transform-origin: center; animation: skSun 8s ease-in-out infinite; }
-@keyframes skSun { 50% { transform: translateY(-2px) scale(1.06); } }
-.sk-shine { animation: skShine 7s cubic-bezier(.45,0,.2,1) infinite; }
-@keyframes skShine { 0%, 50% { transform: translateY(40px); opacity: 0; } 62% { opacity: .5; } 90%, 100% { transform: translateY(-80px); opacity: 0; } }
-.sk-beacon { animation: skBeacon 2.4s ease-in-out infinite; }
-@keyframes skBeacon { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
-.sk-steam { fill: rgb(var(--sk-cloud)); transform-box: fill-box; transform-origin: center; opacity: 0; animation: skSteam 5.2s ease-out infinite; }
-@keyframes skSteam { 0% { transform: translate(0, 0) scale(.5); opacity: 0; } 15% { opacity: .95; } 100% { transform: translate(10px, -20px) scale(2.4); opacity: 0; } }
-.sk-flock { animation: skFlock 42s linear infinite; animation-delay: -12s; }
-@keyframes skFlock { 0% { transform: translate(-40px, 4px); } 50% { transform: translate(320px, -3px); } 100% { transform: translate(690px, 2px); } }
-.sk-bird { transform-box: fill-box; transform-origin: center; animation: skFlap .5s ease-in-out infinite alternate; }
-@keyframes skFlap { to { transform: scaleY(-.4); } }
+/* entrance: each layer / landmark rises in once (no fill after it ends) */
+.sk-up { animation: skUp 1.3s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes skUp { from { transform: translateY(12px); opacity: 0; } }
+/* loops: slow beacon + rare ping, glint up the glass, breathing sun/moon glow, drifting streaks, gliding birds, stars */
+.sk-bc { fill: rgb(var(--sk-red)); animation: skBc 4s ease-in-out infinite; }
+@keyframes skBc { 50% { opacity: .5; } }
+.sk-ping { fill: none; stroke: rgb(var(--sk-red)); stroke-width: .9; vector-effect: non-scaling-stroke; transform-box: fill-box; transform-origin: center; opacity: 0; animation: skPing 8s ease-out 1.6s infinite; }
+@keyframes skPing { 0% { transform: scale(1); opacity: .4; } 25%, 100% { transform: scale(2.6); opacity: 0; } }
+.sk-gl { fill: rgb(var(--sk-glint)); opacity: 0; animation: skGlint 10s cubic-bezier(.45,0,.2,1) 2.5s infinite; }
+@keyframes skGlint { 0% { transform: translateY(14px); opacity: 0; } 12% { opacity: .6; } 40%, 100% { transform: translateY(-70px); opacity: 0; } }
+.sk-glow { opacity: var(--sk-halo-o); transform-box: fill-box; transform-origin: center; animation: skBreathe 9s ease-in-out infinite; }
+@keyframes skBreathe { 50% { transform: scale(1.15); } }
+.sk-drift { animation: skDrift linear infinite; }
+@keyframes skDrift { from { transform: translateX(-20px); } to { transform: translateX(880px); } }
+.sk-birds { animation: skBirds 90s linear -30s infinite; }
+@keyframes skBirds { 0% { transform: translate(-290px, 3px); } 50% { transform: translate(150px, -2px); } 100% { transform: translate(590px, 2px); } }
+.sk-star { fill: rgb(var(--sk-star)); animation: skTw 4.6s ease-in-out infinite; }
+@keyframes skTw { 50% { opacity: .25; } }
 /* Low-vision mode (eye button) */
 html.a11y main, html.a11y footer, html.a11y #modal-root .sheet { zoom: 1.12; }
 html.a11y { --c-muted: 52 62 86; --c-line: 190 198 212; }
 html.a11y *, html.a11y *::before, html.a11y *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 html.a11y :focus-visible { outline-width: 4px; outline-offset: 3px; }
 html.a11y .scene::after { display: none; }
-html.a11y .sk-shine, html.a11y .sk-steam { opacity: 0; }
-@media (prefers-reduced-motion: reduce) { #hb-sky *, #hdr-scene * { animation: none !important; } .sk-steam, .sk-shine { opacity: 0; } }
+html.a11y #hb-sky *, html.a11y #hdr-scene * { animation: none !important; }
+html.a11y .sk-drift { transform: translateX(256px); } html.a11y .sk-drift + .sk-drift { transform: translateX(648px); }   /* үүл хөдлөхгүй үед зургийн дотор үлдэнэ */
+@media (prefers-reduced-motion: reduce) { #hb-sky *, #hdr-scene * { animation: none !important; } .sk-drift { transform: translateX(256px); } .sk-drift + .sk-drift { transform: translateX(648px); } }
 
 /* ============ Admin ============ */
 body.admin-mode > *:not(#view-admin):not(#modal-root):not(#toast-root):not(script) { display: none !important; }
