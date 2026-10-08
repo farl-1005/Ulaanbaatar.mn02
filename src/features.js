@@ -724,7 +724,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (el.dataset.input === 'svcQ') { S.svcQ = el.value; $('#svc-grid').innerHTML = svcGrid(); }
-  else if (el.dataset.input === 'trQ') { S.trQ = el.value; $('#tr-panel').innerHTML = trRows(); }
+  else if (el.dataset.input === 'trQ') { S.trQ = el.value; $('#tr-panel').innerHTML = trRows(true); }   // хайх үед дахин хөдөлгөөнгүй
   else if (el.id === 'chat-in') autoGrow(el);
 });
 document.addEventListener('submit', (e) => {

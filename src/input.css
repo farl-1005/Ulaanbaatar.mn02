@@ -415,3 +415,23 @@ body.admin-mode > *:not(#view-admin):not(#modal-root):not(#toast-root):not(scrip
 .sq-kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; border: 1px solid rgb(var(--c-line)); background: rgb(var(--c-soft)); color: rgb(var(--c-muted)); font-size: 11.5px; font-weight: 700; line-height: 1; }
 .sq-in { animation: sqIn .28s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes sqIn { from { opacity: 0; transform: translateY(4px); } }
+
+/* ---- Ил тод байдал: дэлгэцэнд орж ирэхэд картууд, мөрүүд ээлжлэн гарч, тендерийн явц дүүрнэ ---- */
+.tr-kpi, .tr-row { opacity: 0; transform: translateY(14px); }
+.tr-in .tr-kpi { animation: trIn .75s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(var(--i) * 90ms); }
+.tr-in .tr-row { animation: trIn .6s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(120ms + var(--i) * 55ms); }
+.tr-in .tr-quiet .tr-row { animation: none; opacity: 1; transform: none; }
+@keyframes trIn { to { opacity: 1; transform: none; } }
+.tr-bar { width: 0; transition: width 1.2s cubic-bezier(.22, 1, .36, 1); transition-delay: calc(350ms + var(--i, 0) * 55ms); }
+.tr-in .tr-bar { width: var(--w); }
+.tr-in .tr-quiet .tr-bar { transition: none; }
+.tr-row .tr-ic { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+.tr-row button:hover .tr-ic { transform: scale(1.08) rotate(-4deg); }
+.tr-row .tr-go { transition: transform .35s cubic-bezier(.22, 1, .36, 1), background-color .2s, color .2s, border-color .2s; }
+.tr-row button:hover .tr-go { transform: translateX(4px); background: rgb(var(--c-ink)); color: rgb(var(--c-card)); border-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  .tr-kpi, .tr-row { opacity: 1; transform: none; animation: none !important; }
+  .tr-bar { transition: none; width: var(--w); }
+}
+html.a11y .tr-kpi, html.a11y .tr-row { opacity: 1; transform: none; animation: none !important; }
+
