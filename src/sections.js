@@ -15,8 +15,16 @@ function govHTML() {
     <ul class="divide-y divide-line">${GOV.map((gid) => NEWS_BY[gid]).map((g) => `<li><button type="button" class="w-full text-left px-5 py-4 hover:bg-soft transition-colors" data-act="news" data-id="${g.id}"><span class="block text-[12.5px] text-muted">${ago(g.ago)}</span><span class="block mt-1 text-[14.5px] font-semibold leading-snug">${esc(L(g.t))}</span></button></li>`).join('')}</ul>
     <button type="button" class="w-full flex items-center justify-between px-5 py-4 border-t border-line text-[14px] font-bold text-ubblue hover:bg-soft transition-colors" data-act="vote" data-tab="idea" data-gov="1">${t('govLetter')}${ic('pen-line', 'w-[18px] h-[18px]')}</button></div>
   <div class="grid gap-3 mt-4">
-    <button type="button" class="lift rounded-[18px] bg-ubred text-white p-4 flex items-center gap-4 text-left" data-act="report"><span class="w-12 h-12 rounded-xl bg-white/15 grid place-items-center">${ic('siren', 'w-6 h-6')}</span><span class="flex-1 min-w-0"><b class="block text-[16px]">${t('cta_report')}</b><span class="block text-[13px] text-white/80 leading-snug">${t('reportDesc')}</span></span>${ic('chevron-right', 'w-5 h-5 opacity-80')}</button>
-    <button type="button" class="lift lift-blue rounded-[18px] bg-ubblue text-white p-4 flex items-center gap-4 text-left" data-act="vote"><span class="w-12 h-12 rounded-xl bg-white/15 grid place-items-center">${ic('vote', 'w-6 h-6')}</span><span class="flex-1 min-w-0"><b class="block text-[16px]">${t('cta_vote')}</b><span class="block text-[13px] text-white/80 leading-snug">${t('voteDesc')}</span></span>${ic('chevron-right', 'w-5 h-5 opacity-80')}</button></div>`;
+    ${ctaCard('report', 'cta-red', 'siren', t('cta_report'), t('reportDesc'), L(['24/7 · ~1 минут', '24/7 · ~1 min']))}
+    ${ctaCard('vote', 'cta-blue', 'vote', t('cta_vote'), t('voteDesc'), L(['Таны санал хотыг өөрчилнө', 'Your voice shapes the city']))}</div>`;
+}
+/* Hero хажуугийн том CTA карт: градиент, гялбаа, хөдөлгөөнт тэмдэг */
+function ctaCard(act, cls, icon, title, desc, meta) {
+  return `<button type="button" class="cta-card ${cls} group" data-act="${act}">
+    <span class="flex items-start justify-between w-full"><span class="cta-ic">${animIcon(icon, 'w-[26px] h-[26px]')}</span><span class="cta-arrow">${ic('arrow-up-right', 'w-[18px] h-[18px]')}</span></span>
+    <span class="block mt-4"><b class="block text-[18px] leading-tight tracking-[-0.01em]">${title}</b><span class="block mt-1.5 text-[13.5px] text-white/80 leading-snug">${desc}</span></span>
+    <span class="cta-meta">${ic(act === 'report' ? 'clock-3' : 'sparkles', 'w-3.5 h-3.5')}${meta}</span>
+    <span class="cta-bg" aria-hidden="true">${ic(icon, 'w-full h-full', 1.4)}</span></button>`;
 }
 function renderHero() {
   const m = NEWS_BY[HERO_ID]; if (!m) { $('#hero').innerHTML = ''; return; }

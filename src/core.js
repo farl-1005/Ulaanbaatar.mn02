@@ -13,6 +13,24 @@ function ic(n, c = 'w-5 h-5', sw = 1.9) {
   return `<svg class="${c} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${b || '<circle cx="12" cy="12" r="9"/>'}</svg>`;
 }
 
+/* Хөдөлгөөнт тэмдэг (өөрийн SVG + CSS хөдөлгөөн, input.css-ийн .ai-*). name: 'siren' | 'vote' */
+function animIcon(name, c = 'w-6 h-6') {
+  const a = `class="ai ai-${name} ${c} shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"`;
+  if (name === 'siren') return `<svg ${a}>
+    <g class="ai-ray ai-ray-a"><path d="M3 12.5H1.8"/><path d="m5.3 6.3-.9-.9"/></g>
+    <g class="ai-ray ai-ray-b"><path d="M21 12.5h1.2"/><path d="m18.7 6.3.9-.9"/></g>
+    <path class="ai-ray ai-ray-c" d="M12 2.6V1.4"/>
+    <path d="M7 18v-6a5 5 0 1 1 10 0v6"/>
+    <circle class="ai-lamp" cx="12" cy="13" r="2.1" fill="currentColor" stroke="none"/>
+    <path d="M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z"/></svg>`;
+  if (name === 'vote') { const id = 'aic' + (++animIcon.n); return `<svg ${a}>
+    <defs><clipPath id="${id}"><rect x="0" y="-6" width="24" height="18"/></clipPath></defs>
+    <g clip-path="url(#${id})"><g class="ai-ballot"><rect x="9" y="3" width="6" height="10" rx="1"/><path class="ai-check" d="m10.4 7.9 1.2 1.2 2.1-2.3"/></g></g>
+    <g class="ai-box"><path d="M3.5 12h5M15.5 12h5"/><path d="M3.5 12v7.5A1.5 1.5 0 0 0 5 21h14a1.5 1.5 0 0 0 1.5-1.5V12"/><path d="M8.5 16.5h7"/></g></svg>`; }
+  return ic(name, c);
+}
+animIcon.n = 0;
+
 /* ================= State ================= */
 const S = {
   lang: store.get('lang', 'mn') === 'en' ? 'en' : 'mn',
@@ -305,7 +323,7 @@ function renderHeader() {
   $('#hdr-nav').innerHTML = `<nav class="navbar" id="navbar" aria-label="Main"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center relative">
     <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoMark('w-[34px] h-[34px]')}</button>
     <ul class="flex items-stretch h-full relative" id="nav-items">${MENU.map((m, i) => `<li class="h-full flex"><button type="button" class="nav-btn h-full px-3 xl:px-4 flex items-center gap-1 font-semibold text-[15px] text-ink/80 hover:text-ink transition-colors" data-menu="${i}" data-sec="${m.sec}" aria-expanded="false" aria-haspopup="true">${menuLabel(m)}${ic('chevron-down', 'w-4 h-4 opacity-50')}</button></li>`).join('')}<span class="nav-ind" id="nav-ind"></span></ul>
-    <div class="ml-auto flex items-center gap-2"><button type="button" class="btn btn-red btn-sm h-10" data-act="report">${ic('siren', 'w-[18px] h-[18px]')}${t('cta_report')}</button><button type="button" class="btn btn-blue btn-sm h-10" data-act="vote">${ic('vote', 'w-[18px] h-[18px]')}${t('cta_vote')}</button></div>
+    <div class="ml-auto flex items-center gap-2"><button type="button" class="cta-pill cta-red" data-act="report"><span class="cta-pill-ic">${animIcon('siren', 'w-[18px] h-[18px]')}</span>${t('cta_report')}</button><button type="button" class="cta-pill cta-blue" data-act="vote"><span class="cta-pill-ic">${animIcon('vote', 'w-[18px] h-[18px]')}</span>${t('cta_vote')}</button></div>
     <div class="mega" id="mega" role="region"></div></div></nav>`;
   setupNav();
 }
@@ -366,7 +384,7 @@ function renderBottomBar() {
   $('#bbar').innerHTML = `<nav class="bbar lg:hidden" aria-label="Mobile"><div class="grid grid-cols-5 h-[64px] max-w-lg mx-auto">
     ${it('home', 'house', t('bb_home'), 'data-act="go" data-sec="hero"')}
     ${it('services', 'layout-grid', t('bb_services'), 'data-act="go" data-sec="hub" data-hub="services"')}
-    <button type="button" class="bb-item !text-ink" data-act="report" aria-label="${esc(t('cta_report'))}"><span class="-mt-7 w-[54px] h-[54px] rounded-full bg-ubred text-white grid place-items-center shadow-[0_12px_24px_-10px_rgb(var(--c-red))] ring-4 ring-page">${ic('siren', 'w-6 h-6')}</span><span>${t('bb_report')}</span></button>
+    <button type="button" class="bb-item !text-ink" data-act="report" aria-label="${esc(t('cta_report'))}"><span class="-mt-7 w-[54px] h-[54px] rounded-full bg-ubred text-white grid place-items-center shadow-[0_12px_24px_-10px_rgb(var(--c-red))] ring-4 ring-page">${animIcon('siren', 'w-6 h-6')}</span><span>${t('bb_report')}</span></button>
     ${it('news', 'newspaper', t('bb_news'), 'data-act="go" data-sec="hub" data-hub="news"')}
     ${it('my', 'circle-user-round', t('bb_my'), 'data-act="my"')}
   </div></nav>`;
@@ -376,7 +394,7 @@ function openMenu() {
   wrap.className = 'ovl'; wrap.id = 'mmenu'; wrap.setAttribute('role', 'dialog'); wrap.setAttribute('aria-modal', 'true');
   wrap.innerHTML = `<div class="drawer"><div class="flex items-center justify-between px-5 h-16 border-b border-line"><span class="flex items-center gap-3">${logoMark('w-9 h-9')}<b class="text-[17px]">${t('brand')}</b></span><button type="button" class="icon-btn hover:bg-soft" data-act="menu-close" aria-label="${esc(t('close'))}">${ic('x')}</button></div>
     <div class="p-5 space-y-5"><button type="button" data-act="search" class="w-full h-12 rounded-xl border border-line bg-soft flex items-center gap-3 px-4 text-muted">${ic('search')}${t('searchPh')}</button>
-    <div class="grid grid-cols-1 gap-2"><button type="button" class="btn btn-red" data-act="report">${ic('siren', 'w-[18px] h-[18px]')}${t('cta_report')}</button><button type="button" class="btn btn-blue" data-act="vote">${ic('vote', 'w-[18px] h-[18px]')}${t('cta_vote')}</button></div>${CMS.canEdit ? `<button type="button" class="btn btn-ghost w-full" data-act="admin">${ic('pencil-line', 'w-[18px] h-[18px]')}${L(['Сайтыг засах', 'Edit site'])}</button>` : ''}
+    <div class="grid grid-cols-1 gap-2"><button type="button" class="cta-pill cta-red !h-12 justify-center" data-act="report"><span class="cta-pill-ic">${animIcon('siren', 'w-5 h-5')}</span>${t('cta_report')}</button><button type="button" class="cta-pill cta-blue !h-12 justify-center" data-act="vote"><span class="cta-pill-ic">${animIcon('vote', 'w-5 h-5')}</span>${t('cta_vote')}</button></div>${CMS.canEdit ? `<button type="button" class="btn btn-ghost w-full" data-act="admin">${ic('pencil-line', 'w-[18px] h-[18px]')}${L(['Сайтыг засах', 'Edit site'])}</button>` : ''}
     <div class="divide-y divide-line border-y border-line">${MENU.map((m, i) => `<div><button type="button" class="w-full h-14 flex items-center justify-between font-bold text-[16px]" data-act="acc" data-i="${i}" aria-expanded="false">${menuLabel(m)}${ic('chevron-down', 'w-5 h-5 transition-transform')}</button><div class="hidden pb-3 space-y-1" data-acc="${i}">${m.items.map((it) => `<button type="button" class="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-soft text-left" ${itemAct(it)}><span class="w-9 h-9 rounded-lg bg-soft grid place-items-center text-ubred">${ic(it.i, 'w-[18px] h-[18px]')}</span><span class="text-[14.5px] font-semibold">${esc(L(it.t))}</span></button>`).join('')}</div></div>`).join('')}</div>
     <div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2">${langToggle(false)}${themeBtn(false)}${a11yBtn()}</div>${S.user ? `<button type="button" class="btn btn-sm btn-ghost" data-act="my">${t('myCorner')}</button>` : `<button type="button" class="btn btn-sm btn-ink" data-act="login">${ic('fingerprint', 'w-4 h-4')}${t('login')}</button>`}</div></div></div>`;
   document.body.appendChild(wrap);
