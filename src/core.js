@@ -236,9 +236,24 @@ function themeBtn(dark) {
   const d = S.theme === 'dark', lbl = esc(d ? t('themeLight') : t('themeDark'));
   return `<button type="button" data-act="theme" class="icon-btn ${dark ? 'hover:bg-white/10' : '!rounded-lg border border-line hover:bg-soft'}" aria-label="${lbl}" title="${lbl}">${ic(d ? 'sun' : 'moon', 'w-[19px] h-[19px]')}</button>`;
 }
-function applyTheme(animate, extra) {
-  const run = () => { document.documentElement.setAttribute('data-theme', S.theme); const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', S.theme === 'dark' ? '#060E22' : '#0B1D45'); if (extra) extra(); };
-  if (animate && !reduced && document.startViewTransition) { try { document.startViewTransition(run); return; } catch (e) { /* fall through */ } }
+/* Горим солих: шинэ горим дарсан цэгээс (origin) тойрог хэлбэрээр тэлж бүх дэлгэцийг бүрхэнэ (View Transitions API). */
+function applyTheme(animate, extra, origin) {
+  const root = document.documentElement;
+  const run = () => { root.setAttribute('data-theme', S.theme); const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', S.theme === 'dark' ? '#060E22' : '#0B1D45'); if (extra) extra(); };
+  if (animate && !reduced && document.startViewTransition) {
+    try {
+      const x = origin ? origin.x : innerWidth - 48, y = origin ? origin.y : 48;
+      const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));   // хамгийн алс булан хүртэлх зай
+      root.classList.add('theme-vt');
+      const vt = document.startViewTransition(run);
+      vt.ready.then(() => root.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+        { duration: 820, easing: 'cubic-bezier(.33, 1, .68, 1)', pseudoElement: '::view-transition-new(root)' },
+      )).catch(() => {});
+      vt.finished.finally(() => root.classList.remove('theme-vt'));
+      return;
+    } catch (e) { root.classList.remove('theme-vt'); }
+  }
   run();
 }
 function a11yBtn() {

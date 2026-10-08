@@ -636,9 +636,10 @@ document.addEventListener('click', (e) => {
     case 'home': if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
     case 'lang': setLang(d.v); break;
     case 'a11y': { S.a11y = !S.a11y; store.set('a11y', S.a11y); applyA11y(); renderHeader(); setActiveNav(currentSec); const mb = $('#mmenu [data-act="a11y"]'); if (mb) mb.outerHTML = a11yBtn(); toast(S.a11y ? t('a11yOn') : t('a11yOff'), 'eye'); setTimeout(() => initTabs(), 60); break; }
-    case 'theme': S.theme = S.theme === 'dark' ? 'light' : 'dark'; store.set('theme', S.theme);
-      applyTheme(true, () => { renderHeader(); setActiveNav(currentSec); const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0); const mb = $('#mmenu [data-act="theme"]'); if (mb) mb.outerHTML = themeBtn(false); });
-      break;
+    case 'theme': { S.theme = S.theme === 'dark' ? 'light' : 'dark'; store.set('theme', S.theme);
+      const br = el.getBoundingClientRect(), origin = { x: br.left + br.width / 2, y: br.top + br.height / 2 };
+      applyTheme(true, () => { renderHeader(); setActiveNav(currentSec); const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0); const mb = $('#mmenu [data-act="theme"]'); if (mb) mb.outerHTML = themeBtn(false); $$('[data-act="theme"] svg').forEach((ico) => ico.classList.add('theme-pop')); }, origin);
+      break; }
     case 'search': openSearch(); break;
     case 'sq': SQ.q = d.v; SQ.idx = 0; $('#sq').value = d.v; sqRender(); $('#sq').focus(); break;
     case 'sq-scope': SQ.scope = d.v; SQ.idx = 0; sqRender(); $('#sq').focus(); break;
