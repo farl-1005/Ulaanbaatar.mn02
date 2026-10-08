@@ -350,7 +350,8 @@ function openVote(tab, opts = {}) {
 
 /* ================= Media player ================= */
 function openMedia(i) {
-  const m = MEDIA[i];
+  const m = MEDIA[i]; if (!m) return;
+  if (/^https?:\/\//.test(m.url || '')) { window.open(m.url, '_blank', 'noopener'); return; }   // admin-аас оруулсан бодит бичлэг
   let playing = false, pos = 0, timer = null, ph = 0, viewers = m.viewers || 0, liveSec = 4333;
   const durS = m.dur ? m.dur.split(':').reduce((a, b) => a * 60 + +b, 0) : 0;
   const fmt = (s) => { s = Math.floor(s); const h = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60; return (h ? h + ':' + pad(mm) : mm) + ':' + pad(ss); };
@@ -391,7 +392,9 @@ function openMedia(i) {
 
 /* ================= Documents, tenders, events ================= */
 function openDoc(type, i) {
-  const d = DOCS[type][i], date = addDays(today(), -d.ago);
+  const d = DOCS[type][i]; if (!d) return;
+  if (/^https?:\/\//.test(d.url || '')) { window.open(d.url, '_blank', 'noopener'); return; }   // admin-аас оруулсан баримтын холбоос
+  const date = addDays(today(), -d.ago);
   if (type === 'tender') { openTender(d, date); return; }
   const res = type === 'res';
   const hdr = res ? L(['НИЙСЛЭЛИЙН ИРГЭДИЙН ТӨЛӨӨЛӨГЧДИЙН ХУРЛЫН ТОГТООЛ', 'RESOLUTION OF THE CITY COUNCIL']) : L(['НИЙСЛЭЛИЙН ЗАСАГ ДАРГЫН ЗАХИРАМЖ', 'ORDER OF THE GOVERNOR OF THE CAPITAL CITY']);
@@ -658,6 +661,7 @@ document.addEventListener('click', (e) => {
     case 'notify': closeModal(); toast(t('notifyOn'), 'bell-ring'); break;
     case 'news': openNews(d.id); break;
     case 'news-back': newsBack(); break;
+    case 'ext-link': if (/^https?:\/\//.test(d.href || '')) { closeMenu(); window.open(d.href, '_blank', 'noopener'); } break;
     case 'nfb': S.newsFb = true; { const b = $('#nfb'); if (b) b.outerHTML = newsFbHTML(); } toast(t('thanks'), 'heart'); break;
     case 'print': window.print(); break;
     case 'gov': openGov(+d.i); break;

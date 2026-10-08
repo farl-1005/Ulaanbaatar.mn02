@@ -49,7 +49,8 @@ const Q = {
 };
 
 /* ================= Туслах ================= */
-const COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media'];
+const COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
+  'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq'];   // src/cms.js-ийн CMS_COLS-тай ижил
 const ID_RE = /^[\w.-]{1,80}$/;
 const now = () => new Date().toISOString();
 const sha = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
