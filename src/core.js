@@ -279,8 +279,22 @@ function a11yBtn() {
   return `<button type="button" data-act="a11y" aria-pressed="${!!S.a11y}" class="icon-btn !rounded-lg border transition-colors ${S.a11y ? 'bg-ink text-card border-transparent' : 'border-line hover:bg-soft'}" aria-label="${lbl}" title="${lbl}">${ic('eye', 'w-[19px] h-[19px]')}</button>`;
 }
 function applyA11y() { document.documentElement.classList.toggle('a11y', !!S.a11y); }
+/* Мэдээний хаяг: сервер (server/pages.js) /news/<id> хуудсыг үйлчилдэг бол тэр хаягийг, үгүй бол (нэг файлт хувилбар, статик хостинг) #news/<id> */
+const PRETTY = !!document.querySelector('meta[name="ubmn-routes"]');
+const newsHref = (id) => (PRETTY ? '/news/' + encodeURIComponent(id) : '#news/' + id);
+const newsUrl = (n) => (PRETTY ? location.origin + newsHref(n.id) : NEWS_SRC + n.id.slice(1));   // share хийх хаяг
+function urlNewsId() {
+  const m = PRETTY && location.pathname.match(/^\/news\/([^/]+)\/?$/);
+  if (m) { try { return decodeURIComponent(m[1]); } catch (e) { return null; } }
+  const h = decodeURIComponent((location.hash || '').slice(1));
+  return h.startsWith('news/') ? h.slice(5) : null;
+}
 function setHash(sec) {
-  try { const h = sec && sec !== 'hero' ? '#' + sec : ''; if (location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search); } catch (e) { /* ignore */ }
+  try {
+    const h = sec && sec !== 'hero' ? '#' + sec : '';
+    if (PRETTY) { if (location.pathname !== '/' || location.hash !== h) history.replaceState(null, '', '/' + h); }
+    else if (location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search);
+  } catch (e) { /* ignore */ }
 }
 function pulseSegs(mobile) {
   const cat = aqiCat(S.aqi);
@@ -368,13 +382,13 @@ function setActiveNav(sec) {
 function renderTicker() {
   const el = $('#ticker');
   if (!S.tickerOn || SET.tickerOn === false || !ALERTS.length) { el.innerHTML = ''; return; }
-  const items = ALERTS.map((a) => `<button type="button" data-act="alert" data-id="${a.id}" class="inline-flex items-center gap-2 text-[14px] hover:underline underline-offset-2 shrink-0">${ic(a.i, 'w-4 h-4')}<b>${esc(L(a.k))}.</b><span>${esc(Lf(a.t))}</span></button><span class="w-1.5 h-1.5 rotate-45 bg-onyellow/50 shrink-0" style="background:rgb(var(--c-onyellow)/.45)"></span>`).join('');
+  const items = ALERTS.map((a) => `<button type="button" data-act="alert" data-id="${a.id}" class="inline-flex items-center gap-2 text-[14px] hover:underline underline-offset-2 shrink-0">${ic(a.i, 'w-4 h-4')}<b>${esc(L(a.k))}.</b><span>${esc(Lf(a.t))}</span></button><span class="w-1.5 h-1.5 rotate-45 shrink-0" style="background:rgb(var(--c-tick-fg)/.45)"></span>`).join('');
   el.innerHTML = `<div class="ticker relative" role="region" aria-label="${esc(t('urgent'))}"><div class="flex items-stretch h-11">
     <div class="hazard w-3 sm:w-4 shrink-0" aria-hidden="true"><i></i></div>
     <div class="max-w-site w-full mx-auto flex items-stretch min-w-0">
       <div class="flex items-center gap-2.5 pl-3 sm:pl-5 lg:pl-6 pr-3 shrink-0 font-extrabold text-[13.5px]"><span class="beacon relative z-0 grid place-items-center w-7 h-7 rounded-full bg-ubred text-white">${ic('siren', 'w-4 h-4 wiggle')}</span><span class="hidden sm:inline">${t('urgent')}</span></div>
       <div class="relative flex-1 overflow-hidden ticker-mask ticker-scroll no-scrollbar"><div class="ticker-track flex items-center h-full gap-6 whitespace-nowrap pl-3" style="--dur:${reduced ? 0 : 75}s">${items}${reduced ? '' : items}</div></div>
-      <button type="button" data-act="ticker-close" class="shrink-0 w-11 grid place-items-center hover:bg-black/5" aria-label="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button>
+      <button type="button" data-act="ticker-close" class="ticker-x shrink-0 w-11 grid place-items-center" aria-label="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button>
     </div></div></div>`;
 }
 
@@ -513,7 +527,8 @@ function setRoute(r) {
   else if (r === 'admin') { renderAdmin(); window.scrollTo(0, 0); setHash('admin'); }
   else if (r === 'news') { renderNewsPage(); window.scrollTo(0, 0); }
   else {
-    if (/^#(my|admin|news\/)/.test(location.hash)) setHash('');
+    if (PRETTY && location.pathname !== '/') { try { history.pushState(null, '', '/'); } catch (e) { /* ignore */ } }   // /news/<id>-ээс нүүр рүү: "Буцах" дарахад мэдээ рүүгээ буцна
+    else if (/^#(my|admin|news\/)/.test(location.hash)) setHash('');
     if (was === 'admin') renderAll(); else initTabs($('#view-home'));
     if (was === 'news' && S.homeY != null) window.scrollTo(0, S.homeY);   // мэдээнээс буцахад нүүрний байрлалаа сэргээнэ
   }

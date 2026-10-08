@@ -5,6 +5,7 @@
    Reverse proxy (nginx, Railway, Render г.м.) ард ажиллуулбал TRUST_PROXY=1. */
 const http = require('http'), fs = require('fs'), path = require('path');
 const api = require('./api');
+const pages = require('./pages');   // нүүр ба /news/<id> хуудас, og зураг, sitemap
 const { build } = require('../build');
 
 const SITE = path.join(__dirname, '..', 'dist', 'site');
@@ -14,6 +15,7 @@ const REFRESH_MIN = Math.max(5, +process.env.NEWS_REFRESH_MIN || 15);
 const server = http.createServer((req, res) => {
   let p; try { p = decodeURIComponent(req.url.split('?')[0]); } catch (e) { res.writeHead(400); res.end(); return; }
   if (api.handles(p)) { api.handle(req, res); return; }
+  if (pages.handles(p)) { pages.handle(req, res, p); return; }
   if (req.method !== 'GET' && req.method !== 'HEAD') { res.writeHead(405); res.end(); return; }
   if (p.endsWith('/')) p += 'index.html';
   const f = path.join(SITE, p);

@@ -32,6 +32,8 @@ db.exec(`
 `);
 const Q = {
   cmsAll: db.prepare('SELECT col, id, body FROM cms'),
+  cmsCol: db.prepare('SELECT id, body FROM cms WHERE col = ?'),
+  cmsOne: db.prepare('SELECT body FROM cms WHERE col = ? AND id = ?'),
   cmsPut: db.prepare('INSERT INTO cms (col, id, body, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT (col, id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at'),
   cmsDel: db.prepare('DELETE FROM cms WHERE col = ? AND id = ?'),
   logAdd: db.prepare('INSERT INTO cms_log (at, action, col, id, title, by) VALUES (?, ?, ?, ?, ?, ?)'),
@@ -233,4 +235,8 @@ async function handle(req, res) {
   }
 }
 
-module.exports = { handles, handle };
+/* server/pages.js-д: admin-ы засварыг унших */
+function cmsCol(col) { const out = {}; for (const r of Q.cmsCol.all(col)) out[r.id] = JSON.parse(r.body); return out; }
+function cmsGet(col, id) { const r = Q.cmsOne.get(col, id); return r ? JSON.parse(r.body) : null; }
+
+module.exports = { handles, handle, cmsCol, cmsGet, secure };

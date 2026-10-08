@@ -112,6 +112,11 @@ function runApply() {
   if (S.route === 'admin') { admRefresh(); return; }
   const y = window.scrollY; renderAll(); if (MODAL) paintModal(true); window.scrollTo(0, y);
   if (!wasFirst && added.length && S.route === 'home') toast(L(['Шинэ мэдээ нийтлэгдлээ', 'New story published']) + ': ' + L(added[0].t), 'bell-ring');
+  if (S.pendingNews) {   // /news/<id> хаягаар орж ирсэн, admin-аас нэмсэн мэдээ
+    const id = S.pendingNews; S.pendingNews = null;
+    if (NEWS_BY[id]) { S.newsId = id; setRoute('news'); }
+    else { if (PRETTY) try { history.replaceState(null, '', '/'); } catch (e) { /* ignore */ } setRoute('home'); }
+  }
 }
 
 /* ---- Backend API (server/api.js). Сервергүй (нэг файлт хувилбар) үед local горимд шилжинэ. ---- */
