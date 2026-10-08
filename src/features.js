@@ -77,7 +77,10 @@ function renderNewsPage() {
   const top = NEWS.filter((x) => x.id !== n.id && !x.zar).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5);
   const latest = list.filter((x) => x.id !== n.id && !rel.includes(x)).slice(0, 4);
   const when = n.ts ? fDate(n.ts, true) + ', ' + hhmm(n.ts) : ago(n.ago || 0);
-  const body = (n.b || []).map((p, i) => `<p class="${i === 0 ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[58px] first-letter:leading-[.82] first-letter:font-extrabold first-letter:text-ubred' : ''}">${esc(Lf(p))}</p>`).join('');
+  const enOnlyMn = EN() && n.live;   // бодит мэдээний бүтэн текст зөвхөн монголоор байдаг
+  const paras = enOnlyMn ? (n.sumEn || []).map((x) => [x, x]) : (n.b || []);
+  const photo = /^(assets|https:)/.test(n.img || '');
+  const body = paras.map((p, i) => `<p class="${i === 0 ? 'first-letter:float-left first-letter:mr-2.5 first-letter:mt-1 first-letter:text-[58px] first-letter:leading-[.82] first-letter:font-extrabold first-letter:text-ubred' : ''}">${esc(Lf(p))}</p>`).join('');
   const nav = (x, dir) => x ? `<button type="button" class="group card lift p-4 sm:p-5 text-left flex flex-col gap-2 ${dir > 0 ? 'sm:items-end sm:text-right' : ''}" data-act="news" data-id="${x.id}"><span class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">${dir < 0 ? ic('arrow-left', 'w-4 h-4') : ''}${dir < 0 ? L(['Өмнөх мэдээ', 'Previous']) : L(['Дараагийн мэдээ', 'Next'])}${dir > 0 ? ic('arrow-right', 'w-4 h-4') : ''}</span><span class="text-[15px] font-bold leading-snug line-clamp-2 group-hover:text-ubred transition-colors">${esc(L(x.t))}</span></button>` : '<span class="hidden sm:block"></span>';
   document.title = L(n.t) + ' · ulaanbaatar.mn';
   $('#view-news').innerHTML = `<div class="fixed inset-x-0 top-0 h-[3px] z-[70] pointer-events-none" aria-hidden="true"><div id="nprog" class="h-full bg-ubred origin-left" style="transform:scaleX(0)"></div></div>
@@ -108,13 +111,14 @@ function renderNewsPage() {
       </div>
     </header>
 
-    ${n.img ? `<figure class="mt-8"><div class="scene aspect-[16/9] lg:aspect-[21/9] rounded-[22px] lg:rounded-[28px] overflow-hidden">${Scene(n.img)}</div><figcaption class="mt-2.5 text-[12.5px] text-muted">${L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>` : '<div class="mt-8 h-1.5 rounded-full bg-ubyellow max-w-[880px]"></div>'}
+    ${n.img ? `<figure class="mt-8"><div class="scene aspect-[16/9] lg:aspect-[21/9] rounded-[22px] lg:rounded-[28px] overflow-hidden">${Scene(n.img)}</div><figcaption class="mt-2.5 text-[12.5px] text-muted">${photo ? L(['Зураг: ulaanbaatar.mn', 'Photo: ulaanbaatar.mn']) : L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>` : '<div class="mt-8 h-1.5 rounded-full bg-ubyellow max-w-[880px]"></div>'}
 
     <div class="mt-10 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-10 xl:gap-14">
       <article id="nbody" class="min-w-0 max-w-[720px]">
+        ${enOnlyMn ? `<p class="mb-6 rounded-xl bg-soft px-4 py-3 text-[14px] text-muted flex gap-2.5">${ic('languages', 'w-5 h-5 shrink-0')}<span>The full article is published in Mongolian only.${n.sumEn && n.sumEn.length ? ' Below is an English summary.' : ''} <button type="button" class="font-semibold text-ink underline underline-offset-2" data-act="lang" data-v="mn">Read in Mongolian</button></span></p>` : ''}
         ${body ? `<div class="space-y-5 text-[17px] sm:text-[18px] leading-[1.8] text-ink/90">${body}</div>` : ''}
         ${newsAction(n)}
-        ${n.d ? `<div class="mt-8 rounded-[18px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><p class="flex gap-3 text-[14px] text-muted leading-relaxed">${ic('info', 'w-5 h-5 shrink-0')}<span>${t('srcNote')}</span></p><a class="btn btn-sm btn-ghost shrink-0" href="${NEWS_SRC}${n.id.slice(1)}" target="_blank" rel="noopener">${ic('external-link', 'w-4 h-4')}${t('srcLink')}</a></div>` : ''}
+        ${n.d ? `<div class="mt-8 rounded-[18px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><p class="flex gap-3 text-[14px] text-muted leading-relaxed">${ic('info', 'w-5 h-5 shrink-0')}<span>${n.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p><a class="btn btn-sm btn-ghost shrink-0" href="${NEWS_SRC}${n.id.slice(1)}" target="_blank" rel="noopener">${ic('external-link', 'w-4 h-4')}${t('srcLink')}</a></div>` : ''}
         ${CMS.canEdit ? `<button type="button" class="btn btn-sm btn-ghost mt-4" data-act="adm-site-edit" data-col="news" data-id="${n.id}">${ic('pencil-line', 'w-4 h-4')}${L(['Энэ мэдээг засах', 'Edit this story'])}</button>` : ''}
         <div class="mt-8 flex flex-wrap items-center gap-2"><span class="text-[13px] text-muted mr-1">${L(['Шошго:', 'Tags:'])}</span>
           <button type="button" class="chip" data-act="go" data-sec="hub" data-hub="news" data-cat="${n.cat}">#${esc(L(r.t))}</button><span class="chip">#${L(['Улаанбаатар', 'Ulaanbaatar'])}</span><span class="chip">#${L(['Нийслэл', 'Capital'])}</span></div>

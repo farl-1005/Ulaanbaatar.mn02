@@ -12,11 +12,14 @@ catch (e) { console.error('✗ Шаардлагатай сангууд сууг�
 
 const ROOT = __dirname, SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
 const FILES = ['data.js', 'data2.js', 'scene.js', 'core.js', 'sections.js', 'skyline.js', 'cms.js', 'admin.js', 'features.js'];
+const { getLiveNews, IMG_DIR } = require('./news');
 const pascal = (n) => n.split('-').filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 /** Бүтээнэ. Амжилттай бол null, алдаатай бол алдааны текст буцаана. */
-function build() {
+async function build() {
   const t0 = Date.now();
+  const live = await getLiveNews();
+  console.log('  📰 ' + live.note);
   const js = FILES.map((f) => `/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n');
   const html = fs.readFileSync(path.join(SRC, 'template.html'), 'utf8');
   const ICONS = {}, missing = [];
@@ -24,13 +27,18 @@ function build() {
   for (const m of js.matchAll(/\bic\(\s*'([a-z0-9-]+)'/g)) if (!ICONS[m[1]]) missing.push(m[1]);
   if (missing.length) return 'Lucide-д байхгүй икон: ' + [...new Set(missing)].join(', ') + ' (https://lucide.dev/icons)';
   const LOGO = 'data:image/webp;base64,' + fs.readFileSync(path.join(SRC, 'logo.webp')).toString('base64');   // src/logo.webp-г солиход лого солигдоно
-  const bundle = `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\n${js}\n})();`;
+  // Бодит мэдээ: dist/site нь жижигрүүлсэн зургийг (assets/news/*.webp), нэг файлт хувилбар нь эх зургийг ашиглана.
+  const liveFor = (local) => JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
+  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\n${js}\n})();`;
+  const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
+  fs.mkdirSync(path.join(SITE, 'assets', 'news'), { recursive: true });
+  for (const n of live.items) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
   fs.mkdirSync(path.join(SITE, 'assets'), { recursive: true });
   try { execSync('npx tailwindcss -c tailwind.config.js -i src/input.css -o dist/.tailwind.css --minify', { cwd: ROOT, stdio: 'pipe' }); }
   catch (e) { return 'CSS алдаа: ' + ((e.stderr && e.stderr.toString()) || e.message); }
   const css = fs.readFileSync(path.join(DIST, '.tailwind.css'), 'utf8');
-  fs.writeFileSync(path.join(DIST, 'ulaanbaatar-mn.html'), html.replace('/*__CSS__*/', () => css).replace('/*__JS__*/', () => bundle));
+  fs.writeFileSync(path.join(DIST, 'ulaanbaatar-mn.html'), html.replace('/*__CSS__*/', () => css).replace('/*__JS__*/', () => bundleOne));
   fs.writeFileSync(path.join(SITE, 'assets', 'style.css'), css);
   fs.writeFileSync(path.join(SITE, 'assets', 'app.js'), bundle);
   fs.writeFileSync(path.join(SITE, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 256"><image href="${LOGO}" width="244" height="256"/></svg>`);
@@ -39,18 +47,19 @@ function build() {
   console.log(`✓ Бүтээлээ (${Date.now() - t0} мс)`);
   return null;
 }
-function safeBuild() { try { return build(); } catch (e) { return e.message; } }
+async function safeBuild() { try { return await build(); } catch (e) { return e.message; } }
 
 if (!process.argv.includes('--serve')) {
-  const err = safeBuild();
-  if (err) { console.error('✗ ' + err); process.exit(1); }
-  console.log('  dist/site/ ба dist/ulaanbaatar-mn.html бэлэн боллоо.');
+  safeBuild().then((err) => {
+    if (err) { console.error('✗ ' + err); process.exit(1); }
+    console.log('  dist/site/ ба dist/ulaanbaatar-mn.html бэлэн боллоо.');
+  });
 } else {
   // Хөгжүүлэлтийн сервер: эхлээд асаад (өмнөх хувилбарыг үйлчилнэ), дараа нь бүтээж, хөтчийг refresh хийлгэнэ.
   const clients = new Set(); let buildId = '0', lastErr = '';
   const send = (ev, data) => { for (const res of clients) res.write(`event: ${ev}\ndata: ${String(data).replace(/\n/g, ' ')}\n\n`); };
   const DEV = `<script>(()=>{let seen=null;const es=new EventSource('/__dev');const ok=(e)=>{if(e.data==='0')return;if(seen&&e.data!==seen)location.reload();seen=e.data;};es.addEventListener('hello',ok);es.addEventListener('built',ok);es.addEventListener('fail',(e)=>{let b=document.getElementById('__devErr');if(!b){b=document.createElement('div');b.id='__devErr';b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#D81E34;color:#fff;font:600 14px/1.45 system-ui,sans-serif;padding:14px 16px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);white-space:pre-wrap';document.body.appendChild(b);}b.textContent='✗ '+e.data;});})();</script>`;
-  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml' };
+  const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
   const server = http.createServer((req, res) => {
     let p = decodeURIComponent(req.url.split('?')[0]);
     if (p === '/__dev') {
@@ -73,9 +82,9 @@ if (!process.argv.includes('--serve')) {
     if (++tries <= 10) { setTimeout(() => server.listen(port), 300); return; }   // nodemon дахин асаах үед хуучин процесс гарах хүртэл хүлээнэ
     console.warn(`⚠ ${port} порт завгүй байна, ${port + 1}-ийг оролдож байна...`); port += 1; tries = 0; server.listen(port);
   });
-  server.listen(port, () => {
+  server.listen(port, async () => {
     console.log(`\n→ http://localhost:${port}  (хөтөч өөрөө refresh хийгдэнэ, зогсоох: Ctrl + C, гараар дахин бүтээх: rs + Enter)\n`);
-    const err = safeBuild();
+    const err = await safeBuild();
     if (err) { lastErr = err; console.error('✗ ' + err + '\n  Алдааг засаад хадгалахад автоматаар дахин бүтээнэ.'); send('fail', err); }
     else { buildId = String(Date.now()); send('built', buildId); }
   });

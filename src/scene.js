@@ -194,7 +194,8 @@ const Scene = (() => {
     const body = (R[rec] || R.skyline)(r, id, P);
     return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${defs(id, P)}${body}</svg>`;
   }
-  return (key) => { key = key || 'civic:day:9'; if (key.indexOf('media:') === 0) { const m = CMS.data.media[key.slice(6)]; return m && /^data:image\/(webp|png|jpeg|gif);base64,[A-Za-z0-9+/=]+$/.test(m.src || '') ? `<img src="${m.src}" alt="" decoding="async">` : make('civic:day:9'); } if (!cache.has(key)) cache.set(key, make(key)); return cache.get(key); };
+  const PHOTO = /^(assets\/news\/[\w.-]+|https:\/\/ulaanbaatar\.mn\/files\/[^"'<>\s]+)$/;   // бодит мэдээний зураг (news.js)
+  return (key) => { key = key || 'civic:day:9'; if (PHOTO.test(key)) return `<img src="${key}" alt="" loading="lazy" decoding="async">`; if (key.indexOf('media:') === 0) { const m = CMS.data.media[key.slice(6)]; return m && /^data:image\/(webp|png|jpeg|gif);base64,[A-Za-z0-9+/=]+$/.test(m.src || '') ? `<img src="${m.src}" alt="" decoding="async">` : make('civic:day:9'); } if (!cache.has(key)) cache.set(key, make(key)); return cache.get(key); };
 })();
 
 /* ================= Logo (Улаанбаатар хотын сүлд: Хан Гаруди) — зураг нь src/logo.webp ================= */

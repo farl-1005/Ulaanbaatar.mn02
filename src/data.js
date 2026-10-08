@@ -371,6 +371,20 @@ const NEWS = [
     t: ['Үндэсний цэцэрлэгт хүрээлэнд мянган мод суулгалаа', '1,000 trees planted in the National Park'],
     l: ['«Тэрбум мод» үндэсний хөдөлгөөний хүрээнд намрын мод тарих нэгдсэн арга хэмжээ эхэлж, ногоон хөгжлийг дэмжих, уур амьсгалын өөрчлөлтийг сааруулах зорилгоор 1000 мод тарилаа.', 'The autumn planting drive under the Billion Trees movement opened with 1,000 trees, in support of green growth and climate action.'] },
 ];
+/* Бодит мэдээ: build үед ulaanbaatar.mn API-аас татсан LIVE_NEWS (news.js). Гараар бэлдсэн мэдээтэй ID-аар нь нийлүүлнэ:
+   текст, огноо, үзэлт, зураг нь бодит; англи орчуулга, рубрик, үйлдлийн товч, холбоотой мэдээ нь гараар бэлдсэнээс. */
+(function mergeLiveNews() {
+  if (typeof LIVE_NEWS === 'undefined' || !LIVE_NEWS.length) return;
+  const cur = {}; NEWS.forEach((n) => { cur[n.id] = n; });
+  const scn = { transport: 'road:day:', env: 'park:green:', build: 'skyline:dawn:', plan: 'skyline:dawn:' };
+  const fresh = (d) => Date.now() - new Date(String(d).replace(' ', 'T') + ':00+08:00') < 36 * 3600e3;
+  const live = LIVE_NEWS.map((x) => {
+    const c = cur[x.id]; delete cur[x.id];
+    if (!c) return Object.assign({}, x, { img: x.img || (scn[x.cat] || 'civic:day:') + x.id.slice(-2), br: fresh(x.d) ? 1 : 0 });
+    return Object.assign({}, c, x, { cat: c.cat, img: x.img || c.img, br: c.br, t: [x.t[0], c.t[1]], l: [x.l[0], c.l[1]], sumEn: (c.b || []).map((p) => p[1]).filter(Boolean) });
+  });
+  NEWS.splice(0, NEWS.length, ...live, ...Object.values(cur));
+})();
 const INCOMING = [];
 const GOV = ['n23271', 'n23270', 'n23257'];
 const ADMIN_NAMES = [
