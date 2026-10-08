@@ -32,6 +32,15 @@ async function build() {
   const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\n${js}\n})();`;
   const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
+  // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data.js-ийг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
+  let idx;
+  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\n${fs.readFileSync(path.join(SRC, 'data.js'), 'utf8')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data.js' }); }
+  catch (e) { return 'data.js алдаа: ' + e.message; }
+  const newsIndex = {
+    src: idx.NEWS_SRC,
+    rub: Object.fromEntries(Object.entries(idx.RUB).map(([k, r]) => [k, { t: r.t, c: r.c }])),
+    news: idx.NEWS.map(({ id, t, l, b, d, img, cat, live, zar }) => ({ id, t, l, b, d, img, cat, live, zar })),
+  };
   fs.mkdirSync(path.join(SITE, 'assets', 'news'), { recursive: true });
   for (const n of live.items) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
   fs.mkdirSync(path.join(SITE, 'assets'), { recursive: true });
@@ -44,6 +53,7 @@ async function build() {
   fs.writeFileSync(path.join(SITE, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 256"><image href="${LOGO}" width="244" height="256"/></svg>`);
   const head = '<link rel="stylesheet" href="assets/style.css">\n<link rel="icon" href="favicon.svg" type="image/svg+xml">';
   fs.writeFileSync(path.join(SITE, 'index.html'), html.replace('<style>/*__CSS__*/</style>', () => head).replace('<script>/*__JS__*/</script>', () => '<script src="assets/app.js"></script>'));
+  fs.writeFileSync(path.join(DIST, 'news-index.json'), JSON.stringify(newsIndex));
   console.log(`✓ Бүтээлээ (${Date.now() - t0} мс)`);
   return null;
 }
@@ -63,6 +73,7 @@ if (require.main !== module) {
   const DEV = `<script>(()=>{let seen=null;const es=new EventSource('/__dev');const ok=(e)=>{if(e.data==='0')return;if(seen&&e.data!==seen)location.reload();seen=e.data;};es.addEventListener('hello',ok);es.addEventListener('built',ok);es.addEventListener('fail',(e)=>{let b=document.getElementById('__devErr');if(!b){b=document.createElement('div');b.id='__devErr';b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#D81E34;color:#fff;font:600 14px/1.45 system-ui,sans-serif;padding:14px 16px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);white-space:pre-wrap';document.body.appendChild(b);}b.textContent='✗ '+e.data;});})();</script>`;
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
   const api = require('./server/api');   // backend: admin CMS + маягтууд (data/ub.sqlite)
+  const pages = require('./server/pages');   // нүүр ба /news/<id> хуудас, og зураг, sitemap
   const server = http.createServer((req, res) => {
     let p = decodeURIComponent(req.url.split('?')[0]);
     if (api.handles(p)) { api.handle(req, res); return; }
@@ -71,6 +82,7 @@ if (require.main !== module) {
       res.write(`event: hello\ndata: ${buildId}\n\n`); if (lastErr) res.write(`event: fail\ndata: ${lastErr.replace(/\n/g, ' ')}\n\n`);
       clients.add(res); req.on('close', () => clients.delete(res)); return;
     }
+    if (pages.handles(p)) { pages.handle(req, res, p, { bodyEnd: DEV }); return; }
     if (p.endsWith('/')) p += 'index.html';
     const f = path.join(SITE, p);
     if (!f.startsWith(SITE)) { res.writeHead(403); res.end(); return; }

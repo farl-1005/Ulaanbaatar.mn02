@@ -27,23 +27,23 @@ function newsAction(n) {
   if (n.act === 'poll') return b('vote', 'vote', t('vPoll'), 'data-tab="poll"');
   return '';
 }
-/* ---- Мэдээний дэлгэрэнгүй хуудас (#news/<id>) ---- */
+/* ---- Мэдээний дэлгэрэнгүй хуудас (/news/<id>, сервергүй үед #news/<id>) ---- */
 function openNews(id) {
   if (!NEWS_BY[id]) return;
   if (MODAL) closeModal(true);
   closeMenu();
   if (S.route === 'home') S.homeY = window.scrollY;
   S.newsId = id; S.newsFb = false;
-  try { if (location.hash !== '#news/' + id) history.pushState({ ubNews: 1 }, '', '#news/' + id); } catch (e) { /* ignore */ }
+  try { if ((PRETTY ? location.pathname : location.hash) !== newsHref(id)) history.pushState({ ubNews: 1 }, '', newsHref(id)); } catch (e) { /* ignore */ }
   setRoute('news');
 }
 function newsBack() {
   if (history.state && history.state.ubNews) history.back(); else setRoute('home');
 }
 window.addEventListener('popstate', () => {
-  const h = decodeURIComponent((location.hash || '').slice(1));
-  if (h.startsWith('news/') && NEWS_BY[h.slice(5)]) { S.newsId = h.slice(5); S.newsFb = false; setRoute('news'); }
-  else if (h === 'admin') { if (S.route !== 'admin') setRoute('admin'); }
+  const id = urlNewsId();
+  if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
+  else if (location.hash === '#admin') { if (S.route !== 'admin') setRoute('admin'); }
   else if (S.route === 'news') setRoute('home');
 });
 function newsMins(n) {
@@ -56,7 +56,7 @@ function newsFbHTML() {
     <span class="flex flex-wrap gap-2">${S.newsFb ? `<span class="text-[14px] text-greenink font-semibold inline-flex items-center gap-1.5 h-9">${ic('circle-check', 'w-4 h-4')}${t('thanks')}</span>` : `<button type="button" class="btn btn-sm btn-ghost bg-card" data-act="nfb">${ic('thumbs-up', 'w-4 h-4')}${t('yes')}</button><button type="button" class="btn btn-sm btn-ghost bg-card" data-act="nfb">${ic('thumbs-down', 'w-4 h-4')}${t('no')}</button>`}</span></div>`;
 }
 function newsShare(n, cls = '') {
-  const url = encodeURIComponent(NEWS_SRC + n.id.slice(1));
+  const url = encodeURIComponent(newsUrl(n));
   const b = (inner, label, attrs) => `<${attrs.startsWith('href') ? 'a' : 'button type="button"'} class="icon-btn border border-line hover:bg-soft" aria-label="${esc(label)}" title="${esc(label)}" ${attrs}>${inner}</${attrs.startsWith('href') ? 'a' : 'button'}>`;
   return `<div class="flex items-center gap-2 ${cls}">
     ${b(ic('link', 'w-[18px] h-[18px]'), t('share'), `data-act="copy-link" data-id="${n.id}"`)}
@@ -625,7 +625,7 @@ function onTab(name, v) {
   else if (name === 'dan' && MS.danTab) MS.danTab(v); else if (name === 'vote' && MS.vTab) MS.vTab(v);
 }
 async function copyLink(id) {
-  const url = 'https://ulaanbaatar.mn/news/' + id;
+  const url = newsUrl(NEWS_BY[id] || { id });
   try { await navigator.clipboard.writeText(url); toast(t('copied'), 'link'); } catch (e) { toast(url, 'link'); }
 }
 document.addEventListener('click', (e) => {
@@ -819,8 +819,12 @@ function init() {
   initCMS();
   setTimeout(() => { S.intro = false; const h = $('#hero > div'); if (h) h.classList.remove('intro'); }, 2300);
   setupObservers(); startLive(); initChatCapability();
-  const h = decodeURIComponent((location.hash || '').slice(1));
-  if (h.startsWith('news/') && NEWS_BY[h.slice(5)]) { S.newsId = h.slice(5); setRoute('news'); }
+  const h = decodeURIComponent((location.hash || '').slice(1)), nid = urlNewsId();
+  const sk = $('#skip-link'); if (sk) sk.addEventListener('click', (e) => { e.preventDefault(); $('#main').focus(); });   // <base href="/"> үед #main нүүр рүү үсрэхгүй
+  if (nid) {
+    if (PRETTY && h.startsWith('news/')) try { history.replaceState(null, '', newsHref(nid)); } catch (e) { /* ignore */ }   // хуучин #news/<id> холбоос
+    if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/cms.js)
+  }
   else if (h === 'my' && S.user) setRoute('my');
   else if (h === 'admin') setRoute('admin');
   else if (['hub', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);

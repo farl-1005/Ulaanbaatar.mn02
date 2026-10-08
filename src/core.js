@@ -279,8 +279,22 @@ function a11yBtn() {
   return `<button type="button" data-act="a11y" aria-pressed="${!!S.a11y}" class="icon-btn !rounded-lg border transition-colors ${S.a11y ? 'bg-ink text-card border-transparent' : 'border-line hover:bg-soft'}" aria-label="${lbl}" title="${lbl}">${ic('eye', 'w-[19px] h-[19px]')}</button>`;
 }
 function applyA11y() { document.documentElement.classList.toggle('a11y', !!S.a11y); }
+/* Мэдээний хаяг: сервер (server/pages.js) /news/<id> хуудсыг үйлчилдэг бол тэр хаягийг, үгүй бол (нэг файлт хувилбар, статик хостинг) #news/<id> */
+const PRETTY = !!document.querySelector('meta[name="ubmn-routes"]');
+const newsHref = (id) => (PRETTY ? '/news/' + encodeURIComponent(id) : '#news/' + id);
+const newsUrl = (n) => (PRETTY ? location.origin + newsHref(n.id) : NEWS_SRC + n.id.slice(1));   // share хийх хаяг
+function urlNewsId() {
+  const m = PRETTY && location.pathname.match(/^\/news\/([^/]+)\/?$/);
+  if (m) { try { return decodeURIComponent(m[1]); } catch (e) { return null; } }
+  const h = decodeURIComponent((location.hash || '').slice(1));
+  return h.startsWith('news/') ? h.slice(5) : null;
+}
 function setHash(sec) {
-  try { const h = sec && sec !== 'hero' ? '#' + sec : ''; if (location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search); } catch (e) { /* ignore */ }
+  try {
+    const h = sec && sec !== 'hero' ? '#' + sec : '';
+    if (PRETTY) { if (location.pathname !== '/' || location.hash !== h) history.replaceState(null, '', '/' + h); }
+    else if (location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search);
+  } catch (e) { /* ignore */ }
 }
 function pulseSegs(mobile) {
   const cat = aqiCat(S.aqi);
@@ -513,7 +527,8 @@ function setRoute(r) {
   else if (r === 'admin') { renderAdmin(); window.scrollTo(0, 0); setHash('admin'); }
   else if (r === 'news') { renderNewsPage(); window.scrollTo(0, 0); }
   else {
-    if (/^#(my|admin|news\/)/.test(location.hash)) setHash('');
+    if (PRETTY && location.pathname !== '/') { try { history.pushState(null, '', '/'); } catch (e) { /* ignore */ } }   // /news/<id>-ээс нүүр рүү: "Буцах" дарахад мэдээ рүүгээ буцна
+    else if (/^#(my|admin|news\/)/.test(location.hash)) setHash('');
     if (was === 'admin') renderAll(); else initTabs($('#view-home'));
     if (was === 'news' && S.homeY != null) window.scrollTo(0, S.homeY);   // мэдээнээс буцахад нүүрний байрлалаа сэргээнэ
   }
