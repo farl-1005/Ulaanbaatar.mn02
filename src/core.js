@@ -382,13 +382,13 @@ function setActiveNav(sec) {
 function renderTicker() {
   const el = $('#ticker');
   if (!S.tickerOn || SET.tickerOn === false || !ALERTS.length) { el.innerHTML = ''; return; }
-  const items = ALERTS.map((a) => `<button type="button" data-act="alert" data-id="${a.id}" class="inline-flex items-center gap-2 text-[14px] hover:underline underline-offset-2 shrink-0">${ic(a.i, 'w-4 h-4')}<b>${esc(L(a.k))}.</b><span>${esc(Lf(a.t))}</span></button><span class="w-1.5 h-1.5 rotate-45 bg-onyellow/50 shrink-0" style="background:rgb(var(--c-onyellow)/.45)"></span>`).join('');
+  const items = ALERTS.map((a) => `<button type="button" data-act="alert" data-id="${a.id}" class="inline-flex items-center gap-2 text-[14px] hover:underline underline-offset-2 shrink-0">${ic(a.i, 'w-4 h-4')}<b>${esc(L(a.k))}.</b><span>${esc(Lf(a.t))}</span></button><span class="w-1.5 h-1.5 rotate-45 shrink-0" style="background:rgb(var(--c-tick-fg)/.45)"></span>`).join('');
   el.innerHTML = `<div class="ticker relative" role="region" aria-label="${esc(t('urgent'))}"><div class="flex items-stretch h-11">
     <div class="hazard w-3 sm:w-4 shrink-0" aria-hidden="true"><i></i></div>
     <div class="max-w-site w-full mx-auto flex items-stretch min-w-0">
       <div class="flex items-center gap-2.5 pl-3 sm:pl-5 lg:pl-6 pr-3 shrink-0 font-extrabold text-[13.5px]"><span class="beacon relative z-0 grid place-items-center w-7 h-7 rounded-full bg-ubred text-white">${ic('siren', 'w-4 h-4 wiggle')}</span><span class="hidden sm:inline">${t('urgent')}</span></div>
       <div class="relative flex-1 overflow-hidden ticker-mask ticker-scroll no-scrollbar"><div class="ticker-track flex items-center h-full gap-6 whitespace-nowrap pl-3" style="--dur:${reduced ? 0 : 75}s">${items}${reduced ? '' : items}</div></div>
-      <button type="button" data-act="ticker-close" class="shrink-0 w-11 grid place-items-center hover:bg-black/5" aria-label="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button>
+      <button type="button" data-act="ticker-close" class="ticker-x shrink-0 w-11 grid place-items-center" aria-label="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button>
     </div></div></div>`;
 }
 

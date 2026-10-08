@@ -20,6 +20,7 @@
   --c-amber: 240 140 26;
   --c-amber-ink: 168 88 6;
   --c-glass: 255 255 255;
+  --c-tick-bg: var(--c-yellow); --c-tick-fg: var(--c-onyellow); --tick-edge: 0; --tick-stripe: 1;   /* шар гүйдэг мөр */
   --shadow: 11 29 69;
   --media: 6 11 26;
   --m-land: 236 240 246;
@@ -43,6 +44,7 @@
     --c-red: 240 66 86; --c-blue: 104 145 255; --c-yellow: 255 202 60; --c-onyellow: 38 30 0;
     --c-green: 52 199 140; --c-green-ink: 84 214 160; --c-amber: 247 160 64; --c-amber-ink: 250 178 96;
     --c-glass: 14 20 36; --shadow: 0 0 0; --media: 4 8 20;
+    --c-tick-bg: 46 34 4; --c-tick-fg: 255 202 60; --tick-edge: .28; --tick-stripe: .7;
     --m-land: 18 25 42; --m-dist: 23 31 51; --m-road: 44 56 84; --m-major: 110 92 46; --m-river: 38 78 130;
     --m-green: 22 42 34; --m-edge: 54 66 96; --m-label: 140 152 180; --m-rail: 84 96 124;
     color-scheme: dark;
@@ -54,6 +56,7 @@
   --c-red: 240 66 86; --c-blue: 104 145 255; --c-yellow: 255 202 60; --c-onyellow: 38 30 0;
   --c-green: 52 199 140; --c-green-ink: 84 214 160; --c-amber: 247 160 64; --c-amber-ink: 250 178 96;
   --c-glass: 14 20 36; --shadow: 0 0 0; --media: 4 8 20;
+  --c-tick-bg: 46 34 4; --c-tick-fg: 255 202 60; --tick-edge: .28; --tick-stripe: .7;
   --m-land: 18 25 42; --m-dist: 23 31 51; --m-road: 44 56 84; --m-major: 110 92 46; --m-river: 38 78 130;
   --m-green: 22 42 34; --m-edge: 54 66 96; --m-label: 140 152 180; --m-rail: 84 96 124;
   color-scheme: dark;
@@ -150,13 +153,14 @@ kbd { font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 2px 6p
 .live-badge { display: inline-flex; align-items: center; gap: 8px; height: 26px; padding: 0 10px; border-radius: 99px; background: rgb(var(--c-soft)); border: 1px solid rgb(var(--c-line)); font-size: 12px; font-weight: 700; color: rgb(var(--c-muted)); white-space: nowrap; }
 
 /* ============ Ticker ============ */
-.ticker { background: rgb(var(--c-yellow)); color: rgb(var(--c-onyellow)); }
+.ticker { background: rgb(var(--c-tick-bg)); color: rgb(var(--c-tick-fg)); box-shadow: inset 0 1px rgb(var(--c-tick-fg) / var(--tick-edge)), inset 0 -1px rgb(var(--c-tick-fg) / var(--tick-edge)); }
+.ticker-x:hover { background: rgb(var(--c-tick-fg) / .08); }
 .ticker-track { width: max-content; animation: marquee var(--dur, 60s) linear infinite; }
 .ticker:hover .ticker-track, .ticker:focus-within .ticker-track { animation-play-state: paused; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 .ticker-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 40px), transparent); }
 .hazard { position: relative; overflow: hidden; }
-.hazard > i { position: absolute; top: 0; bottom: 0; left: -40px; right: 0; background: repeating-linear-gradient(-45deg, rgb(var(--c-onyellow)) 0 7px, transparent 7px 14px); animation: hz .9s linear infinite; }
+.hazard > i { position: absolute; top: 0; bottom: 0; left: -40px; right: 0; background: repeating-linear-gradient(-45deg, rgb(var(--c-tick-fg) / var(--tick-stripe)) 0 7px, transparent 7px 14px); animation: hz .9s linear infinite; }
 @keyframes hz { to { transform: translateX(19.8px); } }
 .beacon::before { content: ""; position: absolute; inset: -3px; border-radius: 99px; background: rgb(var(--c-red) / .45); animation: beacon 1.3s ease-out infinite; z-index: -1; }
 @keyframes beacon { from { transform: scale(.7); opacity: 1; } to { transform: scale(1.9); opacity: 0; } }
