@@ -1,0 +1,28 @@
+{
+  "name": "ulaanbaatar-mn",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ulaanbaatar.mn: Нийслэлийн порталын шинэчилсэн концепц",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "node build.js",
+    "serve": "node build.js --serve"
+  },
+  "devDependencies": {
+    "lucide": "0.469.0",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "3.4.17"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src",
+      "tailwind.config.js"
+    ],
+    "ext": "js,css,html",
+    "exec": "node build.js --serve",
+    "delay": 200
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+
+# macOS
+.DS_Store
+
+# Орчны тохиргоо, нууц түлхүүр
+.env
+.env.*
+
+# Лог
+npm-debug.log*
