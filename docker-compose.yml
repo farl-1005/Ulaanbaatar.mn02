@@ -1,0 +1,27 @@
+# VPS дээр: сайт + backend (app) ба HTTPS-ийг автоматаар хийдэг Caddy.
+# Эхлүүлэх:  docker compose up -d --build      Заавар: DEPLOY.md
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env                 # ADMIN_PASSWORD, DOMAIN (git-д орохгүй)
+    volumes:
+      - ubdata:/data               # өгөгдлийн сан, иргэдийн зураг, мэдээний кэш
+    expose:
+      - "3000"
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    env_file: .env
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  ubdata:
+  caddy_data:
+  caddy_config:

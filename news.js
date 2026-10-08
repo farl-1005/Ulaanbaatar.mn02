@@ -7,7 +7,8 @@ const fs = require('fs'), path = require('path');
 
 const API = 'https://ulaanbaatar.mn:8443/api/article?type=TIME_HISTORY&pageSize=';
 const COUNT = 30, CACHE_MIN = 15, IMG_W = 960, IMG_MAX_BYTES = 25e6, TIMEOUT = 10000;
-const CACHE = path.join(__dirname, 'dist', '.news'), IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json');
+const CACHE = process.env.NEWS_CACHE_DIR || path.join(__dirname, 'dist', '.news'),   // production-д байнгын диск дээр (Dockerfile)
+      IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json');
 
 /* ---- HTML → цэвэр текстийн догол мөрүүд (клиент талд esc() хийгдэнэ) ---- */
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', laquo: '«', raquo: '»', ndash: '–', mdash: '—', hellip: '…', middot: '·', bull: '•', deg: '°', times: '×' };

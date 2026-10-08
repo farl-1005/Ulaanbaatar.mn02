@@ -1,0 +1,5 @@
+# DOMAIN-ийг .env-д тохируулбал HTTPS сертификатыг автоматаар авна. Хоосон бол IP хаягаар (http) ажиллана.
+{$DOMAIN::80} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

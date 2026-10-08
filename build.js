@@ -49,7 +49,9 @@ async function build() {
 }
 async function safeBuild() { try { return await build(); } catch (e) { return e.message; } }
 
-if (!process.argv.includes('--serve')) {
+if (require.main !== module) {
+  module.exports = { build: safeBuild };   // server/index.js мэдээг тогтмол шинэчлэхэд ашиглана
+} else if (!process.argv.includes('--serve')) {
   safeBuild().then((err) => {
     if (err) { console.error('✗ ' + err); process.exit(1); }
     console.log('  dist/site/ ба dist/ulaanbaatar-mn.html бэлэн боллоо.');
