@@ -2,6 +2,7 @@
 const ADM = { view: 'dash', q: '', f: 'all', edit: null, lang: 'mn', tg: 'all', tOnly: false, map: null, arm: null };
 const A_NAV = [
   ['dash', 'layout-dashboard', ['Хянах самбар', 'Dashboard']],
+  ['inbox', 'inbox', ['Ирсэн хүсэлт', 'Submissions']],
   ['news', 'newspaper', ['Мэдээ', 'News']],
   ['alerts', 'siren', ['Анхааруулга', 'Alerts']],
   ['events', 'calendar-days', ['Арга хэмжээ', 'Events']],
@@ -67,6 +68,7 @@ const rseed = () => 1 + Math.floor(Math.random() * 999);
 
 /* ---- shell ---- */
 function admModePill() {
+  if (CMS.mode === 'api') return `<span class="inline-flex items-center gap-2 text-[12.5px] font-semibold text-greenink"><span class="live" style="--dot:rgb(var(--c-green))"></span>${L(['Сервертэй холбогдсон', 'Connected to server'])}</span>`;
   if (CMS.mode === 'db') return `<span class="inline-flex items-center gap-2 text-[12.5px] font-semibold text-greenink"><span class="live" style="--dot:rgb(var(--c-green))"></span>${L(['Шууд холбогдсон', 'Live'])}</span>`;
   return `<span class="inline-flex items-center gap-2 text-[12.5px] font-semibold text-amberink" title="${esc(L(['Өөрчлөлт зөвхөн энэ хөтөчид хадгалагдана', 'Changes are saved in this browser only']))}"><span class="w-2 h-2 rounded-full bg-ubamber"></span>${L(['Туршилтын горим', 'Demo mode'])}</span>`;
 }
@@ -76,15 +78,16 @@ function admPrimary() {
   return '';
 }
 function admShell(body) {
-  const cnt = (c) => (SCHEMA[c] ? mergedItems(c).length : c === 'texts' ? Object.keys(CMS.data.texts || {}).length : '');
+  const cnt = (c) => (c === 'inbox' ? (CMS.inboxNew || '') : SCHEMA[c] ? mergedItems(c).length : c === 'texts' ? Object.keys(CMS.data.texts || {}).length : '');
   const nav = (cls) => A_NAV.map(([v, i, l]) => `<button type="button" class="${cls}" data-act="adm-go" data-v="${v}" aria-current="${ADM.view === v}">${ic(i, 'w-[18px] h-[18px]')}<span class="flex-1 text-left">${esc(L(l))}</span>${cnt(v) !== '' ? `<span class="text-[12px] tnum opacity-60">${cnt(v)}</span>` : ''}</button>`).join('');
   const title = (A_NAV.find((x) => x[0] === ADM.view) || A_NAV[0])[2];
   return `<div class="min-h-[100dvh] lg:grid lg:grid-cols-[264px_minmax(0,1fr)] bg-page text-ink">
     <aside class="hidden lg:flex flex-col bg-navy text-white sticky top-0 h-[100dvh] p-4">
       <button type="button" class="flex items-center gap-3 px-2 py-2" data-act="adm-exit">${logoMark('w-10 h-10')}<span class="text-left leading-tight"><b class="block text-[16px]">${t('brand')}</b><span class="text-[12px] text-white/60">${L(['Удирдлагын систем', 'Content admin'])}</span></span></button>
       <nav class="mt-6 space-y-1">${nav('adm-nav')}</nav>
-      <div class="mt-auto rounded-xl bg-white/[.06] border border-white/10 p-3 text-[12.5px] text-white/70 leading-snug">${CMS.mode === 'db' ? L(['Өөрчлөлт нэвтэрсэн бүх хэрэглэгчийн дэлгэц дээр шууд шинэчлэгдэнэ.', 'Changes appear instantly for every signed-in viewer.']) : L(['Энэ хувилбарт өөрчлөлт зөвхөн энэ хөтөчид хадгалагдана.', 'In this version changes are saved in this browser only.'])}</div>
+      <div class="mt-auto rounded-xl bg-white/[.06] border border-white/10 p-3 text-[12.5px] text-white/70 leading-snug">${CMS.mode === 'api' ? L(['Өөрчлөлт серверийн өгөгдлийн санд хадгалагдаж, сайтын бүх зочинд шууд харагдана.', 'Changes are saved to the server database and appear instantly for every visitor.']) : CMS.mode === 'db' ? L(['Өөрчлөлт нэвтэрсэн бүх хэрэглэгчийн дэлгэц дээр шууд шинэчлэгдэнэ.', 'Changes appear instantly for every signed-in viewer.']) : L(['Энэ хувилбарт өөрчлөлт зөвхөн энэ хөтөчид хадгалагдана.', 'In this version changes are saved in this browser only.'])}</div>
       <button type="button" class="mt-3 btn btn-sm bg-white/10 hover:bg-white/15 text-white w-full" data-act="adm-exit">${ic('arrow-left', 'w-4 h-4')}${L(['Сайт руу буцах', 'Back to site'])}</button>
+      ${CMS.mode === 'api' ? `<button type="button" class="mt-2 btn btn-sm text-white/70 hover:text-white hover:bg-white/10 w-full" data-act="adm-logout">${ic('log-out', 'w-4 h-4')}${L(['Гарах', 'Sign out'])}</button>` : ''}
     </aside>
     <div class="min-w-0">
       <header class="sticky top-0 z-30 bg-card/90 backdrop-blur border-b border-line" style="top:env(safe-area-inset-top,0px)"><div class="h-16 px-4 lg:px-8 flex items-center gap-3">
@@ -99,12 +102,13 @@ function admShell(body) {
 function renderAdmin() {
   const el = $('#view-admin'); if (!el) return;
   if (CMS.mode === 'pending') { el.innerHTML = `<div class="min-h-[100dvh] grid place-items-center text-muted"><div class="text-center"><span class="typing"><span></span><span></span><span></span></span><p class="mt-3">${L(['Ачаалж байна', 'Loading'])}</p></div></div>`; return; }
+  if (!CMS.canEdit && CMS.mode === 'api') { el.innerHTML = admLoginHTML(); setTimeout(() => { const i = $('#adm-pw'); if (i) i.focus(); }, 40); return; }
   if (!CMS.canEdit) {
     el.innerHTML = `<div class="min-h-[100dvh] grid place-items-center p-6"><div class="card max-w-md p-8 text-center"><span class="w-14 h-14 mx-auto rounded-2xl bg-soft grid place-items-center text-ubred">${ic('lock', 'w-7 h-7')}</span><h1 class="mt-4 text-[22px] font-extrabold">${L(['Засах эрх шаардлагатай', 'Editing access required'])}</h1><p class="mt-2 text-muted">${CMS.mode === 'static' ? L(['Удирдлагын хэсгийг ашиглахын тулд claude.ai-д нэвтэрсэн байх шаардлагатай.', 'Sign in to claude.ai to use the admin.']) : L(['Агуулгыг зөвхөн эзэмшигч болон редакторууд засна. Эрх авахын тулд эзэмшигчид хандана уу.', 'Only the owner and editors can change content. Ask the owner for access.'])}</p><button type="button" class="btn btn-ink mt-6" data-act="adm-exit">${ic('arrow-left', 'w-[18px] h-[18px]')}${L(['Сайт руу буцах', 'Back to site'])}</button></div></div>`;
     return;
   }
   const y = window.scrollY;
-  el.innerHTML = admShell(ADM.view === 'dash' ? admDash() : ADM.view === 'texts' ? admTexts() : ADM.view === 'settings' ? admSettings() : admList(ADM.view));
+  el.innerHTML = admShell(ADM.view === 'dash' ? admDash() : ADM.view === 'inbox' ? admInbox() : ADM.view === 'texts' ? admTexts() : ADM.view === 'settings' ? admSettings() : admList(ADM.view));
   window.scrollTo(0, y);
   admAfterRender();
 }
@@ -323,11 +327,77 @@ function admTexts() {
     <ul class="divide-y divide-line">${keys.slice(0, 400).map((k) => { const over = !!CMS.data.texts[k]; return `<li class="grid md:grid-cols-[170px_1fr_1fr_112px] gap-2 md:gap-3 px-4 py-3 items-start" data-trow="${k}"><span class="text-[12.5px] text-muted break-all pt-2">${esc(k)}${over ? `<span class="badge b-blue ml-1.5 !h-5">${L(['Өөрчилсөн', 'Changed'])}</span>` : ''}</span><textarea rows="1" class="field !h-auto !py-2 !text-[14px] min-h-[40px]" data-tk="${k}" data-ti="0" aria-label="${esc(k)} MN">${esc(I[k][0])}</textarea><textarea rows="1" class="field !h-auto !py-2 !text-[14px] min-h-[40px]" data-tk="${k}" data-ti="1" aria-label="${esc(k)} EN">${esc(I[k][1])}</textarea><span class="flex gap-1"><button type="button" class="btn btn-sm btn-blue flex-1" data-act="adm-tsave" data-k="${k}" disabled>${L(['Хадгалах', 'Save'])}</button>${over ? `<button type="button" class="icon-btn !w-9 !h-9 !rounded-lg hover:bg-soft" data-act="adm-treset" data-k="${k}" title="${esc(L(['Анхны утга', 'Restore default']))}" aria-label="${esc(L(['Анхны утга', 'Restore default']))}">${ic('rotate-ccw', 'w-4 h-4')}</button>` : ''}</span></li>`; }).join('')}</ul></div>`;
 }
 
+/* ---- login (backend горим) ---- */
+function admLoginHTML() {
+  return `<div class="min-h-[100dvh] grid place-items-center p-6 bg-page"><form data-form="adm-login" class="card w-full max-w-sm p-8" autocomplete="on">
+    <div class="flex justify-center">${logoMark('w-14 h-14')}</div>
+    <h1 class="mt-4 text-center text-[22px] font-extrabold">${L(['Удирдлагын хэсэг', 'Content admin'])}</h1>
+    <p class="mt-1 text-center text-[14px] text-muted">${L(['Үргэлжлүүлэхийн тулд админы нууц үгээ оруулна уу.', 'Enter the admin password to continue.'])}</p>
+    <input type="text" name="username" value="admin" autocomplete="username" class="hidden" tabindex="-1" aria-hidden="true"/>
+    <label class="block mt-6 text-[13.5px] font-semibold mb-2" for="adm-pw">${L(['Нууц үг', 'Password'])}</label>
+    <input id="adm-pw" name="password" type="password" class="field" autocomplete="current-password" required/>
+    <p id="adm-pw-err" class="mt-2 min-h-[20px] text-[13px] font-semibold text-ubred" role="alert"></p>
+    <button type="submit" class="btn btn-ink w-full mt-2">${ic('log-in', 'w-[18px] h-[18px]')}${L(['Нэвтрэх', 'Sign in'])}</button>
+    <button type="button" class="btn btn-ghost w-full mt-2" data-act="adm-exit">${ic('arrow-left', 'w-[18px] h-[18px]')}${L(['Сайт руу буцах', 'Back to site'])}</button>
+    <p class="mt-5 text-[12.5px] text-muted text-center leading-relaxed">${L(['Нууц үг төслийн .env файлын ADMIN_PASSWORD-д байна.', 'The password is ADMIN_PASSWORD in the project’s .env file.'])}</p>
+  </form></div>`;
+}
+async function admLogin(form) {
+  const pw = form.password.value, err = $('#adm-pw-err'), btn = form.querySelector('[type="submit"]');
+  if (!pw) return;
+  btn.disabled = true; err.textContent = '';
+  try { await cmsLogin(pw); toast(L(['Амжилттай нэвтэрлээ', 'Signed in']), 'circle-check'); }
+  catch (e) { btn.disabled = false; err.textContent = e.code === 'too_many_attempts' ? L(['Хэт олон оролдлого. 15 минутын дараа дахин оролдоно уу.', 'Too many attempts. Try again in 15 minutes.']) : e.code === 'wrong_password' ? L(['Нууц үг буруу байна', 'Wrong password']) : cmsErr(e); form.password.select(); }
+}
+
+/* ---- inbox: иргэдийн илгээсэн маягтууд ---- */
+const SUB_KIND = { report: ['siren', 'text-ubred bg-ubred/10', ['Эрсдэл мэдээлэл', 'Hazard report']], idea: ['message-square-plus', 'text-ubblue bg-ubblue/10', ['Санал хүсэлт', 'Idea']], digest: ['mail', 'text-greenink bg-ubgreen/10', ['Имэйл бүртгэл', 'Newsletter']] };
+const SUB_ST = [['new', ['Шинэ', 'New'], 'b-red'], ['progress', ['Шийдвэрлэж буй', 'In progress'], 'b-blue'], ['done', ['Шийдвэрлэсэн', 'Resolved'], 'b-on'], ['rejected', ['Татгалзсан', 'Rejected'], 'b-mute']];
+let inboxBusy = false;
+async function admInboxLoad() {
+  if (inboxBusy || CMS.mode !== 'api') return; inboxBusy = true;
+  try { ADM.inbox = (await apiCall('/submissions')).list; ADM.inboxErr = null; } catch (e) { ADM.inboxErr = cmsErr(e); }
+  inboxBusy = false;
+  if (S.route === 'admin' && ADM.view === 'inbox') admRefresh();
+}
+function admInboxChanged() { if (S.route === 'admin' && ADM.view === 'inbox') admInboxLoad(); else ADM.inbox = null; }
+function admInbox() {
+  if (CMS.mode !== 'api') return `<div class="card p-10 text-center text-muted">${ic('server-off', 'w-8 h-8 mx-auto mb-3 opacity-60')}${L(['Иргэдийн илгээсэн маягтууд зөвхөн сервертэй (npm run dev эсвэл npm start) үед хадгалагдана.', 'Submissions are only stored when the site runs with its server (npm run dev or npm start).'])}</div>`;
+  if (!ADM.inbox) { admInboxLoad(); return `<div class="card p-10 text-center text-muted"><span class="typing"><span></span><span></span><span></span></span></div>`; }
+  const f = ADM.ibf || 'all', all = ADM.inbox, list = f === 'all' ? all : SUB_KIND[f] ? all.filter((x) => x.kind === f) : all.filter((x) => x.status === f);
+  const chip = (v, label, n) => `<button type="button" class="chip !h-9" data-act="adm-inbox-f" data-v="${v}" aria-pressed="${f === v}">${label}<span class="tnum opacity-60">${n}</span></button>`;
+  const when = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${fDate(d)}, ${hhmm(d)}`; };
+  const row = (x) => {
+    const k = SUB_KIND[x.kind] || SUB_KIND.idea, dt = x.data || {}, rc = x.kind === 'report' ? (RCAT[dt.cat] || RCAT.other) : null;
+    const title = x.kind === 'report' ? L(rc.t) : x.kind === 'digest' ? dt.email : ((TOPICS.find((tp) => tp[0] === dt.topic) || [])[EN() ? 2 : 1] || L(k[2]));
+    const text = x.kind === 'report' ? dt.desc : x.kind === 'idea' ? dt.text : '';
+    return `<li class="card p-5"><div class="flex flex-wrap items-start gap-4">
+      <span class="w-11 h-11 rounded-xl grid place-items-center shrink-0 ${k[1]}">${ic(rc ? rc.i : k[0], 'w-5 h-5')}</span>
+      <div class="flex-1 min-w-0"><div class="flex flex-wrap items-center gap-x-3 gap-y-1"><b class="text-[15.5px] break-all">${esc(title)}</b><span class="text-[12.5px] text-muted tnum">${esc(x.id)}</span>${dt.gov ? `<span class="badge b-blue">${L(['Засаг даргад', 'To the Governor'])}</span>` : ''}</div>
+        <p class="mt-1 text-[12.5px] text-muted flex flex-wrap gap-x-3">${esc(L(k[2]))}<span>${when(x.created_at)}</span>${dt.dist ? `<span class="inline-flex items-center gap-1">${ic('map-pin', 'w-3.5 h-3.5')}${esc(dt.dist)}</span>` : ''}</p>
+        ${text ? `<p class="mt-3 text-[14.5px] leading-relaxed whitespace-pre-wrap">${esc(text)}</p>` : ''}
+        ${dt.photo ? `<a href="${esc(dt.photo)}" target="_blank" rel="noopener" class="mt-3 inline-block"><img src="${esc(dt.photo)}" alt="${esc(L(['Иргэний оруулсан зураг', 'Submitted photo']))}" class="w-40 h-28 rounded-xl object-cover border border-line" loading="lazy"/></a>` : ''}</div>
+      <div class="flex items-center gap-2 shrink-0">${x.kind === 'digest' ? '' : `<select class="field !h-9 !py-0 !text-[13.5px] !w-auto" data-sub-status="${esc(x.id)}" aria-label="${esc(L(['Төлөв', 'Status']))}">${SUB_ST.map(([v, l]) => `<option value="${v}" ${x.status === v ? 'selected' : ''}>${esc(L(l))}</option>`).join('')}</select>`}
+        <button type="button" class="icon-btn !rounded-lg border border-line text-muted hover:text-ubred" data-act="adm-sub-del" data-id="${esc(x.id)}" aria-label="${esc(L(['Устгах', 'Delete']))}" title="${esc(L(['Устгах', 'Delete']))}">${ic('trash-2', 'w-4 h-4')}</button></div>
+    </div></li>`;
+  };
+  return `${ADM.inboxErr ? `<p class="mb-4 text-ubred font-semibold">${esc(ADM.inboxErr)}</p>` : ''}
+    <div class="flex flex-wrap gap-2 mb-5">${chip('all', L(['Бүгд', 'All']), all.length)}${Object.entries(SUB_KIND).map(([v, k]) => chip(v, L(k[2]), all.filter((x) => x.kind === v).length)).join('')}<span class="w-px bg-line mx-1"></span>${SUB_ST.slice(0, 3).map(([v, l]) => chip(v, L(l), all.filter((x) => x.status === v && x.kind !== 'digest').length)).join('')}</div>
+    ${list.length ? `<ul class="space-y-3">${list.map(row).join('')}</ul>` : `<div class="card p-10 text-center text-muted">${ic('inbox', 'w-8 h-8 mx-auto mb-3 opacity-60')}${L(['Одоогоор хүсэлт ирээгүй байна', 'Nothing here yet'])}</div>`}`;
+}
+document.addEventListener('change', async (e) => {
+  const sel = e.target.closest && e.target.closest('[data-sub-status]'); if (!sel) return;
+  const id = sel.dataset.subStatus, st = sel.value; sel.disabled = true;
+  try { await apiCall('/submissions/' + encodeURIComponent(id), { method: 'PATCH', body: { status: st } }); const it = (ADM.inbox || []).find((x) => x.id === id); if (it) it.status = st; toast(L(['Төлөв шинэчлэгдлээ', 'Status updated']), 'circle-check'); }
+  catch (er) { toast(cmsErr(er), 'triangle-alert'); }
+  sel.disabled = false;
+});
+
 /* ---- settings ---- */
 function admSettings() {
   const news = mergedItems('news').filter((n) => !n.draft).sort((a, b) => (parseUB(b.d) || 0) - (parseUB(a.d) || 0));
   const opt = (sel, noZar) => news.filter((n) => !noZar || !n.zar).map((n) => `<option value="${n.id}" ${n.id === sel ? 'selected' : ''}>${esc(L(n.t))}</option>`).join('');
-  const role = CMS.mode === 'db' ? (CMS.isOwner ? L(['Эзэмшигч', 'Owner']) : L(['Редактор', 'Editor'])) : L(['Туршилтын хэрэглэгч', 'Demo user']);
+  const role = CMS.mode === 'api' ? L(['Админ', 'Admin']) : CMS.mode === 'db' ? (CMS.isOwner ? L(['Эзэмшигч', 'Owner']) : L(['Редактор', 'Editor'])) : L(['Туршилтын хэрэглэгч', 'Demo user']);
   return `<div class="grid grid-cols-1 lg:grid-cols-5 gap-5"><div class="card p-6 lg:col-span-3 space-y-5"><h2 class="text-[18px] font-extrabold">${L(['Нүүр хуудас', 'Home page'])}</h2>
       <label class="block"><span class="adm-label">${L(['Гол мэдээ', 'Lead story'])}</span><select class="field" data-set="heroId">${opt(HERO_ID, true)}</select></label>
       <label class="block"><span class="adm-label">${L(['«Өнөөдөр хотод» хэсгийн онцлох мэдээ', 'Featured story in "Today in the city"'])}</span><select class="field" data-set="featuredId">${opt(FEATURED_ID, true)}</select></label>
@@ -335,7 +405,7 @@ function admSettings() {
       <label class="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3"><span><b class="block text-[14.5px]">${L(['Яаралтай анхааруулгын мөр', 'Urgent alert ticker'])}</b><span class="text-[13px] text-muted">${L(['Шар гүйдэг мөрийг сайт дээр харуулах', 'Show the yellow ticker on the site'])}</span></span><input type="checkbox" class="adm-switch" data-set="tickerOn" ${SET.tickerOn !== false ? 'checked' : ''}/></label>
       <div class="flex justify-end"><button type="button" class="btn btn-blue" data-act="adm-set-save">${ic('check', 'w-[18px] h-[18px]')}${L(['Тохиргоог хадгалах', 'Save settings'])}</button></div></div>
     <div class="lg:col-span-2 space-y-5"><div class="card p-6"><h2 class="text-[18px] font-extrabold">${L(['Систем', 'System'])}</h2><dl class="mt-4 space-y-3 text-[14px]"><div class="flex justify-between gap-3"><dt class="text-muted">${L(['Холболт', 'Connection'])}</dt><dd>${admModePill()}</dd></div><div class="flex justify-between gap-3"><dt class="text-muted">${L(['Таны эрх', 'Your role'])}</dt><dd class="font-semibold">${role}</dd></div><div class="flex justify-between gap-3"><dt class="text-muted">${L(['Өөрчилсөн бичлэг', 'Changed records'])}</dt><dd class="font-semibold tnum">${CMS_COLS.reduce((a, c) => a + Object.keys(CMS.data[c] || {}).length, 0)}</dd></div></dl>
-      <p class="mt-4 text-[13px] text-muted leading-relaxed">${CMS.mode === 'db' ? L(['Мэдээлэл энэ хуудасны хамгаалалттай санд хадгалагдана. Үзэгчид уншина, зөвхөн эзэмшигч, редакторууд засна.', 'Content is stored in this page\u2019s protected database. Viewers read it; only the owner and editors change it.']) : L(['Энэ туршилтын горимд өөрчлөлт таны хөтчийн санах ойд хадгалагдана.', 'In demo mode, changes are stored in your browser.'])}</p></div>
+      <p class="mt-4 text-[13px] text-muted leading-relaxed">${CMS.mode === 'api' ? L(['Мэдээлэл серверийн SQLite өгөгдлийн санд (data/ub.sqlite) хадгалагдана. Сайтын зочид уншина, зөвхөн нэвтэрсэн админ засна.', 'Content is stored in the server\u2019s SQLite database (data/ub.sqlite). Visitors read it; only a signed-in admin can change it.']) : CMS.mode === 'db' ? L(['Мэдээлэл энэ хуудасны хамгаалалттай санд хадгалагдана. Үзэгчид уншина, зөвхөн эзэмшигч, редакторууд засна.', 'Content is stored in this page\u2019s protected database. Viewers read it; only the owner and editors change it.']) : L(['Энэ туршилтын горимд өөрчлөлт таны хөтчийн санах ойд хадгалагдана.', 'In demo mode, changes are stored in your browser.'])}</p></div>
       ${CMS.mode === 'local' || CMS.isOwner ? `<div class="card p-6 border-ubred/30"><h2 class="text-[18px] font-extrabold text-ubred">${L(['Аюултай бүс', 'Danger zone'])}</h2><p class="mt-2 text-[13.5px] text-muted">${L(['Бүх засвар, нэмсэн бичлэг, оруулсан зургийг устгаж, сайтыг анхны агуулгад нь буцаана.', 'Remove every edit, added item and uploaded photo, returning the site to its original content.'])}</p><button type="button" class="btn btn-sm btn-ghost !text-ubred mt-4" data-act="adm-wipe">${ic('trash-2', 'w-4 h-4')}${L(['Бүх өөрчлөлтийг арилгах', 'Remove all changes'])}</button></div>` : ''}</div></div>`;
 }
 
@@ -349,6 +419,9 @@ document.addEventListener('click', async (ev) => {
   if (a === 'tab') { admLang(d.v); return; }
   switch (a) {
     case 'adm-exit': setRoute('home'); window.scrollTo(0, 0); break;
+    case 'adm-logout': await cmsLogout(); toast(L(['Удирдлагаас гарлаа', 'Signed out of admin']), 'log-out'); break;
+    case 'adm-inbox-f': ADM.ibf = d.v; renderAdmin(); break;
+    case 'adm-sub-del': { if (!armed('sub-' + d.id, el)) break; try { await apiCall('/submissions/' + encodeURIComponent(d.id), { method: 'DELETE' }); ADM.inbox = (ADM.inbox || []).filter((x) => x.id !== d.id); renderAdmin(); toast(L(['Устгалаа', 'Deleted']), 'trash-2'); } catch (e) { toast(cmsErr(e), 'triangle-alert'); } break; }
     case 'adm-go': ADM.view = d.v; ADM.q = ''; ADM.f = 'all'; renderAdmin(); window.scrollTo(0, 0); break;
     case 'adm-new': if (d.col) { ADM.view = d.col; renderAdmin(); } admOpen(d.col || ADM.view); break;
     case 'adm-edit': admOpen(d.col, d.id); break;

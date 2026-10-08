@@ -60,8 +60,10 @@ if (!process.argv.includes('--serve')) {
   const send = (ev, data) => { for (const res of clients) res.write(`event: ${ev}\ndata: ${String(data).replace(/\n/g, ' ')}\n\n`); };
   const DEV = `<script>(()=>{let seen=null;const es=new EventSource('/__dev');const ok=(e)=>{if(e.data==='0')return;if(seen&&e.data!==seen)location.reload();seen=e.data;};es.addEventListener('hello',ok);es.addEventListener('built',ok);es.addEventListener('fail',(e)=>{let b=document.getElementById('__devErr');if(!b){b=document.createElement('div');b.id='__devErr';b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#D81E34;color:#fff;font:600 14px/1.45 system-ui,sans-serif;padding:14px 16px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);white-space:pre-wrap';document.body.appendChild(b);}b.textContent='✗ '+e.data;});})();</script>`;
   const types = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp' };
+  const api = require('./server/api');   // backend: admin CMS + маягтууд (data/ub.sqlite)
   const server = http.createServer((req, res) => {
     let p = decodeURIComponent(req.url.split('?')[0]);
+    if (api.handles(p)) { api.handle(req, res); return; }
     if (p === '/__dev') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       res.write(`event: hello\ndata: ${buildId}\n\n`); if (lastErr) res.write(`event: fail\ndata: ${lastErr.replace(/\n/g, ' ')}\n\n`);

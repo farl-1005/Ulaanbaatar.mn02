@@ -43,6 +43,7 @@ function newsBack() {
 window.addEventListener('popstate', () => {
   const h = decodeURIComponent((location.hash || '').slice(1));
   if (h.startsWith('news/') && NEWS_BY[h.slice(5)]) { S.newsId = h.slice(5); S.newsFb = false; setRoute('news'); }
+  else if (h === 'admin') { if (S.route !== 'admin') setRoute('admin'); }
   else if (S.route === 'news') setRoute('home');
 });
 function newsMins(n) {
@@ -226,6 +227,24 @@ function openLogin(after) {
   };
 }
 
+/* ================= Маягт илгээх туслах ================= */
+/* Зургийг 1600px хүртэл жижигрүүлж JPEG data URL болгоно (сервер рүү илгээхэд). */
+function shrinkPhoto(file, max = 1600) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); resolve(c.toDataURL('image/jpeg', 0.82)); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.src = url;
+  });
+}
+function submitErr(e) {
+  const c = e && e.code;
+  if (c === 'too_many_requests') return L(['Хэт олон хүсэлт илгээлээ. Түр хүлээгээд дахин оролдоно уу.', 'Too many submissions. Please wait and try again.']);
+  if (c === 'bad_email') return t('badEmail');
+  if (c === 'too_large') return L(['Зураг хэт том байна', 'The photo is too large']);
+  return L(['Илгээж чадсангүй. Интернэт холболтоо шалгаад дахин оролдоно уу.', "Couldn't send. Check your connection and try again."]);
+}
+
 /* ================= Hazard report ================= */
 function openReport(preset) {
   closeMenu();
@@ -262,17 +281,24 @@ function openReport(preset) {
     }
     if (R.step === 3) {
       const ta = $('#r-desc', sh); if (ta) ta.addEventListener('input', () => { R.desc = ta.value; });
-      const ph = $('#r-photo', sh); if (ph) ph.addEventListener('change', () => { const f = ph.files && ph.files[0]; if (f) { try { R.photo = URL.createObjectURL(f); } catch (e) { R.photo = null; } paintModal(true); } });
+      const ph = $('#r-photo', sh); if (ph) ph.addEventListener('change', () => { const f = ph.files && ph.files[0]; if (f) { R.file = f; try { R.photo = URL.createObjectURL(f); } catch (e) { R.photo = null; } paintModal(true); } });
       const tr = $('#r-track', sh); if (tr) tr.addEventListener('change', () => { R.track = tr.checked; });
     }
   };
   openModal({ size: 'lg', label: t('rTitle'), render, after, onClose: () => { if (map) map.destroy(); } });
   MS = {
     rCat: (v) => { R.cat = v; paintModal(true); },
-    rNext: () => {
+    rNext: async () => {
       if (R.step < 3) { R.step++; paintModal(); return; }
-      R.done = newReqId();
-      if (S.user && R.track) { S.requests.unshift({ id: R.done, cat: R.cat, st: 0, ago: 0, place: [R.dist.n[0] + ' дүүрэг', R.dist.n[1] + ' District'], ag: RAGENCY[R.cat] || RAGENCY.other, note: NOTE_NEW }); store.set('requests', S.requests); }
+      if (R.busy) return;
+      if (CMS.mode === 'api') {
+        const btn = $('[data-act="r-next"]'); R.busy = true; if (btn) btn.disabled = true;
+        try {
+          const photo = R.file ? await shrinkPhoto(R.file).catch(() => null) : null;
+          R.done = (await apiCall('/submit/report', { method: 'POST', body: { cat: R.cat, pt: R.pt, dist: R.dist ? L(R.dist.n) : '', desc: R.desc, photo } })).id;
+        } catch (e) { R.busy = false; if (btn) btn.disabled = false; toast(submitErr(e), 'triangle-alert'); return; }
+      } else R.done = newReqId();
+      if (S.user && R.track && R.dist) { S.requests.unshift({ id: R.done, cat: R.cat, st: 0, ago: 0, place: [R.dist.n[0] + ' дүүрэг', R.dist.n[1] + ' District'], ag: RAGENCY[R.cat] || RAGENCY.other, note: NOTE_NEW }); store.set('requests', S.requests); }
       paintModal(); toast(t('rDone'), 'circle-check');
     },
     rBack: () => { R.step--; paintModal(); },
@@ -311,7 +337,14 @@ function openVote(tab, opts = {}) {
     vPick: (i) => { pick = i; $('#v-body').innerHTML = body(); },
     vCast: () => { if (pick == null) return; S.vote = pick; store.set('vote', pick); const b = $('#v-body'); b.classList.remove('drawn'); b.innerHTML = body(); drawn(b); toast(t('voted'), 'vote'); },
     vTopic: (k) => { topic = k; $$('[data-act="v-topic"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === k))); },
-    vSend: () => { if (!text.trim()) { const e = $('#v-err'); if (e) e.textContent = t('needText'); const ta = $('#v-text'); if (ta) ta.focus(); return; } sent = true; $('#v-body').innerHTML = body(); toast(t('ideaSent'), 'send'); },
+    vSend: async () => {
+      if (!text.trim()) { const e = $('#v-err'); if (e) e.textContent = t('needText'); const ta = $('#v-text'); if (ta) ta.focus(); return; }
+      if (CMS.mode === 'api') {
+        const btn = $('[data-act="v-send"]'); if (btn) { if (btn.disabled) return; btn.disabled = true; }
+        try { await apiCall('/submit/idea', { method: 'POST', body: { topic, text, gov: !!opts.gov } }); }
+        catch (e) { if (btn) btn.disabled = false; toast(submitErr(e), 'triangle-alert'); return; }
+      }
+      sent = true; $('#v-body').innerHTML = body(); toast(t('ideaSent'), 'send'); },
   };
 }
 
@@ -692,7 +725,8 @@ document.addEventListener('input', (e) => {
 document.addEventListener('submit', (e) => {
   const f = e.target; e.preventDefault();
   if (f.dataset.form === 'chat') chatSend($('#chat-in').value);
-  else if (f.dataset.form === 'digest') { const inp = f.querySelector('input'), msg = $('[data-digest-msg]'); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim())) { msg.textContent = t('badEmail'); inp.focus(); return; } msg.textContent = t('subscribed'); inp.value = ''; }
+  else if (f.dataset.form === 'digest') { const inp = f.querySelector('input'), msg = $('[data-digest-msg]'); if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inp.value.trim())) { msg.textContent = t('badEmail'); inp.focus(); return; } if (CMS.mode === 'api') { apiCall('/submit/digest', { method: 'POST', body: { email: inp.value.trim() } }).then(() => { msg.textContent = t('subscribed'); inp.value = ''; }).catch((er) => { msg.textContent = submitErr(er); }); return; } msg.textContent = t('subscribed'); inp.value = ''; }
+  else if (f.dataset.form === 'adm-login') admLogin(f);
 });
 document.addEventListener('keydown', (e) => {
   if (e.target.id === 'chat-in' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); chatSend(e.target.value); return; }

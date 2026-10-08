@@ -7,7 +7,8 @@
     "dev": "nodemon",
     "build": "node build.js",
     "serve": "node build.js --serve",
-    "news": "node news.js"
+    "news": "node news.js",
+    "start": "node server/index.js"
   },
   "devDependencies": {
     "lucide": "0.469.0",
@@ -16,15 +17,19 @@
     "tailwindcss": "3.4.17"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.12"
   },
   "nodemonConfig": {
     "watch": [
       "src",
+      "server",
       "tailwind.config.js"
     ],
     "ext": "js,css,html",
     "exec": "node build.js --serve",
     "delay": 200
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3"
   }
 }

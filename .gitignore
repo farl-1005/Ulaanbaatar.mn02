@@ -1,12 +1,19 @@
 node_modules/
 dist/
 
+# Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг)
+data/
+
 # macOS
 .DS_Store
 
 # Орчны тохиргоо, нууц түлхүүр
 .env
 .env.*
+!.env.example
 
 # Лог
 npm-debug.log*
+
+# Claude Code-ийн локал тохиргоо
+.claude/

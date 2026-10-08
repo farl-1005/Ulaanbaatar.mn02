@@ -61,8 +61,42 @@ function runApply() {
   if (!wasFirst && added.length && S.route === 'home') toast(L(['Шинэ мэдээ нийтлэгдлээ', 'New story published']) + ': ' + L(added[0].t), 'bell-ring');
 }
 
+/* ---- Backend API (server/api.js). Сервергүй (нэг файлт хувилбар) үед local горимд шилжинэ. ---- */
+async function apiCall(path, opt = {}) {
+  const init = { method: opt.method || 'GET', credentials: 'same-origin', headers: {} };
+  if (opt.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opt.body); }
+  const r = await fetch('/api' + path, init);
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 401 && CMS.mode === 'api' && CMS.canEdit && path !== '/login') { CMS.canEdit = CMS.isOwner = false; if (S.route === 'admin') setTimeout(renderAdmin, 0); }
+    throw { code: j.error || 'http_' + r.status, status: r.status };
+  }
+  return j;
+}
+async function cmsApiLoad() {
+  const j = await apiCall('/cms');
+  CMS_COLS.forEach((c) => { CMS.data[c] = (j.data && j.data[c]) || {}; });
+  CMS.log = j.log || []; CMS.canEdit = CMS.isOwner = !!j.admin; CMS.uid = j.admin ? 'admin' : null; CMS.inboxNew = j.inboxNew || 0;
+}
+async function cmsApiInit() {
+  if (location.protocol === 'file:') return false;
+  try { await Promise.race([cmsApiLoad(), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 4000))]); } catch (e) { return false; }
+  CMS.mode = 'api';
+  let tm = null;
+  const reload = () => { clearTimeout(tm); tm = setTimeout(() => cmsApiLoad().then(() => { scheduleApply(); renderHeader(); }).catch(() => {}), 150); };
+  try {
+    const es = new EventSource('/api/events');
+    es.addEventListener('cms', reload);
+    es.addEventListener('submission', () => { if (!CMS.canEdit) return; reload(); if (typeof admInboxChanged === 'function') admInboxChanged(); });
+  } catch (e) { /* шууд шинэчлэлгүйгээр ажиллана */ }
+  scheduleApply(); cmsReadyUI(); return true;
+}
+async function cmsLogin(password) { await apiCall('/login', { method: 'POST', body: { password } }); await cmsApiLoad(); scheduleApply(); cmsReadyUI(); }
+async function cmsLogout() { try { await apiCall('/logout', { method: 'POST', body: {} }); } catch (e) { /* ignore */ } CMS.canEdit = CMS.isOwner = false; CMS.uid = null; CMS.log = []; cmsReadyUI(); }
+
 async function initCMS() {
   const hasRuntime = !!(window.claude && typeof window.claude.use === 'function');
+  if (!hasRuntime && await cmsApiInit()) return;
   if (!hasRuntime) {
     cmsLocalLoad(); CMS.mode = 'local'; CMS.canEdit = true;
     // Admin in one tab, site in another: pick up edits from other tabs of the same browser instantly.
@@ -98,6 +132,7 @@ function cmsReadyUI() {
 const isDefaultId = (col, id) => (DEF[col] || []).some((x) => x.id === id);
 function cleanBody(o) { const b = cloneJ(o); ['ts', 'ago', '_edited', '_new', 'b', 'w', 'd_'].forEach((k) => { delete b[k]; }); return b; }
 async function cmsWrite(col, id, body) {
+  if (CMS.mode === 'api') { await apiCall(`/cms/${col}/${encodeURIComponent(id)}`, { method: 'PUT', body }); CMS.data[col][id] = Object.assign({}, body, { id }); scheduleApply(); return; }
   if (CMS.mode === 'db') { await CMS.db.doc(`cms/site/${col}/${id}`).set(body); return; }
   if (CMS.mode !== 'local') throw { code: 'not_granted' };
   const prev = CMS.data[col][id]; CMS.data[col][id] = Object.assign({}, body, { id });
@@ -105,6 +140,7 @@ async function cmsWrite(col, id, body) {
   scheduleApply();
 }
 async function cmsDelete(col, id) {
+  if (CMS.mode === 'api') { await apiCall(`/cms/${col}/${encodeURIComponent(id)}`, { method: 'DELETE' }); delete CMS.data[col][id]; scheduleApply(); return; }
   if (CMS.mode === 'db') { await CMS.db.doc(`cms/site/${col}/${id}`).delete(); return; }
   delete CMS.data[col][id]; cmsLocalSave(); scheduleApply();
 }
@@ -114,11 +150,13 @@ async function cmsRemove(col, id, title) { if (isDefaultId(col, id)) await cmsWr
 async function cmsRevert(col, id, title) { await cmsDelete(col, id); cmsLog('revert', col, id, title); }
 async function cmsLog(action, col, id, title) {
   const e = Object.assign({ at: new Date().toISOString(), action, col, id, title: String(title || '').slice(0, 140) }, { by: CMS.uid || 'local' });
-  try { if (CMS.mode === 'db') await CMS.db.collection('cms/site/log').add(e); else { CMS.log.unshift(e); cmsLocalSave(); } } catch (er) { /* activity log is best-effort */ }
+  try { if (CMS.mode === 'api') { CMS.log.unshift(e); await apiCall('/cms-log', { method: 'POST', body: e }); } else if (CMS.mode === 'db') await CMS.db.collection('cms/site/log').add(e); else { CMS.log.unshift(e); cmsLocalSave(); } } catch (er) { /* activity log is best-effort */ }
 }
 function cmsErr(e) {
   const c = e && e.code;
   if (c === 'quota_exceeded') return L(['Хадгалах багтаамж дүүрсэн байна', 'Storage is full']);
+  if (c === 'unauthorized') return L(['Нэвтрэх хугацаа дууссан. Дахин нэвтэрнэ үү.', 'Your session expired. Sign in again.']);
+  if (c === 'too_large') return L(['Өгөгдөл хэт том байна', 'The data is too large']);
   if (c === 'invalid_argument') return L(['Хадгалах эрх байхгүй эсвэл өгөгдөл хэт том байна', 'No permission, or the data is too large']);
   return L(['Хадгалж чадсангүй. Дахин оролдоно уу.', "Couldn't save. Try again."]);
 }
