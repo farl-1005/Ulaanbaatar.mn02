@@ -12,6 +12,7 @@ const A_NAV = [   // [view, icon, label, group]
   ['sits', 'route', ['Амьдралын нөхцөл', 'Life events'], 'content'],
   ['docs', 'scroll-text', ['Ил тод байдал', 'Transparency'], 'content'],
   ['banners', 'panel-right', ['Босоо баннер', 'Side banner'], 'content'],
+  ['govsched', 'calendar-clock', ['Засаг даргын хуваарь', "Governor's schedule"], 'content'],
   ['struct', 'network', ['Удирдлагын бүтэц', 'City structure'], 'about'],
   ['orgs', 'building-2', ['Харьяа байгууллага', 'City agencies'], 'about'],
   ['history', 'history', ['Түүх', 'History'], 'about'],
@@ -95,11 +96,18 @@ const SCHEMA = {
     ['from', 'date', ['Эхлэх огноо (хоосон бол шууд харагдана)', 'Start date (empty = right away)'], { empty: 1 }], ['to', 'date', ['Дуусах огноо (хоосон бол хугацаагүй). 30 хоногоос бага үлдвэл тоолуур гарна.', 'End date (empty = no end). A countdown shows in the last 30 days.'], { empty: 1 }],
     ['flags', 'flags', ['Төлөв', 'Status'], { options: [['off', ['Түр нуух', 'Hide for now']]] }], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
+  govsched: { icon: 'calendar-clock', one: ['хуваарь', 'schedule item'], idp: 'g', title: (x) => L(x.t), fields: [
+    ['t', 'bi', ['Ажлын нэр (уулзалт, хуралдаан г.м.)', 'Title (meeting, session etc.)'], { req: 1 }],
+    ['type', 'chips', ['Төрөл', 'Type'], { options: () => Object.keys(GOV_TYPES).map((k) => [k, L(GOV_TYPES[k].t), GOV_TYPES[k].c]), def: 'meeting' }],
+    ['date', 'date', ['Огноо', 'Date']], ['from', 'time', ['Эхлэх цаг', 'Starts']], ['to', 'time', ['Дуусах цаг', 'Ends']],
+    ['place', 'bi', ['Хаана', 'Where']], ['d', 'bitext', ['Товч тайлбар (юуны тухай)', 'Short note (what it is about)'], { rows: 2 }],
+    ['flags', 'flags', ['Төлөв', 'Status'], { options: [['off', ['Сайтад харуулахгүй', 'Hide from the site']]] }],
+  ] },
   struct: { icon: 'network', one: ['бүтцийн нэгж', 'structure item'], idp: 'st', title: (x) => L(x.t), fields: [
     ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['d', 'bi', ['Тайлбар', 'Description']], ['i', 'icon', ['Тэмдэг', 'Icon']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
   orgs: { icon: 'building-2', one: ['байгууллага', 'agency'], idp: 'o', title: (x) => L(x.t), fields: [
-    ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['url', 'url', ['Вэб сайт', 'Website']], ['i', 'icon', ['Тэмдэг', 'Icon']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
+    ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['logo', 'logo', ['Лого', 'Logo']], ['url', 'url', ['Вэб сайт', 'Website']], ['i', 'icon', ['Тэмдэг (лого оруулаагүй үед харагдана)', 'Icon (shown when there is no logo)']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
   history: { icon: 'history', one: ['түүхэн нэр', 'historical name'], idp: 'h', title: (x) => `${x.y || ''} · ${L(x.t || ['', ''])}`, fields: [
     ['y', 'number', ['Он', 'Year'], { req: 1 }], ['t', 'bi', ['Нэр', 'Name'], { req: 1 }],
@@ -136,7 +144,7 @@ const SCHEMA = {
   ] },
 };
 /* Цэсийн холбоосын очих газрууд: сайтын хэсгүүд + анхны цэсийн холбоосууд + амьдралын нөхцөлүүд */
-const SECS = [['hero', ['Нүүр', 'Home']], ['hub', ['Мэдээ, үйлчилгээ', 'News & services']], ['situations', ['Амьдралын нөхцөл', 'Life events']], ['media', ['Медиа', 'Media']], ['projects', ['Бүтээн байгуулалт', 'Development']], ['data', ['Хотын өгөгдөл', 'City data']], ['events', ['Арга хэмжээ', 'Events']], ['transparency', ['Ил тод байдал', 'Transparency']], ['about', ['Хотын тухай', 'About']]];
+const SECS = [['hero', ['Нүүр', 'Home']], ['hub', ['Мэдээ, үйлчилгээ', 'News & services']], ['situations', ['Амьдралын нөхцөл', 'Life events']], ['media', ['Медиа', 'Media']], ['projects', ['Бүтээн байгуулалт', 'Development']], ['data', ['Хотын өгөгдөл', 'City data']], ['events', ['Арга хэмжээ', 'Events']], ['transparency', ['Ил тод байдал', 'Transparency']], ['about', ['Хотын тухай', 'About']], ['gov', ['Засаг дарга', 'The Governor']]];
 function admDests() {
   const out = [], seen = new Set(), add = (go, label) => { const k = JSON.stringify(go); if (!seen.has(k)) { seen.add(k); out.push([k, label]); } };
   SECS.forEach(([v, l]) => add({ sec: v }, L(l)));
@@ -151,7 +159,7 @@ const TGROUPS = [
   ['svc', ['Амьдралын нөхцөл', 'Life events'], /^(sit|steps|progress|doneOf|markDone|undo|applyOnline|book|nextStep|doneLbl|restart|allDone|stepSent|pickSlot|confirmBook|booked|where|svc|openSys|sysDemo|requestSent)/],
   ['media', ['Медиа', 'Media'], /^(media|m_|watching|photosN|prev|next|play|pause|liveFor|photoCredit)/],
   ['proj', ['Бүтээн байгуулалт', 'Development'], /^(proj|st_|avgProgress|projectsN|completedN|budget$|dueYear|zoom|resetMap|schematic|district|showOnMap)/],
-  ['data', ['Хотын өгөгдөл', 'City data'], /^(data|live$|updated|aqi|feels|wind|humidity|congestion|busiest|population|popNote|budgetExec|budgetNote|plan|actual|transit|busesNow|ridersToday|avgWait|onTime|minShort)/],
+  ['data', ['Хотын өгөгдөл', 'City data'], /^(data|live$|updated|aqi|feels|wind|humidity|congestion|busiest|population|popNote|budgetExec|budgetNote|plan|actual)/],
   ['ev', ['Арга хэмжээ', 'Events'], /^(ev|f_|v_|free|save|saved|unsavedT|noEvents|eventsOn)/],
   ['tr', ['Ил тод байдал', 'Transparency'], /^(tr|docSearch|inForce|tOpen|tEval|tAwarded|daysLeft|closesToday|view$|bid|docNote|tl_|days)/],
   ['about', ['Хотын тухай', 'About'], /^(about|leadership|orgs|founded|area|admin|elevation)/],
@@ -255,7 +263,9 @@ function admBadges(col, x) {
 function admThumb(col, x) {
   if (col === 'news' || col === 'events') return x.zar ? `<span class="w-[72px] h-12 rounded-lg bg-ubyellow/25 text-amberink grid place-items-center shrink-0">${ic('megaphone', 'w-5 h-5')}</span>` : `<span class="scene w-[72px] h-12 rounded-lg shrink-0">${Scene(x.img)}</span>`;
   if (col === 'mediaitems' || col === 'banners') return `<span class="scene w-[72px] h-12 rounded-lg shrink-0">${Scene(x.img)}</span>`;
+  if (col === 'govsched') { const ty = GOV_TYPES[x.type] || GOV_TYPES.meeting, d = /^\d{4}-\d\d-\d\d$/.test(x.date || '') ? new Date(+x.date.slice(0, 4), +x.date.slice(5, 7) - 1, +x.date.slice(8, 10)) : null; return `<span class="w-12 h-12 rounded-xl grid place-items-center shrink-0 text-center leading-none" style="background:${ty.c}1a;color:${ty.c}">${d ? `<span><b class="block text-[17px] tnum">${d.getDate()}</b><span class="block text-[10.5px] font-bold mt-0.5">${EN() ? EN_MON[d.getMonth()] : d.getMonth() + 1 + '-р сар'}</span></span>` : ic(ty.i, 'w-5 h-5')}</span>`; }
   if (['rubrics', 'ecats', 'pcats'].includes(col)) return `<span class="w-11 h-11 rounded-xl grid place-items-center shrink-0" style="background:${esc(x.c || '#64748B')}22;color:${esc(x.c || '#64748B')}">${ic(x.i || 'tag', 'w-5 h-5')}</span>`;
+  if (col === 'orgs') return orgMark(x);
   if (col === 'history') return `<span class="w-14 h-11 rounded-xl bg-soft grid place-items-center shrink-0 font-extrabold tnum text-[14px]">${esc(x.y || '')}</span>`;
   if (col === 'projects') { const c = PCAT[x.c] || PCAT.transport; return pctRing(Math.round(+x.p || 0), 44, 4.5, c.c, 11); }
   return `<span class="w-11 h-11 rounded-xl bg-ubblue/10 text-ubblue grid place-items-center shrink-0">${ic(x.i || 'file-text', 'w-5 h-5')}</span>`;
@@ -267,6 +277,7 @@ function admMeta(col, x) {
   if (col === 'projects') { const c = PCAT[x.c] || PCAT.transport; return `<span>${esc(L(c.t))}</span><span>${bn(+x.bud || 0)}</span><span>${x.due || ''}</span>`; }
   if (col === 'mediaitems') return `<span>${esc({ video: L(['Видео', 'Video']), live: L(['Шууд', 'Live']), photo: L(['Фото', 'Photo']), podcast: L(['Подкаст', 'Podcast']) }[x.type] || '')}</span>${x.url ? `<span class="inline-flex items-center gap-1">${ic('link', 'w-3.5 h-3.5')}${L(['холбоостой', 'linked'])}</span>` : ''}`;
   if (col === 'sits') return `<span>${(x.steps || []).length} ${L(['алхам', 'steps'])}</span>`;
+  if (col === 'govsched') { const ty = GOV_TYPES[x.type] || GOV_TYPES.meeting, o = x.date ? dayOffset(x.date) : null; return `<span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full" style="background:${ty.c}"></i>${esc(L(ty.t))}</span><span class="tnum">${esc(x.date || '')} ${esc(x.from || '')}${x.to ? '–' + esc(x.to) : ''}</span>${x.off ? `<span>${L(['Нуусан', 'Hidden'])}</span>` : o != null && o < 0 ? `<span>${L(['Болсон', 'Past'])}</span>` : ''}<span class="truncate">${esc(L(x.place || ['', '']))}</span>`; }
   if (col === 'banners') { const th = RAIL_THEMES[x.theme] || RAIL_THEMES.red, st = x.off ? L(['Нуусан', 'Hidden']) : x.to && dayOffset(x.to) < 0 ? L(['Дууссан', 'Ended']) : x.from && dayOffset(x.from) > 0 ? L(['Хүлээгдэж буй', 'Scheduled']) : L(['Идэвхтэй', 'Active']); return `<span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full" style="background:${th[0]}"></i>${esc(st)}</span><span>${esc([x.from, x.to].filter(Boolean).join(' → ') || L(['Хугацаагүй', 'No end date']))}</span>`; }
   if (col === 'docs') return `<span>${esc({ res: L(['Тогтоол', 'Resolution']), ord: L(['Захирамж', 'Order']), tender: L(['Тендер', 'Tender']) }[x.kind] || '')}</span><span class="tnum">${esc(x.no || '')}</span><span>${esc(x.date || '')}</span>`;
   if (col === 'menu') return `<span>${(x.items || []).length} ${L(['холбоос', 'links'])}</span>`;
@@ -282,6 +293,7 @@ function admList(col) {
   if (col === 'news') items.sort((a, b) => (parseUB(b.d) || 0) - (parseUB(a.d) || 0));
   else if (col === 'docs') items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
   else if (col === 'history') items.sort((a, b) => (+a.y || 0) - (+b.y || 0));
+  else if (col === 'govsched') items.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || String(a.from || '').localeCompare(String(b.from || '')));
   else if (items.some((x) => x.ord != null)) byOrd(items);
   if (q) items = items.filter((x) => JSON.stringify([x.t, x.n, x.k, x.l, x.v, x.d, x.no, x.kw, x.lbl]).toLowerCase().includes(q));
   const F = { news: [['all', ['Бүгд', 'All']], ['pub', ['Нийтлэгдсэн', 'Published']], ['draft', ['Ноорог', 'Drafts']], ['br', ['Шуурхай', 'Latest feed']], ['edited', ['Засварласан', 'Edited']]], alerts: [['all', ['Бүгд', 'All']], ['on', ['Идэвхтэй', 'Active']], ['off', ['Нуусан', 'Hidden']]] }[col];
@@ -291,7 +303,7 @@ function admList(col) {
       <button type="button" class="flex items-center gap-4 flex-1 min-w-0 text-left" data-act="adm-edit" data-col="${col}" data-id="${x.id}">${admThumb(col, x)}<span class="min-w-0 flex-1"><span class="block font-semibold text-[15px] leading-snug truncate group-hover:text-ubblue transition-colors">${esc(SCHEMA[col].title(x) || L(['(гарчиггүй)', '(untitled)']))}</span><span class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px] text-muted">${admMeta(col, x)}</span><span class="mt-1.5 flex flex-wrap gap-1.5">${admBadges(col, x)}</span></span></button>
       <span class="flex items-center gap-1 shrink-0">${col === 'alerts' ? `<label class="mr-2 inline-flex items-center gap-2 text-[12.5px] text-muted" title="${esc(L(['Сайт дээр харуулах', 'Show on site']))}"><input type="checkbox" class="adm-switch" data-alert-toggle="${x.id}" ${x.off ? '' : 'checked'}/></label>` : ''}<button type="button" class="icon-btn !rounded-lg hover:bg-soft" data-act="adm-edit" data-col="${col}" data-id="${x.id}" aria-label="${esc(L(['Засах', 'Edit']))}">${ic('pencil-line', 'w-[18px] h-[18px]')}</button><button type="button" class="icon-btn !rounded-lg hover:bg-soft text-muted hover:text-ubred" data-act="adm-del-row" data-col="${col}" data-id="${x.id}" aria-label="${esc(L(['Устгах', 'Delete']))}">${ic('trash-2', 'w-[18px] h-[18px]')}</button></span></li>`).join('');
   return `<div class="flex flex-col md:flex-row md:items-center gap-3 mb-4"><div class="relative md:w-80">${ic('search', 'w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none')}<input type="search" class="field !h-10 !pl-10 !text-[14px]" placeholder="${esc(L(['Хайх', 'Search']))}" value="${esc(ADM.q)}" data-adm-q aria-label="${esc(L(['Хайх', 'Search']))}"/></div>
-    ${F ? `<div class="flex gap-1.5 overflow-x-auto no-scrollbar">${F.map(([v, l]) => `<button type="button" class="chip !h-9 shrink-0" data-act="adm-filter" data-v="${v}" aria-pressed="${ADM.f === v}">${esc(L(l))}</button>`).join('')}</div>` : ''}<span class="md:ml-auto text-[13px] text-muted">${L([`${items.length} бичлэг`, `${items.length} items`])}</span></div>
+    ${F ? `<div class="flex gap-1.5 overflow-x-auto no-scrollbar">${F.map(([v, l]) => `<button type="button" class="chip !h-9 shrink-0" data-act="adm-filter" data-v="${v}" aria-pressed="${ADM.f === v}">${esc(L(l))}</button>`).join('')}</div>` : ''}<span class="md:ml-auto text-[13px] text-muted">${L([`${items.length} бичлэг`, `${items.length} items`])}${col === 'mediaitems' ? ` · ${L([`сайт дээр эхний ${MEDIA_MAX} нь харагдана`, `the first ${MEDIA_MAX} show on the site`])}` : ''}</span></div>
     ${items.length ? `<ul class="card divide-y divide-line overflow-hidden">${rows}</ul>` : `<div class="card p-10 text-center text-muted">${ic('inbox', 'w-8 h-8 mx-auto mb-3 opacity-60')}${L(['Илэрц алга', 'Nothing here'])}</div>`}`;
 }
 
@@ -311,6 +323,7 @@ function admBlank(col) {
     events: { t: ['', ''], c: 'civic', date: isoDay(addDays(today(), 1)), tm: '18:00', v: ['', ''], price: 0, desc: ['', ''], img: 'civic:day:' + rseed(), x: 560, y: 285 },
     projects: { n: ['', ''], c: 'transport', p: 0, bud: 0, due: now.getFullYear() + 1, x: 560, y: 300 },
     services: { t: ['', ''], d: ['', ''], g: 'citizen', m: 'on', i: 'file-text' },
+    govsched: { t: ['', ''], type: 'meeting', date: isoDay(addDays(today(), 1)), from: '10:00', to: '11:00', place: ['', ''], d: ['', ''] },
   }[col] || admBlankGeneric(col);
 }
 /* Шинэ хэсгүүдийн хоосон бичлэг: SCHEMA-гийн талбаруудаас автоматаар */
@@ -355,6 +368,7 @@ function admField(f, doc) {
         <div class="flex flex-wrap gap-1.5">${Object.keys(REC_L).map((r) => `<button type="button" class="chip !h-8 !px-3 !text-[12.5px]" data-act="adm-img-rec" data-v="${r}" aria-pressed="${parts[0] === r}">${esc(L(REC_L[r]))}</button>`).join('')}</div>
         <div class="flex flex-wrap gap-2">${Object.keys(PAL_SW).map((p) => `<button type="button" class="w-8 h-8 rounded-full ring-2 ring-offset-2 ring-offset-card ${parts[1] === p ? 'ring-ubblue' : 'ring-transparent'}" style="background:linear-gradient(135deg,${PAL_SW[p][0]},${PAL_SW[p][1]})" data-act="adm-img-pal" data-v="${p}" aria-label="${p}"></button>`).join('')}</div>
         <div class="flex flex-wrap gap-2"><button type="button" class="btn btn-sm btn-ghost" data-act="adm-img-roll">${ic('shuffle', 'w-4 h-4')}${L(['Өөр хувилбар', 'Another version'])}</button><label class="btn btn-sm btn-ghost cursor-pointer">${ic('upload', 'w-4 h-4')}${L(['Зураг оруулах', 'Upload photo'])}<input type="file" accept="image/*" class="sr-only" id="adm-upload"/></label></div></div></div></div>`; }
+    case 'logo': return `<div>${lab}<div class="flex items-center gap-4" id="adm-logo-${k}">${admLogoBox(k, mediaSrc(doc[k]))}</div></div>`;
     case 'mappos': return `<div>${lab}<div id="adm-map" class="h-[260px] rounded-2xl overflow-hidden border border-line"></div><p class="mt-2 text-[13px] text-muted" id="adm-posinfo">${esc(L(['Газрын зураг дээр дарж байршлыг сонгоно.', 'Tap the map to set the position.']))} ${doc.x != null ? esc(L(inDistrict(doc.x, doc.y).n)) : ''}</p></div>`;
     default: return '';
   }
@@ -397,8 +411,10 @@ function admPreview() {
   if (e.col === 'services') return svcTile(Object.assign({}, d, { id: 'prev', t: tt(d.t), d: d.d || ['', ''] }));
   if (e.col === 'projects') { const c = PCAT[d.c] || PCAT.transport; return `<div class="card p-4 flex items-center gap-3">${pctRing(Math.round(+d.p || 0), 56, 6, c.c, 13)}<div class="min-w-0"><p class="text-[12px] font-bold" style="color:${c.c}">${esc(L(c.t))}</p><p class="font-extrabold leading-snug">${esc(L(tt(d.n)))}</p><p class="text-[12.5px] text-muted">${bn(+d.bud || 0)}, ${d.due || ''}</p></div></div>`; }
   if (e.col === 'alerts') return `<div class="ticker rounded-xl p-3 flex items-start gap-2 text-[14px]">${ic(d.i || 'triangle-alert', 'w-4 h-4 mt-0.5')}<span><b>${esc(L(tt(d.k)))}.</b> ${esc(L(d.t || ['', '']))}</span></div>`;
+  if (e.col === 'govsched') { const x = Object.assign({ id: 'prev', type: 'meeting', from: '', place: ['', ''], d: ['', ''] }, d, { t: tt(d.t) }); return /^\d{4}-\d\d-\d\d$/.test(x.date || '') ? `<ol class="gov-list">${govRow(x, govState(x), 0)}</ol>` : ''; }
   if (e.col === 'banners') return `<div class="w-[212px] mx-auto"><div class="rail-stack">${railCard(Object.assign({}, d, { t: tt(d.t) }), { on: true, preview: true })}</div></div>`;
   if (e.col === 'mediaitems') return `<div class="card overflow-hidden"><div class="scene aspect-[16/10]">${Scene(d.img)}</div><div class="p-4"><p class="text-[12px] font-bold text-muted uppercase">${esc(d.type || '')}</p><p class="mt-1 font-bold leading-snug">${esc(L(tt(d.t)))}</p><p class="text-[13px] text-muted">${esc(L(d.d || ['', '']))}</p></div></div>`;
+  if (e.col === 'orgs') return `<div class="max-w-[300px]">${orgTile(Object.assign({}, d, { t: tt(d.t) }))}</div>`;
   if (['rubrics', 'ecats', 'pcats'].includes(e.col)) return `<span class="chip"><i class="w-2 h-2 rounded-full" style="background:${esc(d.c || '#1D5BFF')}"></i>${esc(L(tt(d.t)))}</span>`;
   const sc = SCHEMA[e.col];
   return `<div class="card p-4 flex items-start gap-3"><span class="w-10 h-10 rounded-xl bg-ubblue/10 text-ubblue grid place-items-center shrink-0">${ic(d.i || sc.icon, 'w-5 h-5')}</span><div class="min-w-0"><p class="font-bold leading-snug">${esc(sc.title(d) || L(['Нэр энд харагдана', 'The name appears here']))}</p>${d.d && L(d.d) ? `<p class="text-[13px] text-muted mt-1">${esc(L(d.d))}</p>` : ''}${Array.isArray(d.steps) ? `<p class="text-[13px] text-muted mt-1">${d.steps.length} ${L(['алхам', 'steps'])}</p>` : ''}</div></div>`;
@@ -442,13 +458,48 @@ function admEditorAfter(sh) {
     else e.doc[k] = el.value;
     admPrevUpdate();
   });
-  form.addEventListener('change', (ev) => { const el = ev.target; if (el.dataset.flag && ADM.edit) { ADM.edit.doc[el.dataset.flag] = el.checked ? 1 : 0; admPrevUpdate(); } if (el.id === 'adm-upload') admUpload(el.files && el.files[0]); });
+  form.addEventListener('change', (ev) => { const el = ev.target; if (el.dataset.flag && ADM.edit) { ADM.edit.doc[el.dataset.flag] = el.checked ? 1 : 0; admPrevUpdate(); } if (el.id === 'adm-upload') admUpload(el.files && el.files[0]); if (el.dataset.logo) { admUploadLogo(el.files && el.files[0], el.dataset.logo); el.value = ''; } });
   const mapEl = $('#adm-map', sh);
   if (mapEl) {
     if (ADM.map) ADM.map.destroy();
     const d = ADM.edit.doc;
     ADM.map = new MapView(mapEl, { cluster: false, points: () => (d.x != null ? [{ id: 'pos', x: d.x, y: d.y, c: '#D81E34', i: 'map-pin' }] : []), onPick: (x, y) => { d.x = Math.round(x); d.y = Math.round(y); ADM.map.recluster(true); const info = $('#adm-posinfo'); if (info) info.textContent = L(['Сонгосон байршил:', 'Selected:']) + ' ' + L(inDistrict(d.x, d.y).n); } });
   }
+}
+function admLogoBox(k, src) {
+  return `<span class="org-logo w-[92px] h-[92px] !rounded-2xl">${src ? `<img src="${src}" alt="">` : `<span class="text-muted">${ic('image-plus', 'w-7 h-7', 1.6)}</span>`}</span>
+    <div class="min-w-0 space-y-2"><div class="flex flex-wrap gap-2"><label class="btn btn-sm btn-ghost cursor-pointer">${ic('upload', 'w-4 h-4')}${src ? L(['Лого солих', 'Replace logo']) : L(['Лого оруулах', 'Upload logo'])}<input type="file" accept="image/png,image/svg+xml,image/webp,image/jpeg" class="sr-only" data-logo="${k}"/></label>${src ? `<button type="button" class="btn btn-sm btn-ghost !text-ubred" data-act="adm-logo-del" data-k="${k}">${ic('trash-2', 'w-4 h-4')}${L(['Устгах', 'Remove'])}</button>` : ''}</div>
+    <p class="text-[12.5px] text-muted leading-snug">${L(['PNG, SVG эсвэл WebP. Ил тод (transparent) дэвсгэртэй лого хамгийн цэвэрхэн харагдана.', 'PNG, SVG or WebP. A logo with a transparent background looks best.'])}</p></div>`;
+}
+function admLogoPaint(k) { const e = ADM.edit, box = $('#adm-logo-' + k); if (e && box) box.innerHTML = admLogoBox(k, mediaSrc(e.doc[k])); admPrevUpdate(); }
+/* Лого: ил тод байдлыг хадгалж, урт талыг нь 320px болгож WebP (дэмжихгүй бол PNG) болгоно. SVG-г ч зураг болгон хувиргана. */
+async function admUploadLogo(file, k) {
+  if (!file || !ADM.edit) return;
+  try {
+    const url = URL.createObjectURL(file), img = new Image(); img.src = url; await img.decode();
+    // Ажлын зотон дээр зурж, ил тод эсвэл цагаан хоосон захыг тайрна (лого жижиг харагдахаас сэргийлнэ)
+    const nw = img.naturalWidth || 512, nh = img.naturalHeight || 512, r0 = Math.min(1, 800 / Math.max(nw, nh));
+    const wc = document.createElement('canvas'); wc.width = Math.max(1, Math.round(nw * r0)); wc.height = Math.max(1, Math.round(nh * r0));
+    const wx = wc.getContext('2d', { willReadFrequently: true }); wx.drawImage(img, 0, 0, wc.width, wc.height);
+    const px = wx.getImageData(0, 0, wc.width, wc.height).data;
+    let x0 = wc.width, y0 = wc.height, x1 = -1, y1 = -1;
+    for (let y = 0; y < wc.height; y++) for (let x = 0; x < wc.width; x++) { const i = (y * wc.width + x) * 4; if (px[i + 3] > 12 && !(px[i] > 246 && px[i + 1] > 246 && px[i + 2] > 246)) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+    if (x1 < 0) { x0 = 0; y0 = 0; x1 = wc.width - 1; y1 = wc.height - 1; }
+    const pad = Math.round(Math.max(x1 - x0, y1 - y0) * 0.04), sx = Math.max(0, x0 - pad), sy = Math.max(0, y0 - pad), sw = Math.min(wc.width, x1 + pad + 1) - sx, sh = Math.min(wc.height, y1 + pad + 1) - sy;
+    let side = 320, src = '';
+    for (let tries = 0; tries < 4; tries++) {
+      const r = Math.min(1, side / Math.max(sw, sh)), w = Math.max(1, Math.round(sw * r)), h = Math.max(1, Math.round(sh * r));
+      const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(wc, sx, sy, sw, sh, 0, 0, w, h);
+      src = c.toDataURL('image/webp', 0.92); if (src.indexOf('data:image/webp') !== 0) src = c.toDataURL('image/png');
+      if (src.length < 160000) break; side = Math.round(side * 0.75);
+    }
+    URL.revokeObjectURL(url);
+    if (src.length >= 200000) { toast(L(['Лого хэт том байна', 'The logo is too large']), 'triangle-alert'); return; }
+    const mid = 'm' + Date.now().toString(36);
+    await cmsWrite('media', mid, Object.assign({ id: mid, src, name: String(file.name || '').slice(0, 80) }, stamp()));
+    CMS.data.media[mid] = { id: mid, src };
+    ADM.edit.doc[k] = 'media:' + mid; admLogoPaint(k); toast(L(['Лого орууллаа. «Хадгалах»-ыг дарна уу.', 'Logo uploaded. Press Save.']), 'image');
+  } catch (er) { toast(er && er.name === 'EncodingError' ? L(['Энэ файлыг зураг болгож уншиж чадсангүй', 'Could not read this file as an image']) : cmsErr(er), 'triangle-alert'); }
 }
 function admSetImg(key) { const e = ADM.edit; if (!e) return; e.doc.img = key; const p = $('#adm-imgprev'); if (p) p.innerHTML = Scene(key); const parts = key.indexOf('media:') === 0 ? [] : key.split(':'); $$('[data-act="adm-img-rec"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === parts[0]))); $$('[data-act="adm-img-pal"]').forEach((b) => { b.classList.toggle('ring-ubblue', b.dataset.v === parts[1]); b.classList.toggle('ring-transparent', b.dataset.v !== parts[1]); }); admPrevUpdate(); }
 async function admUpload(file) {
@@ -616,6 +667,7 @@ document.addEventListener('click', async (ev) => {
     case 'adm-filter': ADM.f = d.v; renderAdmin(); break;
     case 'adm-tgroup': ADM.tg = d.v; renderAdmin(); break;
     case 'adm-pick': if (ADM.edit) { ADM.edit.doc[d.k] = d.v; $$(`[data-act="adm-pick"][data-k="${d.k}"]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === d.v))); admPrevUpdate(); } break;
+    case 'adm-logo-del': if (ADM.edit) { ADM.edit.doc[d.k] = ''; admLogoPaint(d.k); } break;
     case 'adm-icon': if (ADM.edit) { ADM.edit.doc.i = d.v; $$('[data-act="adm-icon"]').forEach((b) => { const on = b.dataset.v === d.v; b.setAttribute('aria-pressed', String(on)); b.classList.toggle('bg-ink', on); b.classList.toggle('text-card', on); b.classList.toggle('border-transparent', on); b.classList.toggle('border-line', !on); }); admPrevUpdate(); } break;
     case 'adm-img-rec': case 'adm-img-pal': case 'adm-img-roll': { if (!ADM.edit) break; const cur = ADM.edit.doc.img || 'skyline:day:1', p = cur.indexOf('media:') === 0 ? ['skyline', 'day', rseed()] : cur.split(':'); if (a === 'adm-img-rec') p[0] = d.v; if (a === 'adm-img-pal') p[1] = d.v; if (a === 'adm-img-roll') p[2] = rseed(); admSetImg(`${p[0]}:${p[1] || 'day'}:${p[2] || rseed()}`); break; }
     case 'adm-save': admSave(); break;

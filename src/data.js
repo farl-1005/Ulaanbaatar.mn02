@@ -49,6 +49,11 @@ const I = {
   govNews: ['Засаг даргын мэдээ', "Governor's news"],
   govRole: ['Нийслэлийн Засаг дарга, Улаанбаатар хотын Захирагч Б.Пүрэвдагва', 'Governor of the Capital City and Mayor of Ulaanbaatar, B. Purevdagva'],
   govLetter: ['Засаг даргад захидал бичих', 'Write to the Governor'],
+  govSec: ['Нийслэлийн Засаг дарга', 'The Governor'], govSchedT: ['Засаг даргын ажлын хуваарь', "The Governor's schedule"],
+  govSchedD: ['Засаг даргын уулзалт, хуралдаан, ажлын айлчлал: хэзээ, хаана, юу болох вэ.', "The Governor's meetings, sessions and site visits: when, where and what."],
+  govName: ['Б.Пүрэвдагва', 'B. Purevdagva'], govTitle: ['Нийслэлийн Засаг дарга, Улаанбаатар хотын Захирагч', 'Governor of the Capital City and Mayor of Ulaanbaatar'],
+  govReception: ['Иргэдийн хүлээн авалт: Мягмар гараг бүр 14:00–16:00, Иргэний танхим', 'Citizen reception: every Tuesday 14:00–16:00, Civic Hall'],
+  govBook: ['Хүлээн авалтад бүртгүүлэх', 'Book a reception slot'],
   reportDesc: ['Замын нүх, гэмтсэн гэрэлтүүлэг, аюултай барилга', 'Potholes, broken lights, unsafe structures'],
   voteDesc: ['Санал асуулга, санал хүсэлт', 'Polls and suggestions'],
 
@@ -130,12 +135,6 @@ const I = {
   budgetExec: ['Төсвийн гүйцэтгэл', 'Budget execution'],
   budgetNote: ['2026 оны төсөв {v}, улирлаар', '2026 budget {v}, by quarter'],
   plan: ['Төлөвлөгөө', 'Plan'], actual: ['Гүйцэтгэл', 'Actual'],
-  transit: ['Нийтийн тээвэр', 'Public transport'],
-  busesNow: ['шугамд байгаа автобус', 'buses on the road'],
-  ridersToday: ['өнөөдрийн зорчигч', 'trips today'],
-  avgWait: ['дундаж хүлээлт', 'average wait'],
-  onTime: ['хуваарьт цагтаа', 'on time'],
-  minShort: ['мин', 'min'],
 
   evTitle: ['Арга хэмжээ', 'Events'],
   evDesc: ['Хотод болох соёл, спорт, иргэний оролцооны арга хэмжээ', 'Culture, sport and civic events across the city'],
@@ -408,6 +407,4 @@ const MEDIA = [
   { type: 'podcast', img: 'ger:dusk:34', dur: '38:12', ep: '#24', t: ['«Хотын яриа»: Гэр хорооллыг хэрхэн дахин төлөвлөх вэ?', '"City Talk": how should ger districts be redeveloped?'], d: ['Хот төлөвлөгч, иргэдийн төлөөлөлтэй', 'With a planner and residents'] },
   { type: 'video', img: 'road:night:35', dur: '3:05', t: ['Ухаалаг гэрлэн дохио хэрхэн ажилладаг вэ', 'How the smart traffic lights work'], d: ['3 минутын тайлбар', 'A three-minute explainer'] },
   { type: 'photo', img: 'school:day:36', n: 18, t: ['Шинэ цэцэрлэгийн нээлт', 'A new kindergarten opens'], d: ['Сүхбаатар дүүрэг', 'Sükhbaatar District'] },
-  { type: 'podcast', img: 'air:smog:37', dur: '41:50', ep: '#23', t: ['«Хотын яриа»: Агаарын бохирдол, тоо ба шийдэл', '"City Talk": air pollution, numbers and fixes'], d: ['Эрдэмтэн, эмчийн оролцоотой', 'With a scientist and a doctor'] },
-  { type: 'video', img: 'ger:day:38', dur: '6:18', t: ['Хорооны хөгжлийн сан: иргэд юу сонгосон бэ', 'Khoroo fund: what residents chose'], d: ['3 хорооны түүх', 'Stories from three khoroos'] },
 ];

@@ -212,12 +212,12 @@ function svcApply(id) {
 }
 function openBooking(o) {
   const days = []; let d = today();
-  while (days.length < 5) { d = addDays(d, 1); if (d.getDay() !== 0 && d.getDay() !== 6) days.push(d); }
-  const slots = ['09:30', '10:30', '11:30', '14:00', '15:30', '16:30'];
+  while (days.length < 5) { d = addDays(d, 1); if (o.wd != null ? d.getDay() === o.wd : d.getDay() !== 0 && d.getDay() !== 6) days.push(d); }
+  const slots = o.wd != null ? ['14:00', '14:20', '14:40', '15:00', '15:20', '15:40'] : ['09:30', '10:30', '11:30', '14:00', '15:30', '16:30'];
   let di = 0, si = null;
   const taken = (a, b) => (a * 7 + b * 3) % 5 === 0;
   openModal({ size: 'md', label: t('book'), render: () => `${modalHead(t('book'), esc(L(o.t)), 'calendar-clock', 'bg-ink text-card')}<div class="px-5 sm:px-7 py-6">
-    <p class="text-[13.5px] text-muted flex items-center gap-2">${ic('map-pin', 'w-4 h-4')}${esc(L(['Сүхбаатар дүүргийн иргэний үйлчилгээний төв', 'Sükhbaatar District service centre']))}</p>
+    <p class="text-[13.5px] text-muted flex items-center gap-2">${ic('map-pin', 'w-4 h-4')}${esc(L(o.place || ['Сүхбаатар дүүргийн иргэний үйлчилгээний төв', 'Sükhbaatar District service centre']))}</p>
     <p class="mt-5 font-bold">${t('pickSlot')}</p>
     <div class="mt-3 grid grid-cols-5 gap-2">${days.map((x, i) => `<button type="button" class="rounded-xl border py-2 text-center transition-colors ${i === di ? 'bg-ink text-card border-transparent' : 'border-line hover:bg-soft'}" data-act="bk-day" data-i="${i}" aria-pressed="${i === di}"><span class="block text-[12px] font-semibold opacity-70">${EN() ? EN_WD[x.getDay()] : MN_WDS[x.getDay()]}</span><b class="block text-[17px] tnum">${x.getDate()}</b></button>`).join('')}</div>
     <div class="mt-3 grid grid-cols-3 gap-2">${slots.map((s, j) => { const tk = taken(di, j); return `<button type="button" ${tk ? 'disabled' : ''} class="h-11 rounded-xl border text-[14px] font-semibold tnum transition-colors ${tk ? 'border-line text-muted/50 line-through cursor-not-allowed' : j === si ? 'bg-ubblue text-white border-transparent' : 'border-line hover:bg-soft'}" data-act="bk-slot" data-j="${j}" aria-pressed="${j === si}">${s}</button>`; }).join('')}</div>
@@ -711,13 +711,17 @@ document.addEventListener('click', (e) => {
     case 'svc': openService(d.id); break;
     case 'svc-apply': svcApply(d.id); break;
     case 'svc-book': { const s = ALL_SVC.find((x) => x.id === d.id); openBooking({ t: s.t }); break; }
+    case 'gov-day': govSetDay(d.v, d.id); break;
+    case 'gov-wk': govSetWeek(+d.v); break;
+    case 'gov-today': GV.w = 0; GV.d = null; govSetWeek(0); break;
+    case 'gov-ics': govIcs(d.id); break;
+    case 'gov-book': openBooking({ t: ['Засаг даргын иргэдийн хүлээн авалт', "Governor's citizen reception"], place: ['Нийслэлийн Засаг даргын Тамгын газар, Иргэний танхим', 'City Hall, Civic Hall'], wd: 2 }); break;
     case 'sys-open': toast(t('sysDemo'), 'external-link'); break;
     case 'sit': setSit(d.v); break;
     case 'sit-toggle': toggleStep(+d.i); break;
     case 'sit-reset': { const prev = (S.sitDone[S.sit] || []).slice(); S.sitDone[S.sit] = []; store.set('sitDone', S.sitDone); paintSit(prev); break; }
     case 'sit-apply': stepApply(+d.i); break;
     case 'media-f': setMediaF(d.v); break;
-    case 'media-scroll': { const tr = $('#media-track'); tr.scrollBy({ left: +d.d * tr.clientWidth * 0.8, behavior: reduced ? 'auto' : 'smooth' }); break; }
     case 'media-open': openMedia(+d.i); break;
     case 'mp-toggle': if (MS.mpToggle) MS.mpToggle(); break;
     case 'ph': if (MS.ph) MS.ph(+d.d); break;
@@ -801,15 +805,12 @@ function startLive() {
   setInterval(() => {
     if (document.hidden) return;
     if (Math.random() < 0.55) S.aqi = Math.max(84, Math.min(91, S.aqi + (Math.random() < 0.5 ? -1 : 1)));
-    S.buses = Math.max(1000, Math.min(1052, S.buses + Math.round(Math.random() * 6 - 3)));
-    setLive('aqi', S.aqi); setLive('pm25', pm25()); setLive('buses', num(S.buses));
+    setLive('aqi', S.aqi); setLive('pm25', pm25());
     $$('[data-live="clocks"]').forEach((el) => { el.textContent = clock(true); });
     updAqiChart();
   }, 5000);
   setInterval(() => {
     if (document.hidden) return;
-    S.riders += 3 + Math.floor(Math.random() * 12);
-    setLive('riders', num(S.riders));
     $$('[data-live="clock"]').forEach((el) => { el.textContent = clock(); });
   }, 1000);
   setInterval(() => { if (!document.hidden) pushBreaking(); }, 22000);
@@ -818,7 +819,7 @@ function startLive() {
 
 /* ================= Init ================= */
 function renderAll() {
-  renderHeader(); renderTicker(); renderHero(); renderHub(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); renderRail(); renderBottomBar(); renderChat();
+  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); renderRail(); renderBottomBar(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
   initTabs(); setActiveNav(currentSec);
@@ -837,7 +838,7 @@ function setupObservers() {
   if (!('IntersectionObserver' in window)) return;
   new IntersectionObserver(([en]) => { const n = $('#navbar'); if (n) n.classList.toggle('stuck', !en.isIntersecting && en.boundingClientRect.top < 0); }).observe($('#nav-sentinel'));
   const io = new IntersectionObserver((es) => { es.forEach((en) => { if (en.isIntersecting) { currentSec = en.target.id; if (S.route === 'home') setActiveNav(currentSec); } }); }, { rootMargin: '-40% 0px -55% 0px' });
-  ['hero', 'hub', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].forEach((id) => io.observe(document.getElementById(id)));
+  ['hero', 'hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].forEach((id) => io.observe(document.getElementById(id)));
 }
 function showChatTip() {
   if (Chat.seen || S.chatOpen) return;
@@ -850,7 +851,6 @@ function init() {
   S.intro = !reduced;
   const now = ubNow();
   S.breaking = NEWS.filter((n) => n.br).map((n) => ({ id: n.id, ts: n.ts || new Date(now.getTime() - n.ago * 60000) })).sort((a, b) => b.ts - a.ts);
-  S.riders = Math.min(940000, Math.max(0, ((now.getHours() - 5) * 60 + now.getMinutes()) * 820));
   if (S.user && !S.user.on) S.user = { on: 1 };
   renderAll();
   setupSkyline();
@@ -865,7 +865,7 @@ function init() {
   }
   else if (h === 'my' && S.user) setRoute('my');
   else if (h === 'admin' || h.startsWith('admin/')) { admFromHash(h); setRoute('admin'); }
-  else if (['hub', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);
+  else if (['hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);
   window.addEventListener('resize', debounce(() => initTabs(), 150));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { initTabs(); const nav = $('#navbar'); if (nav && nav._moveInd) setActiveNav(currentSec); });
   setTimeout(showChatTip, 6500);

@@ -3,7 +3,7 @@
    artifact's shared db (cms/site/<collection>/<id>, admin-only writes, live for
    every signed-in viewer) or, outside claude.ai, this browser's storage. */
 const CMS_COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
-  'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners'];
+  'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners', 'govsched'];
 const cloneJ = (x) => JSON.parse(JSON.stringify(x));
 const dISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const linesOf = (pairs) => pairs.map((p) => p[0] + ' | ' + (p[1] || '')).join('\n');
@@ -24,6 +24,7 @@ const DEF = {
   // Сайтын бусад бүх агуулга (admin-аас засагдана). ord: жагсаалтын дараалал.
   mediaitems: MEDIA.map((m, i) => Object.assign({ id: 'm' + (i + 1), ord: (i + 1) * 10 }, cloneJ(m))),
   banners: cloneJ(BANNERS),
+  govsched: cloneJ(GOV_SCHED),
   sits: SITS.map((x, i) => Object.assign({ ord: (i + 1) * 10 }, cloneJ(x))),
   docs: Object.keys(DOCS).flatMap((kind) => DOCS[kind].map((d, i) => { const x = Object.assign({ id: kind + (i + 1), kind }, cloneJ(d), { date: dISO(addDays(today(), -(d.ago || 0))) }); if (kind === 'tender') x.due = d.left ? dISO(addDays(today(), d.left)) : ''; delete x.ago; delete x.left; return x; })),
   struct: STRUCT.map((x, i) => Object.assign({ id: 'st' + (i + 1), ord: (i + 1) * 10 }, cloneJ(x))),
@@ -55,6 +56,8 @@ const zipParas = (bt) => {
   const a = sp(bt[0]), b = sp(bt[1]);
   return Array.from({ length: Math.max(a.length, b.length) }, (_, i) => [a[i] || b[i] || '', b[i] || a[i] || '']);
 };
+/* Admin-аас оруулсан зураг/лого ('media:<id>') → data URL. Буруу эсвэл устсан бол хоосон. */
+const mediaSrc = (key) => { const m = String(key || '').indexOf('media:') === 0 && CMS.data.media[String(key).slice(6)]; return m && /^data:image\/(webp|png|jpeg|gif);base64,[A-Za-z0-9+/=]+$/.test(m.src || '') ? m.src : ''; };
 const dayOffset = (ds) => { const m = String(ds || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? Math.round((new Date(+m[1], +m[2] - 1, +m[3]) - today()) / 864e5) : 0; };
 
 function applyOverlay() {
@@ -66,6 +69,7 @@ function applyOverlay() {
   // Агуулгын жагсаалтууд
   MEDIA.splice(0, MEDIA.length, ...byOrd(mergedItems('mediaitems')));
   BANNERS.splice(0, BANNERS.length, ...byOrd(mergedItems('banners')));
+  GOV_SCHED.splice(0, GOV_SCHED.length, ...mergedItems('govsched').filter((e) => !e.off && /^\d{4}-\d\d-\d\d$/.test(e.date || '')).sort((a, b) => (a.date + a.from).localeCompare(b.date + b.from)));
   SITS.splice(0, SITS.length, ...byOrd(mergedItems('sits')).map((x) => Object.assign(x, { steps: (x.steps || []).filter((st) => st && st.t && (st.t[0] || st.t[1])) })));
   if (SITS.length && !SITS.find((x) => x.id === S.sit)) S.sit = SITS[0].id;
   const docs = mergedItems('docs');

@@ -62,7 +62,7 @@ const S = {
   paid: store.get('paid', []),
   vote: store.get('vote', null),
   breaking: [], incoming: 0,
-  aqi: 87, temp: -4, traffic: 6, buses: 1024, riders: 0,
+  aqi: 87, temp: -4, traffic: 6,
   tickerOn: true,
   chat: [], chatOpen: false,
 };
@@ -244,13 +244,14 @@ const MENU = [
     { i: 'hard-hat', t: ['24 мега төсөл', '24 flagship projects'], d: ['Төсөл бүрийн гүйцэтгэл, төсөв, хугацаа', 'Progress, budget and timeline for each'], go: { sec: 'projects' } },
     { i: 'map-pinned', t: ['Газрын зураг', 'Map'], d: ['Бүх төслийг газрын зураг дээр', 'Every project on the map'], go: { sec: 'projects', focus: 'map' } } ] },
   { k: 'nav_data', sec: 'data', items: [
-    { i: 'activity', t: ['Бодит цагийн самбар', 'Live dashboard'], d: ['Агаар, түгжрэл, цаг агаар, нийтийн тээвэр', 'Air, traffic, weather and transit'], go: { sec: 'data' } },
+    { i: 'activity', t: ['Бодит цагийн самбар', 'Live dashboard'], d: ['Агаар, түгжрэл, цаг агаар', 'Air, traffic and weather'], go: { sec: 'data' } },
     { i: 'chart-column', t: ['Статистик', 'Statistics'], d: ['Хүн ам, төсөв, нийгмийн үзүүлэлт', 'Population, budget, social indicators'], go: { sec: 'data', hl: 'pop' } } ] },
   { k: 'nav_open', sec: 'transparency', items: [
     { i: 'scroll-text', t: ['Тогтоол', 'Resolutions'], d: ['Нийслэлийн ИТХ-ын тогтоолууд', 'City Council resolutions'], go: { sec: 'transparency', tr: 'res' } },
     { i: 'stamp', t: ['Захирамж, шийдвэр', 'Orders and decisions'], d: ['Засаг даргын захирамж, шийдвэрүүд', "The Governor's orders"], go: { sec: 'transparency', tr: 'ord' } },
     { i: 'gavel', t: ['Тендер', 'Tenders'], d: ['Нээлттэй тендер, гэрээ, үр дүн', 'Open tenders, contracts, results'], go: { sec: 'transparency', tr: 'tender' } } ] },
   { k: 'nav_about', sec: 'about', items: [
+    { i: 'calendar-clock', t: ['Засаг дарга', 'The Governor'], d: ['Ажлын хуваарь, уулзалт, мэдээ', 'Schedule, meetings and news'], go: { sec: 'gov' } },
     { i: 'landmark', t: ['Удирдлага', 'Leadership'], d: ['Хотын удирдлагын бүтэц', 'How the city is governed'], go: { sec: 'about' } },
     { i: 'network', t: ['Харьяа байгууллагууд', 'City agencies'], d: ['Нийслэлийн агентлаг, газрууд', 'Agencies and departments'], go: { sec: 'about', hl: 'orgs' } } ] },
 ];
@@ -459,7 +460,7 @@ function isDarkBg(el) {   // хамгийн ойрын тунгалаг бус �
 }
 window.addEventListener('scroll', () => { if (!dockRaf) dockRaf = requestAnimationFrame(() => { dockRaf = 0; dockProgress(); }); }, { passive: true });
 function setActiveNav(sec) {
-  const map = { hero: 1, hub: S.hub === 'services' ? 0 : 1, situations: 0, media: 1, projects: 2, data: 3, events: 1, transparency: 4, about: 5 };
+  const map = { hero: 1, hub: S.hub === 'services' ? 0 : 1, gov: 5, situations: 0, media: 1, projects: 2, data: 3, events: 1, transparency: 4, about: 5 };
   const idx = map[sec];
   $$('.nav-btn').forEach((b) => b.classList.toggle('is-active', +b.dataset.menu === idx && sec !== 'hero'));
   const nav = $('#navbar'); if (nav && megaOpen < 0 && nav._moveInd) nav._moveInd($('.nav-btn.is-active', nav));
