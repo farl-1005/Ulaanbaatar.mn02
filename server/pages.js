@@ -160,7 +160,7 @@ function newsPage(o, n, all) {
 ${lead ? `<p class="mt-5 text-[18px] sm:text-[20px] leading-relaxed text-ink/80 font-medium">${esc(lead)}</p>` : ''}
 ${n.at ? `<p class="mt-4 text-[13px] text-muted"><time datetime="${n.at}">${dateMn(n.at)}</time> · ${esc(PUBLISHER)}</p>` : ''}
 ${PHOTO_RE.test(n.img || '') ? `<figure class="mt-8"><img src="/${esc(n.img)}" alt="${esc(title)}" class="w-full rounded-[22px]"></figure>` : ''}
-${body.length ? `<div class="mt-8 max-w-[760px] space-y-6 text-[17px] sm:text-[18px] leading-[1.85] text-ink/85">${body.map((x) => `<p>${esc(x)}</p>`).join('')}</div>` : ''}
+${body.length ? `<div class="news-paper mt-8 max-w-[760px]">${body.length > 1 ? `<p class="news-intro">${esc(body[0])}</p>` : ''}<div class="news-text">${(body.length > 1 ? body.slice(1) : body).map((x) => `<p>${esc(x)}</p>`).join('')}</div></div>` : ''}
 ${srcUrl ? `<p class="mt-8"><a href="${esc(srcUrl)}" rel="noopener">Эх сурвалж</a></p>` : ''}
 </article>`;
   return page(o, {

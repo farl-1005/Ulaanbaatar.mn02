@@ -513,3 +513,14 @@ html.a11y .tr-kpi, html.a11y .tr-row { opacity: 1; transform: none; animation: n
 html.a11y .ai *, html.a11y .cta-ic::before { animation: none !important; }
 html.a11y .ai-vote .ai-check { stroke-dashoffset: 0; }
 
+/* ---- Мэдээний дэлгэрэнгүй: нийтлэл цагаан «цаас» карт дотор, оршил догол мөр тусдаа ---- */
+.news-paper { background: rgb(var(--c-card)); border: 1px solid rgb(var(--c-line)); border-radius: 24px; padding: 22px 20px;
+  box-shadow: 0 1px 2px rgb(var(--shadow) / .04), 0 24px 48px -36px rgb(var(--shadow) / .35); }
+@media (min-width: 640px) { .news-paper { padding: 40px 44px; border-radius: 28px; } }
+.news-intro { margin-bottom: 30px; padding: 18px 20px 18px 22px; border-left: 4px solid rgb(var(--c-red)); border-radius: 4px 16px 16px 4px;
+  background: rgb(var(--c-red) / .05); color: rgb(var(--c-ink)); font-size: 18.5px; line-height: 1.7; font-weight: 600; text-wrap: pretty; }
+@media (min-width: 640px) { .news-intro { font-size: 20px; padding: 20px 24px 20px 26px; } }
+.news-text { font-size: 17px; line-height: 1.85; color: rgb(var(--c-ink) / .82); text-wrap: pretty; }
+.news-text > p + p { margin-top: 1.35em; }
+@media (min-width: 640px) { .news-text { font-size: 18px; } }
+
