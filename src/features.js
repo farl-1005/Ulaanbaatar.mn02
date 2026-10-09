@@ -52,7 +52,7 @@ function newsMins(n) {
   return Math.max(1, Math.round(words / 180));
 }
 function newsFbHTML() {
-  return `<div id="nfb" class="mt-10 rounded-[18px] bg-soft p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><b class="block text-[16px]">${t('helpful')}</b><span class="text-[13.5px] text-muted">${L(['Таны санал мэдээллийг сайжруулахад тусална.', 'Your answer helps us improve.'])}</span></div>
+  return `<div id="nfb" class="mt-10 rounded-[8px] bg-soft p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><div><b class="block text-[16px]">${t('helpful')}</b><span class="text-[13.5px] text-muted">${L(['Таны санал мэдээллийг сайжруулахад тусална.', 'Your answer helps us improve.'])}</span></div>
     <span class="flex flex-wrap gap-2">${S.newsFb ? `<span class="text-[14px] text-greenink font-semibold inline-flex items-center gap-1.5 h-9">${ic('circle-check', 'w-4 h-4')}${t('thanks')}</span>` : `<button type="button" class="btn btn-sm btn-ghost bg-card" data-act="nfb">${ic('thumbs-up', 'w-4 h-4')}${t('yes')}</button><button type="button" class="btn btn-sm btn-ghost bg-card" data-act="nfb">${ic('thumbs-down', 'w-4 h-4')}${t('no')}</button>`}</span></div>`;
 }
 function newsShare(n, cls = '') {
@@ -123,7 +123,7 @@ function renderNewsPage() {
         <div class="news-paper">
         ${body}
         ${newsAction(n)}
-        ${n.d ? `<div class="mt-8 rounded-[18px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><p class="flex gap-3 text-[14px] text-muted leading-relaxed">${ic('info', 'w-5 h-5 shrink-0')}<span>${n.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p><a class="btn btn-sm btn-ghost shrink-0" href="${NEWS_SRC}${n.id.slice(1)}" target="_blank" rel="noopener">${ic('external-link', 'w-4 h-4')}${t('srcLink')}</a></div>` : ''}
+        ${n.d ? `<div class="mt-8 rounded-[8px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><p class="flex gap-3 text-[14px] text-muted leading-relaxed">${ic('info', 'w-5 h-5 shrink-0')}<span>${n.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p><a class="btn btn-sm btn-ghost shrink-0" href="${NEWS_SRC}${n.id.slice(1)}" target="_blank" rel="noopener">${ic('external-link', 'w-4 h-4')}${t('srcLink')}</a></div>` : ''}
         ${CMS.canEdit ? `<button type="button" class="btn btn-sm btn-ghost mt-4" data-act="adm-site-edit" data-col="news" data-id="${n.id}">${ic('pencil-line', 'w-4 h-4')}${L(['Энэ мэдээг засах', 'Edit this story'])}</button>` : ''}
         <div class="mt-8 pt-6 border-t border-line flex flex-wrap items-center gap-2"><span class="text-[13px] text-muted mr-1">${L(['Шошго:', 'Tags:'])}</span>
           <button type="button" class="chip" data-act="go" data-sec="hub" data-hub="news" data-cat="${n.cat}">#${esc(L(r.t))}</button><span class="chip">#${L(['Улаанбаатар', 'Ulaanbaatar'])}</span><span class="chip">#${L(['Нийслэл', 'Capital'])}</span></div>
@@ -136,7 +136,7 @@ function renderNewsPage() {
       <aside class="space-y-5 lg:sticky lg:top-[88px] self-start">
         <div class="card p-5"><h2 class="font-extrabold text-[16px] flex items-center gap-2">${ic('flame', 'w-[18px] h-[18px] text-ubred')}${L(['Их уншсан', 'Most read'])}</h2><ol class="mt-1 divide-y divide-line">${top.map((x, i) => newsSideItem(x, i)).join('')}</ol></div>
         ${latest.length ? `<div class="card p-5"><h2 class="font-extrabold text-[16px] flex items-center gap-2">${ic('newspaper', 'w-[18px] h-[18px] text-ubblue')}${L(['Сүүлийн мэдээ', 'Latest'])}</h2><ul class="mt-1 divide-y divide-line">${latest.map((x) => newsSideItem(x)).join('')}</ul></div>` : ''}
-        <div class="rounded-[18px] bg-navy text-white p-5"><span class="w-10 h-10 rounded-xl bg-white/10 grid place-items-center">${ic('message-square-warning', 'w-5 h-5')}</span><b class="block mt-3 text-[16px]">${L(['Асуудал анзаарсан уу?', 'Spotted a problem?'])}</b><p class="mt-1 text-[13.5px] text-white/70 leading-relaxed">${L(['Хотод тулгамдсан асуудлыг шууд мэдээлж, явцыг нь хянаарай.', 'Report a city issue and track it to resolution.'])}</p><button type="button" class="btn btn-red btn-sm mt-4" data-act="report">${ic('plus', 'w-4 h-4')}${L(['Мэдээлэх', 'Report'])}</button></div>
+        <div class="rounded-[8px] bg-navy text-white p-5"><span class="w-10 h-10 rounded-xl bg-white/10 grid place-items-center">${ic('message-square-warning', 'w-5 h-5')}</span><b class="block mt-3 text-[16px]">${L(['Асуудал анзаарсан уу?', 'Spotted a problem?'])}</b><p class="mt-1 text-[13.5px] text-white/70 leading-relaxed">${L(['Хотод тулгамдсан асуудлыг шууд мэдээлж, явцыг нь хянаарай.', 'Report a city issue and track it to resolution.'])}</p><button type="button" class="btn btn-red btn-sm mt-4" data-act="report">${ic('plus', 'w-4 h-4')}${L(['Мэдээлэх', 'Report'])}</button></div>
       </aside>
     </div>
 
@@ -403,12 +403,12 @@ function openMedia(i) {
   };
   const toggle = () => { playing = !playing; clearInterval(timer); if (playing) timer = setInterval(tick, 1000); paintModal(true); };
   const head = `<p class="text-[13px] text-muted">${esc(L(m.d))}</p><h2 class="mt-1 text-[22px] sm:text-[24px] font-extrabold leading-snug">${esc(L(m.t))}</h2>`;
-  const stageVideo = () => `<div class="relative bg-black sm:rounded-t-[24px] overflow-hidden"><div class="scene aspect-video">${Scene(m.img)}</div><div class="absolute inset-0 transition-colors ${playing ? 'bg-black/0' : 'bg-black/30'}"></div>
+  const stageVideo = () => `<div class="relative bg-black sm:rounded-t-[8px] overflow-hidden"><div class="scene aspect-video">${Scene(m.img)}</div><div class="absolute inset-0 transition-colors ${playing ? 'bg-black/0' : 'bg-black/30'}"></div>
     ${m.type === 'live' ? `<span class="absolute left-4 top-4 inline-flex items-center gap-2 h-8 px-3 rounded-full bg-ubred text-white text-[13px] font-bold"><span class="live" style="--dot:#fff"></span>${t('m_live')}</span><span class="absolute left-[104px] top-4 h-8 px-3 rounded-full bg-black/55 text-white text-[13px] font-semibold inline-flex items-center gap-1.5 tnum">${ic('eye', 'w-4 h-4')}<span id="mp-viewers">${num(viewers)}</span></span>` : ''}
     ${closeBtnImg()}
     <button type="button" class="absolute inset-x-0 top-14 bottom-16 grid place-items-center" data-act="mp-toggle" aria-label="${esc(playing ? t('pause') : t('play'))}"><span class="w-20 h-20 rounded-full bg-white/90 text-[#0B1D45] grid place-items-center shadow-2xl transition-all duration-300 ${playing ? 'opacity-0 scale-75' : ''}">${ic('play', 'w-9 h-9 ml-1')}</span></button>
     <div class="absolute inset-x-0 bottom-0 px-4 pb-3 pt-10 bg-gradient-to-t from-black/80 to-transparent text-white flex items-center gap-3"><button type="button" class="icon-btn hover:bg-white/15" data-act="mp-toggle" aria-label="${esc(playing ? t('pause') : t('play'))}">${ic(playing ? 'pause' : 'play')}</button><span class="text-[13px] tnum whitespace-nowrap" id="mp-time">${m.type === 'live' ? `${t('liveFor')} ${fmt(liveSec)}` : `${fmt(pos)} / ${m.dur}`}</span><div class="flex-1 h-1.5 rounded-full bg-white/25 overflow-hidden"><div class="h-full bg-ubred transition-[width] duration-1000 ease-linear" id="mp-bar" style="width:${m.type === 'live' ? 100 : (pos / durS) * 100}%"></div></div>${ic('volume-2', 'w-5 h-5 opacity-80')}</div></div><div class="px-5 sm:px-7 py-6">${head}</div>`;
-  const stagePhoto = () => `<div class="relative bg-black sm:rounded-t-[24px] overflow-hidden"><div class="scene aspect-[16/10]" id="ph-main">${Scene(photoKey(ph))}</div>${closeBtnImg()}
+  const stagePhoto = () => `<div class="relative bg-black sm:rounded-t-[8px] overflow-hidden"><div class="scene aspect-[16/10]" id="ph-main">${Scene(photoKey(ph))}</div>${closeBtnImg()}
     <button type="button" class="absolute left-3 top-1/2 -translate-y-1/2 icon-btn bg-black/50 text-white hover:bg-black/70" data-act="ph" data-d="-1" aria-label="${esc(t('prev'))}">${ic('chevron-left')}</button><button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 icon-btn bg-black/50 text-white hover:bg-black/70" data-act="ph" data-d="1" aria-label="${esc(t('next'))}">${ic('chevron-right')}</button>
     <span class="absolute left-4 bottom-4 h-8 px-3 rounded-full bg-black/55 text-white text-[13px] font-bold inline-flex items-center tnum" id="ph-count">${ph + 1} / ${m.n}</span></div>
     <div class="flex gap-2 overflow-x-auto thin-scroll px-5 sm:px-7 pt-4 pb-1" id="ph-strip">${Array.from({ length: m.n }, (_, k) => `<button type="button" class="scene w-20 h-14 rounded-lg shrink-0 ring-2 ring-offset-2 ring-offset-card transition ${k === ph ? 'ring-ubred' : 'ring-transparent opacity-60 hover:opacity-100'}" data-act="ph-go" data-k="${k}" aria-label="${k + 1}">${Scene(photoKey(k))}</button>`).join('')}</div>
@@ -447,7 +447,7 @@ function openDoc(type, i) {
     <div class="mt-5 flex justify-between gap-3 text-[12px] text-gray-500"><span>${fDate(date)}</span><span class="font-bold text-gray-800 tnum">${esc(d.no)}</span><span>${L(['Улаанбаатар хот', 'Ulaanbaatar'])}</span></div>
     <p class="mt-6 text-center font-bold text-[15px] leading-snug text-[#111827]">${esc(L(d.t))}</p>
     <div class="mt-6 space-y-3 text-gray-700">${clauses.map((c) => `<p>${esc(L(c))}</p>`).join('')}</div>
-    <div class="mt-5 space-y-2" aria-hidden="true">${[92, 100, 84, 96, 60].map((w) => `<span class="block h-2 rounded bg-gray-200" style="width:${w}%"></span>`).join('')}</div>
+    <div class="mt-5 space-y-2" aria-hidden="true">${[92, 100, 84, 96, 60].map((w) => `<span class="block h-2 rounded-[4px] bg-gray-200" style="width:${w}%"></span>`).join('')}</div>
     <div class="mt-10 flex items-end justify-between text-[12px] text-gray-500"><span>${res ? L(['ХУРЛЫН ДАРГА', 'CHAIR OF THE COUNCIL']) : L(['ЗАСАГ ДАРГА', 'GOVERNOR'])}</span><span class="w-28 border-b border-gray-400"></span></div></div>
     <p class="mt-4 text-center text-[13px] text-muted">${t('docNote')}</p></div>` });
 }
@@ -463,7 +463,7 @@ function openEvent(id) {
   const e = EVENTS.find((x) => x.id === id); if (!e) return;
   const d = evDate(e.w), c = ECAT[e.c];
   openModal({ size: 'md', label: L(e.t), render: () => { const saved = S.evSaved.includes(id);
-    return `<div class="relative"><div class="scene aspect-[16/8] sm:rounded-t-[24px]">${Scene(e.img)}</div>${closeBtnImg()}</div><div class="px-5 sm:px-7 py-6"><span class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted"><i class="w-2 h-2 rounded-full" style="background:${c.c}"></i>${esc(L(c.t))}</span><h2 class="mt-2 text-[24px] font-extrabold leading-tight">${esc(L(e.t))}</h2>
+    return `<div class="relative"><div class="scene aspect-[16/8] sm:rounded-t-[8px]">${Scene(e.img)}</div>${closeBtnImg()}</div><div class="px-5 sm:px-7 py-6"><span class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-muted"><i class="w-2 h-2 rounded-full" style="background:${c.c}"></i>${esc(L(c.t))}</span><h2 class="mt-2 text-[24px] font-extrabold leading-tight">${esc(L(e.t))}</h2>
     <div class="mt-4 grid gap-2.5 text-[14.5px]"><p class="flex items-center gap-3">${ic('calendar-days', 'w-5 h-5 text-muted')}${fDate(d, true)}, ${esc(e.tm)}</p><p class="flex items-center gap-3">${ic('map-pin', 'w-5 h-5 text-muted')}${esc(L(e.v))}</p><p class="flex items-center gap-3">${ic('ticket', 'w-5 h-5 text-muted')}${e.price ? money(e.price) : t('free')}</p></div>
     <p class="mt-5 text-[15px] leading-relaxed text-ink/85">${esc(L(e.desc && (e.desc[0] || e.desc[1]) ? e.desc : (EVDESC[e.c] || ['', ''])))}</p>
     <div class="mt-6 flex flex-wrap gap-2"><button type="button" class="btn ${saved ? 'btn-ghost' : 'btn-ink'}" data-act="ev-save" data-id="${id}" aria-pressed="${saved}">${ic(saved ? 'bookmark-check' : 'bookmark', 'w-[18px] h-[18px]')}${saved ? t('saved') : t('save')}</button><button type="button" class="btn btn-ghost" data-act="ev-onmap" data-id="${id}">${ic('map', 'w-[18px] h-[18px]')}${t('showOnMap')}</button></div></div>`; } });
@@ -544,12 +544,12 @@ function parseActs(m) {
 }
 const botAvatar = () => `<span class="w-8 h-8 rounded-lg bg-navy text-white grid place-items-center shrink-0">${ic('sparkles', 'w-4 h-4')}</span>`;
 function msgHTML(m, i) {
-  if (m.role === 'user') return `<div class="flex justify-end"><div class="max-w-[85%] rounded-2xl rounded-tr-md bg-ubblue text-white px-3.5 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words">${esc(m.text)}</div></div>`;
+  if (m.role === 'user') return `<div class="flex justify-end"><div class="max-w-[85%] rounded-2xl rounded-tr-[4px] bg-ubblue text-white px-3.5 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words">${esc(m.text)}</div></div>`;
   const body = m.text ? md(m.streaming ? stripTags(m.text) : m.text) : m.streaming ? `<span class="inline-flex items-center gap-2 text-muted text-[13.5px]"><span class="typing"><span></span><span></span><span></span></span>${t('thinking')}</span>` : '';
-  return `<div class="flex gap-2.5" data-msg="${i}">${botAvatar()}<div class="max-w-[85%] min-w-0"><div class="rounded-2xl rounded-tl-md bg-card border border-line px-3.5 py-2.5 text-[14.5px] leading-relaxed break-words ${body ? '' : 'hidden'}" data-body>${body}</div>${m.err ? `<p class="mt-1.5 text-[12.5px] text-ubred">${esc(m.err)}</p>` : ''}${m.acts && m.acts.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${m.acts.map((a) => `<button type="button" class="chip !h-8 !text-[13px] !px-3 !text-ubblue" data-act="chat-do" data-v="${esc(a)}">${ic(actIcon(a), 'w-4 h-4')}${esc(actLabel(a))}</button>`).join('')}</div>` : ''}</div></div>`;
+  return `<div class="flex gap-2.5" data-msg="${i}">${botAvatar()}<div class="max-w-[85%] min-w-0"><div class="rounded-2xl rounded-tl-[4px] bg-card border border-line px-3.5 py-2.5 text-[14.5px] leading-relaxed break-words ${body ? '' : 'hidden'}" data-body>${body}</div>${m.err ? `<p class="mt-1.5 text-[12.5px] text-ubred">${esc(m.err)}</p>` : ''}${m.acts && m.acts.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${m.acts.map((a) => `<button type="button" class="chip !h-8 !text-[13px] !px-3 !text-ubblue" data-act="chat-do" data-v="${esc(a)}">${ic(actIcon(a), 'w-4 h-4')}${esc(actLabel(a))}</button>`).join('')}</div>` : ''}</div></div>`;
 }
 function chatMsgs() {
-  const greet = `<div class="flex gap-2.5">${botAvatar()}<div class="max-w-[88%]"><div class="rounded-2xl rounded-tl-md bg-card border border-line px-3.5 py-2.5 text-[14.5px] leading-relaxed">${esc(t('chatGreet'))}</div><div class="mt-2 flex flex-wrap gap-1.5">${CHAT_CHIPS.map((c) => `<button type="button" class="chip !h-8 !text-[13px] !px-3" data-act="chat-ask" data-v="${esc(L(c))}">${esc(L(c))}</button>`).join('')}</div></div></div>`;
+  const greet = `<div class="flex gap-2.5">${botAvatar()}<div class="max-w-[88%]"><div class="rounded-2xl rounded-tl-[4px] bg-card border border-line px-3.5 py-2.5 text-[14.5px] leading-relaxed">${esc(t('chatGreet'))}</div><div class="mt-2 flex flex-wrap gap-1.5">${CHAT_CHIPS.map((c) => `<button type="button" class="chip !h-8 !text-[13px] !px-3" data-act="chat-ask" data-v="${esc(L(c))}">${esc(L(c))}</button>`).join('')}</div></div></div>`;
   return greet + S.chat.map(msgHTML).join('');
 }
 function chatStatus() { return `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#34C78C] mr-1.5 align-middle"></span>${Chat.fn === null ? t('chatFallback') : t('chatOn')}`; }
@@ -801,6 +801,50 @@ function pushBreaking() {
 }
 /* data-roll-тэй (Хотын өгөгдөл) бол цифр эргэлдэнэ, бусад нь шууд солигдоно */
 function setLive(key, v) { $$(`[data-live="${key}"]`).forEach((el) => { if (el.hasAttribute('data-roll')) rollTo(el, v); else el.textContent = v; }); }
+/* ================= Дээш буцах товч =================
+   Доош гүйлгэхэд AI туслахын товчны дээр гарч ирнэ. Тойрог нь хуудсыг хэр уншсаныг харуулна;
+   дарахад сум «хөөрч», хуудас зөөлөн дээш гулсана (хэрэглэгч хулгана/хуруугаар оролцвол шууд зогсоно). */
+const TT = { el: null, raf: 0, run: null };
+function toTopHTML() {
+  const arrow = (c) => `<svg class="ta ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`;
+  return `<svg class="totop-ring" viewBox="0 0 56 56" aria-hidden="true"><defs><linearGradient id="ttg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF5A6E"/><stop offset="1" stop-color="#FFB547"/></linearGradient></defs><rect class="totop-track" x="1.3" y="1.3" width="53.4" height="53.4" rx="7"/><path class="totop-bar" d="M28 1.3H47.7A7 7 0 0 1 54.7 8.3V47.7A7 7 0 0 1 47.7 54.7H8.3A7 7 0 0 1 1.3 47.7V8.3A7 7 0 0 1 8.3 1.3Z" pathLength="100"/></svg>
+    <span class="totop-arrows">${arrow('ta-1')}${arrow('ta-2')}</span>
+    <span class="totop-tip" aria-hidden="true"><b>${L(['Дээш буцах', 'Back to top'])}</b><em class="tnum" data-ttpct>0%</em></span>`;
+}
+function paintToTop() { if (!TT.el) return; TT.el.innerHTML = toTopHTML(); TT.el.setAttribute('aria-label', L(['Хуудасны эхэнд очих', 'Back to top'])); toTopUpd(); }
+function toTopUpd() {
+  TT.raf = 0; const el = TT.el; if (!el) return;
+  const h = document.documentElement.scrollHeight - innerHeight, p = h > 0 ? Math.min(1, Math.max(0, scrollY / h)) : 0;
+  const on = scrollY > innerHeight * 0.9;
+  if (el.classList.contains('is-on') !== on) { el.classList.toggle('is-on', on); el.tabIndex = on ? 0 : -1; el.setAttribute('aria-hidden', String(!on)); }
+  el.style.setProperty('--off', (100 - p * 100).toFixed(2));
+  const pc = $('[data-ttpct]', el); if (pc) pc.textContent = Math.round(p * 100) + '%';
+}
+function toTopGo(ev) {
+  const el = TT.el, kb = ev && ev.detail === 0;
+  if (TT.run) TT.run.abort();
+  const done = () => { if (kb) $('#main').focus({ preventScroll: true }); setTimeout(() => el.classList.remove('is-launch'), 700); };
+  el.classList.remove('is-launch'); void el.offsetWidth; el.classList.add('is-launch');
+  if (reduced || S.a11y) { window.scrollTo(0, 0); done(); return; }
+  // Өөрийн easing-тэй гүйлгэлт: зай их бол арай удаан (0.5–1.1 сек), эхлэл ба төгсгөл зөөлөн
+  const ac = new AbortController(); TT.run = ac;
+  ['wheel', 'touchstart', 'keydown'].forEach((n) => addEventListener(n, () => ac.abort(), { passive: true, signal: ac.signal }));
+  const y0 = scrollY, dur = Math.min(1100, 500 + y0 * 0.08), t0 = performance.now();
+  const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const step = (now) => {
+    if (ac.signal.aborted) { el.classList.remove('is-launch'); return; }
+    const k = Math.min(1, (now - t0) / dur); window.scrollTo(0, Math.round(y0 * (1 - ease(k))));
+    if (k < 1) requestAnimationFrame(step); else { ac.abort(); TT.run = null; done(); }
+  };
+  setTimeout(() => requestAnimationFrame(step), 120);   // сум эхлээд бага зэрэг суугаад хөөрнө
+}
+function setupToTop() {
+  const el = document.createElement('button'); el.type = 'button'; el.id = 'totop'; el.className = 'totop'; el.tabIndex = -1; el.setAttribute('aria-hidden', 'true');
+  $('#chat').after(el); TT.el = el; paintToTop();
+  el.addEventListener('click', toTopGo);
+  const q = () => { if (!TT.raf) TT.raf = requestAnimationFrame(toTopUpd); };
+  addEventListener('scroll', q, { passive: true }); addEventListener('resize', q, { passive: true });
+}
 function startLive() {
   setInterval(() => {
     if (document.hidden) return;
@@ -819,7 +863,7 @@ function startLive() {
 
 /* ================= Init ================= */
 function renderAll() {
-  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); renderRail(); renderBottomBar(); renderChat();
+  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); paintToTop(); renderRail(); renderBottomBar(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
   initTabs(); setActiveNav(currentSec);
@@ -856,7 +900,7 @@ function init() {
   setupSkyline();
   initCMS();
   setTimeout(() => { S.intro = false; const h = $('#hero > div'); if (h) h.classList.remove('intro'); }, 2300);
-  setupObservers(); startLive(); initChatCapability();
+  setupObservers(); startLive(); initChatCapability(); setupToTop();
   const h = decodeURIComponent((location.hash || '').slice(1)), nid = urlNewsId();
   const sk = $('#skip-link'); if (sk) sk.addEventListener('click', (e) => { e.preventDefault(); $('#main').focus(); });   // <base href="/"> үед #main нүүр рүү үсрэхгүй
   if (nid) {

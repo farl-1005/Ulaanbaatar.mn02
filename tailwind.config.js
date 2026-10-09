@@ -22,6 +22,8 @@ module.exports = {
         sans: ['"Golos Text"', 'Manrope', 'system-ui', '-apple-system', '"Segoe UI"', 'Roboto', 'Arial', 'sans-serif'],
       },
       maxWidth: { site: '1320px' },
+      // Сайтын бүх булан нэг ижил 8px. rounded-full ч 8px: 16px-ээс жижиг цэг, зураас өөрөө дугуй харагдана.
+      borderRadius: { sm: '8px', DEFAULT: '8px', md: '8px', lg: '8px', xl: '8px', '2xl': '8px', '3xl': '8px', full: '8px' },
     },
   },
   plugins: [],
