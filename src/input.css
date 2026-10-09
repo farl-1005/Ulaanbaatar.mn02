@@ -622,3 +622,47 @@ html.a11y .ai-vote .ai-check { stroke-dashoffset: 0; }
 @media (max-width: 639px) { .tk { height: 44px; border-radius: 14px; } .tk-tag { padding: 0 22px 0 11px; } .tk-item { font-size: 13.5px; } .tk-count { display: none; } }
 @media (prefers-reduced-motion: reduce) { .tk-stripes { animation: none; } .tk-item { transition: opacity .2s; } .nav-pill { transition: none; } }
 
+/* ================= Толгойн лого: орох, hover, тайван үеийн хөдөлгөөн (core.js renderHeader, scene.js logoEmblem) ================= */
+.logo-em { position: relative; isolation: isolate; display: inline-grid; flex: none; transition: transform .7s cubic-bezier(.22, 1, .36, 1); }
+.logo-em > img { transition: transform .7s cubic-bezier(.22, 1, .36, 1), filter .7s cubic-bezier(.22, 1, .36, 1); }
+/* ард нь алтан-улаан гэрэлтэлт */
+.logo-em::before { content: ""; position: absolute; inset: -24%; z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgb(var(--c-yellow) / .62), rgb(var(--c-amber) / .2) 56%, transparent 74%);
+  opacity: 0; transform: scale(.6); transition: opacity .6s, transform .8s cubic-bezier(.22, 1, .36, 1); }
+/* сүлдний хэлбэрээр гүйх гялбаа: 9 секунд тутам нэг удаа */
+.logo-em::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 43%, rgb(255 255 255 / .95) 50%, transparent 57%) no-repeat; background-size: 260% 100%; background-position: 100% 0; mix-blend-mode: soft-light;
+  -webkit-mask: var(--logo-img) center / contain no-repeat; mask: var(--logo-img) center / contain no-repeat;
+  animation: logoSheen 9s cubic-bezier(.45, 0, .2, 1) 2.4s infinite; }
+@keyframes logoSheen { 0% { background-position: 100% 0; } 13%, 100% { background-position: 0% 0; } }
+@keyframes logoSheenOnce { from { background-position: 100% 0; } to { background-position: 0% 0; } }
+/* «Улаанбаатар» бичиг: улаан, hover-т алтан гялбаа гүйнэ */
+.logo-word { color: transparent; -webkit-background-clip: text; background-clip: text; background-size: 260% 100%; background-position: 100% 0;
+  background-image: linear-gradient(100deg, rgb(var(--c-red)) 0 42%, rgb(var(--c-yellow)) 50%, rgb(var(--c-red)) 58% 100%);
+  transition: background-position 1s cubic-bezier(.45, 0, .2, 1); }
+.logo-slogan { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 1px; transition: background-size .7s cubic-bezier(.22, 1, .36, 1); }
+/* hover / гарын товчлуураар фокуслах */
+.logo-btn:hover .logo-em, .logo-btn:focus-visible .logo-em { transform: translateY(-2px); }
+.logo-btn:hover .logo-em > img, .logo-btn:focus-visible .logo-em > img { transform: scale(1.07) rotate(-3deg); filter: drop-shadow(0 6px 12px rgb(var(--c-amber) / .32)); }
+.logo-btn:hover .logo-em::before, .logo-btn:focus-visible .logo-em::before { opacity: 1; transform: scale(1); }
+.logo-btn:hover .logo-em::after, .logo-btn:focus-visible .logo-em::after, .mini-logo:hover .logo-em::after { animation: logoSheenOnce 1s cubic-bezier(.45, 0, .2, 1) both; }
+.logo-btn:hover .logo-word, .logo-btn:focus-visible .logo-word { background-position: 0% 0; }
+.logo-btn:hover .logo-slogan, .logo-btn:focus-visible .logo-slogan { background-size: 100% 1px; }
+/* хуудас ачаалагдахад нэг удаа: сүлд тодорч суух, гэрэлтэлтийн долгион, бичиг зүүнээс нээгдэх, уриа гулсаж гарах */
+.logo-intro .logo-em > img { animation: logoIn 1.15s cubic-bezier(.22, 1, .36, 1) backwards; }
+@keyframes logoIn { from { opacity: 0; transform: translateY(8px) scale(.8) rotate(-10deg); filter: blur(6px); } 55% { filter: blur(0); } }
+.logo-intro .logo-em::before { animation: logoHalo 1.5s cubic-bezier(.22, 1, .36, 1) .3s backwards; }
+@keyframes logoHalo { from { opacity: 0; transform: scale(.5); } 35% { opacity: .95; } to { opacity: 0; transform: scale(1.55); } }
+.logo-intro .logo-word { animation: logoWipe 1s cubic-bezier(.65, 0, .35, 1) .2s backwards; }
+@keyframes logoWipe { from { clip-path: inset(-10% 100% -10% 0); } to { clip-path: inset(-10% 0 -10% 0); } }
+.logo-intro .logo-slogan { animation: logoSlogan .85s cubic-bezier(.22, 1, .36, 1) .6s backwards; }
+@keyframes logoSlogan { from { opacity: 0; transform: translateX(-10px); } }
+/* dock-ийн жижиг лого: гарч ирэхдээ пүрш шиг эргэлдэн томорно */
+.dock .mini-logo .logo-em > img { transform: scale(.5) rotate(-25deg); transition: transform .65s cubic-bezier(.34, 1.56, .64, 1) .05s; }
+.dock.stuck .mini-logo .logo-em > img { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .logo-em::after, .logo-intro .logo-em > img, .logo-intro .logo-em::before, .logo-intro .logo-word, .logo-intro .logo-slogan { animation: none !important; }
+  .logo-btn:hover .logo-em > img { transform: none; }
+}
+html.a11y .logo-em::after { animation: none !important; }
+

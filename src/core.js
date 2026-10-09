@@ -325,7 +325,13 @@ function renderHeader() {
     band.dataset.built = '1';
     $('#hb-sky').innerHTML = skylineSVG('skd'); watchSky($('#hb-sky'));
   }
-  $('#hb-left').innerHTML = `<button type="button" data-act="home" class="flex items-center gap-3 group text-left" aria-label="${esc(t('homeAria'))}">${logoMark('w-10 h-10 lg:w-[52px] lg:h-[52px] transition-transform duration-700 group-hover:rotate-[45deg]')}<span class="leading-tight min-w-0"><span class="block font-extrabold text-[19px] lg:text-[24px] tracking-[-0.025em] text-ubred">${t('brand')}</span><span class="hidden sm:block text-[12px] lg:text-[13px] font-semibold text-ubblue leading-[1.25] max-w-[160px] lg:max-w-none lg:whitespace-nowrap" data-slogan>${t('slogan')}</span></span></button>`;
+  const hl = $('#hb-left');
+  if (!hl.dataset.built) {   // нэг удаа бүтээнэ: дараагийн renderHeader (хэл, горим солих) орох хөдөлгөөнийг таслахгүй
+    hl.dataset.built = '1';
+    hl.innerHTML = `<button type="button" data-act="home" class="logo-btn ${S.intro ? 'logo-intro' : ''} flex items-center gap-3 text-left">${logoEmblem('w-10 h-10 lg:w-[52px] lg:h-[52px]')}<span class="leading-tight min-w-0"><span class="logo-word block font-extrabold text-[19px] lg:text-[24px] tracking-[-0.025em]" data-brand></span><span class="logo-slogan hidden sm:block text-[12px] lg:text-[13px] font-semibold text-ubblue leading-[1.25] max-w-[160px] lg:max-w-none lg:whitespace-nowrap" data-slogan></span></span></button>`;
+    if (S.intro) setTimeout(() => { const lb = $('.logo-btn', hl); if (lb) lb.classList.remove('logo-intro'); }, 2400);
+  }
+  $('.logo-btn', hl).setAttribute('aria-label', t('homeAria')); $('[data-brand]', hl).textContent = t('brand'); $('[data-slogan]', hl).textContent = t('slogan');
   const other = S.lang === 'mn' ? 'en' : 'mn';
   $('#hb-right').innerHTML = `<button type="button" data-act="search" class="w-10 h-10 rounded-lg btn-navy grid place-items-center" aria-label="${esc(t('search'))}" title="${esc(t('search'))} (Ctrl K)">${ic('search', 'w-[18px] h-[18px]')}</button>
     <div class="hidden sm:flex h-10 px-3 rounded-lg border border-line items-center gap-2.5 text-[13px] font-bold" role="group" aria-label="Language">${['mn', 'en'].map((l, i) => `${i ? '<span class="w-px h-4 bg-line"></span>' : ''}<button type="button" data-act="lang" data-v="${l}" aria-pressed="${S.lang === l}" class="transition-colors ${S.lang === l ? 'text-ink' : 'text-muted hover:text-ink'}">${l === 'mn' ? 'МН' : 'EN'}</button>`).join('')}</div>
@@ -338,7 +344,7 @@ function renderHeader() {
   const navBtn = (m, i) => `<li class="flex"><button type="button" class="nav-btn" data-menu="${i}" data-sec="${esc(m.sec)}" aria-expanded="false" aria-haspopup="true"><span>${menuLabel(m)}</span>${ic('chevron-down', 'nav-chev w-3.5 h-3.5')}</button></li>`;
   const ctaBtn = (act, cls, icon, label) => `<button type="button" class="cta-pill ${cls}" data-act="${act}" aria-label="${esc(label)}" title="${esc(label)}"><span class="cta-pill-ic">${animIcon(icon, 'w-[18px] h-[18px]')}</span><span class="cta-pill-t">${label}</span></button>`;
   $('#hdr-nav').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8"><nav class="dock" id="navbar" aria-label="Main"><div class="dock-in">
-    <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoMark('w-[34px] h-[34px]')}</button>
+    <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoEmblem('w-[34px] h-[34px]')}</button>
     <ul class="dock-items" id="nav-items"><li class="nav-pill" id="nav-pill" aria-hidden="true"></li>${MENU.map(navBtn).join('')}</ul>
     <div class="ml-auto flex items-center gap-2 pl-3 shrink-0">
       <button type="button" data-act="search" class="dock-search" aria-label="${esc(t('search'))}" title="${esc(t('search'))} (Ctrl K)">${ic('search', 'w-[18px] h-[18px]')}</button>

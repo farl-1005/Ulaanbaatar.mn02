@@ -202,6 +202,11 @@ const Scene = (() => {
 function logoMark(cls = 'w-10 h-10') {
   return `<img src="${LOGO_SRC}" class="${cls} shrink-0 object-contain" alt="" aria-hidden="true" decoding="async" draggable="false">`;
 }
+/* Хөдөлгөөнт сүлд (толгой, dock): ард нь гэрэлтэх цагираг (::before), сүлдний өөрийн хэлбэрээр гүйх гялбаа (::after, --logo-img mask). input.css .logo-* */
+function logoEmblem(cls = 'w-10 h-10') {
+  return `<span class="logo-em ${cls}" aria-hidden="true"><img src="${LOGO_SRC}" class="w-full h-full object-contain" alt="" decoding="async" draggable="false"></span>`;
+}
+document.documentElement.style.setProperty('--logo-img', `url("${LOGO_SRC}")`);
 
 /* ================= Schematic map base ================= */
 function mapBaseSVG() {
