@@ -33,6 +33,7 @@ function openNews(id) {
   if (MODAL) closeModal(true);
   closeMenu();
   if (S.route === 'home') S.homeY = window.scrollY;
+  if (S.route === 'page') { S.pageY = window.scrollY; S.pageFor = S.page; }
   S.newsId = id; S.newsFb = false;
   try { if ((PRETTY ? location.pathname : location.hash) !== newsHref(id)) history.pushState({ ubNews: 1 }, '', newsHref(id)); } catch (e) { /* ignore */ }
   setRoute('news');
@@ -41,10 +42,11 @@ function newsBack() {
   if (history.state && history.state.ubNews) history.back(); else setRoute('home');
 }
 window.addEventListener('popstate', () => {
-  const id = urlNewsId();
+  const id = urlNewsId(), pk = urlPage();
   if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
+  else if (pk) { if (S.route !== 'page' || S.page !== pk) { S.page = pk; if (pk === 'services') S.hub = 'services'; else if (pk === 'news') S.hub = 'news'; setRoute('page'); } }
   else if (/^#admin(\/|$)/.test(location.hash)) { admFromHash(location.hash); if (S.route !== 'admin') setRoute('admin'); else renderAdmin(); }
-  else if (S.route === 'news') setRoute('home');
+  else if (S.route === 'news' || S.route === 'page') setRoute('home');
 });
 function newsMins(n) {
   if (n.mins) return n.mins;
@@ -88,7 +90,7 @@ function renderNewsPage() {
   const nav = (x, dir) => x ? `<button type="button" class="group card lift p-4 sm:p-5 text-left flex flex-col gap-2 ${dir > 0 ? 'sm:items-end sm:text-right' : ''}" data-act="news" data-id="${x.id}"><span class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted">${dir < 0 ? ic('arrow-left', 'w-4 h-4') : ''}${dir < 0 ? L(['Өмнөх мэдээ', 'Previous']) : L(['Дараагийн мэдээ', 'Next'])}${dir > 0 ? ic('arrow-right', 'w-4 h-4') : ''}</span><span class="text-[15px] font-bold leading-snug line-clamp-2 group-hover:text-ubred transition-colors">${esc(L(x.t))}</span></button>` : '<span class="hidden sm:block"></span>';
   document.title = L(n.t) + ' · ulaanbaatar.mn';
   $('#view-news').innerHTML = `<div class="fixed inset-x-0 top-0 h-[3px] z-[70] pointer-events-none" aria-hidden="true"><div id="nprog" class="h-full bg-ubred origin-left" style="transform:scaleX(0)"></div></div>
-  <div class="max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 view-in">
+  <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10 view-in">
     <nav class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13.5px] text-muted" aria-label="${L(['Байршил', 'Breadcrumb'])}">
       <button type="button" class="font-semibold hover:text-ink inline-flex items-center gap-1.5 mr-2" data-act="news-back">${ic('arrow-left', 'w-4 h-4')}${L(['Буцах', 'Back'])}</button>
       <span class="w-px h-4 bg-line mr-2" aria-hidden="true"></span>
@@ -117,7 +119,7 @@ function renderNewsPage() {
     </header>
 
 
-    <div class="mt-6 lg:mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 lg:gap-10 xl:gap-12">
+    <div class="mt-6 lg:mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-10 xl:gap-12">
       <article id="nbody" class="min-w-0 w-full max-w-[760px] mx-auto lg:max-w-none lg:mx-0">
         ${enOnlyMn ? `<p class="mb-6 rounded-xl bg-soft px-4 py-3 text-[14px] text-muted flex gap-2.5">${ic('languages', 'w-5 h-5 shrink-0')}<span>The full article is published in Mongolian only.${n.sumEn && n.sumEn.length ? ' Below is an English summary.' : ''} <button type="button" class="font-semibold text-ink underline underline-offset-2" data-act="lang" data-v="mn">Read in Mongolian</button></span></p>` : ''}
         <div class="news-paper">
@@ -658,7 +660,7 @@ function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.min(128
 
 /* ================= Global wiring ================= */
 function onTab(name, v) {
-  if (name === 'hub') setHub(v); else if (name === 'svc') setSvcTab(v); else if (name === 'evview') setEvView(v); else if (name === 'tr') setTr(v);
+  if (name === 'hub') setHub(v); else if (name === 'nsort') setNewsSort(v); else if (name === 'svc') setSvcTab(v); else if (name === 'evview') setEvView(v); else if (name === 'tr') setTr(v);
   else if (name === 'my') { if (S.route !== 'my') { S.myTab = v; setRoute('my'); } else setMyTab(v); }
   else if (name === 'dan' && MS.danTab) MS.danTab(v); else if (name === 'vote' && MS.vTab) MS.vTab(v);
 }
@@ -671,7 +673,9 @@ document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-act]'); if (!el) return;
   const a = el.dataset.act, d = el.dataset;
   switch (a) {
-    case 'home': if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
+    case 'page': openPage(d.v, d.cat ? { cat: d.cat } : {}); break;
+    case 'news-more': { const from = S.newsN; S.newsN += NEWS_STEP; const g = $('#news-grid'); if (g) g.innerHTML = newsGridAll(from); break; }
+    case 'home': S.homeY = 0; if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
     case 'lang': setLang(d.v); break;
     case 'a11y': { S.a11y = !S.a11y; store.set('a11y', S.a11y); applyA11y(); renderHeader(); renderTicker(); setActiveNav(currentSec); const mb = $('#mmenu [data-act="a11y"]'); if (mb) mb.outerHTML = a11yBtn(); toast(S.a11y ? t('a11yOn') : t('a11yOff'), 'eye'); setTimeout(() => initTabs(), 60); break; }
     case 'theme': { S.theme = S.theme === 'dark' ? 'light' : 'dark'; store.set('theme', S.theme);
@@ -766,6 +770,8 @@ document.addEventListener('click', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (el.dataset.input === 'svcQ') { S.svcQ = el.value; $('#svc-grid').innerHTML = svcGrid(); }
+  else if (el.dataset.input === 'mediaQ') { S.mediaQ = el.value; $('#media-grid').innerHTML = mediaCards(); $('#media-count').textContent = mediaCountText(); }
+  else if (el.dataset.input === 'newsQ') { S.newsQ = el.value; S.newsN = NEWS_STEP; $('#news-grid').innerHTML = newsGridAll(1e9); }   // бичих үед дахин хөдөлгөөнгүй
   else if (el.dataset.input === 'trQ') { S.trQ = el.value; $('#tr-panel').innerHTML = trRows(true); }   // хайх үед дахин хөдөлгөөнгүй
   else if (el.id === 'chat-in') autoGrow(el);
 });
@@ -856,6 +862,8 @@ function startLive() {
   setInterval(() => {
     if (document.hidden) return;
     $$('[data-live="clock"]').forEach((el) => { el.textContent = clock(); });
+    $$('[data-live="clocks"]').forEach((el) => { el.textContent = clock(true); });
+    if (S.route === 'page' && S.page === 'data' && ubNow().getSeconds() === 0) { const s = $('#dsun'); if (s) s.innerHTML = dataSunInner(); }
   }, 1000);
   setInterval(() => { if (!document.hidden) pushBreaking(); }, 22000);
   setInterval(() => { const l = $('#brk-list'); if (l && !document.hidden) l.innerHTML = breakingHTML(); }, 60000);
@@ -863,14 +871,15 @@ function startLive() {
 
 /* ================= Init ================= */
 function renderAll() {
-  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); paintToTop(); renderRail(); renderBottomBar(); renderChat();
+  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); paintToTop(); if (S.route === 'page') renderPageHero(); renderRail(); renderBottomBar(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
   initTabs(); setActiveNav(currentSec);
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
   $('#skip-link').textContent = L(['Үндсэн агуулга руу шилжих', 'Skip to main content']);
   document.documentElement.lang = EN() ? 'en' : 'mn';
-  if (S.route !== 'news') document.title = siteTitle();
+  if (S.route === 'page' && PAGES[S.page]) document.title = L(PAGES[S.page].t) + ' · ulaanbaatar.mn';
+  else if (S.route !== 'news') document.title = siteTitle();
 }
 function siteTitle() { return EN() ? 'ulaanbaatar.mn · City portal (concept)' : 'ulaanbaatar.mn · Нийслэлийн портал (концепц)'; }
 function setLang(l) {
@@ -907,6 +916,7 @@ function init() {
     if (PRETTY && h.startsWith('news/')) try { history.replaceState(null, '', newsHref(nid)); } catch (e) { /* ignore */ }   // хуучин #news/<id> холбоос
     if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/cms.js)
   }
+  else if (urlPage()) { S.page = urlPage(); if (S.page === 'services') S.hub = 'services'; setRoute('page'); }
   else if (h === 'my' && S.user) setRoute('my');
   else if (h === 'admin' || h.startsWith('admin/')) { admFromHash(h); setRoute('admin'); }
   else if (['hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);

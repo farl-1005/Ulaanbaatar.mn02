@@ -62,12 +62,51 @@ function quickHTML() {
 const HUBS = ['news', 'services', 'events'];
 const NEWS_CATS = ['all', 'biz', 'city', 'transport', 'edu', 'env', 'util', 'health', 'zar'];
 function renderHub() {
+  // Тусдаа хуудсанд (/news, /services) энэ хэсэг бүрэн жагсаалт болж хувирна
+  if (S.route === 'page' && S.page === 'news') { $('#hub').innerHTML = newsAllHTML(); return; }
+  if (S.route === 'page' && S.page === 'services') { $('#hub').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 lg:pt-10 pb-14 lg:pb-20"><div id="hub-panel">${svcPanel()}</div></div>`; return; }
   $('#hub').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pb-14 lg:pb-20"><div class="border-t border-line pt-10 lg:pt-14">
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-7"><div><h2 class="h-section">${t('hubTitle')}</h2><p class="mt-2 text-muted max-w-[60ch]">${t('hubDesc')}</p></div>
     ${tabs('hub', [['news', t('tab_news'), 'newspaper'], ['services', t('tab_services'), 'layout-grid'], ['events', t('tab_events'), 'calendar-days']], S.hub, { lg: 1, label: t('hubTitle'), cls: 'self-start lg:self-auto' })}</div>
     <div id="hub-panel">${hubPanel()}</div></div></div>`;
 }
-function hubPanel() { return S.hub === 'news' ? newsPanel() : S.hub === 'services' ? svcPanel() : evTeaser(); }
+function hubPanel() {
+  const more = (k, label) => `<div class="mt-6"><button type="button" class="btn btn-ghost" data-act="page" data-v="${k}">${label}${ic('arrow-right', 'w-[18px] h-[18px]')}</button></div>`;
+  if (S.hub === 'news') return newsPanel() + more('news', `${t('allNews')} (${num(NEWS.filter((n) => !n.draft).length)})`);
+  if (S.hub === 'services') return svcPanel() + (S.route === 'page' ? '' : more('services', L(['Бүх үйлчилгээ', 'All services'])));
+  return evTeaser();
+}
+/* ---- /news хуудас: бүх мэдээ, хайлт, ангилал, эрэмбэ, «Цааш үзэх» ---- */
+const NEWS_STEP = 12;
+function newsAllHTML() {
+  return `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 lg:pt-10 pb-16 lg:pb-24">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="relative w-full sm:max-w-[420px]">${ic('search', 'w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none')}<input id="news-q" data-input="newsQ" type="search" value="${esc(S.newsQ)}" placeholder="${esc(L(['Мэдээ хайх...', 'Search news...']))}" class="field !pl-11" aria-label="${esc(L(['Мэдээ хайх', 'Search news']))}" autocomplete="off"/></div>
+      ${tabs('nsort', [['new', L(['Шинэ нь эхэндээ', 'Newest']), 'clock-3'], ['top', L(['Их уншсан', 'Most read']), 'flame']], S.newsSort, { label: L(['Эрэмбэ', 'Sort']), cls: 'self-start sm:self-auto' })}
+    </div>
+    <div class="flex gap-2 overflow-x-auto no-scrollbar mt-4 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="news-chips">${chips('news-cat', NEWS_CATS.map((c) => [c, c === 'all' ? t('f_all') : L(RUB[c].t), c === 'all' ? '' : RUB[c].c]), S.newsCat)}</div>
+    <div id="news-grid" class="mt-6">${newsGridAll()}</div></div>`;
+}
+function newsGridAll(fromN = 0) {
+  const q = S.newsQ.trim().toLowerCase();
+  let list = NEWS.filter((n) => !n.draft);
+  if (S.newsCat !== 'all') list = list.filter((n) => n.cat === S.newsCat || (S.newsCat === 'city' && n.cat === 'plan') || (S.newsCat === 'zar' && n.zar));
+  if (q) list = list.filter((n) => (L(n.t) + ' ' + Lf(n.l)).toLowerCase().includes(q));
+  list = list.slice().sort(S.newsSort === 'top' ? (a, b) => (b.views || 0) - (a.views || 0) : (a, b) => a.ago - b.ago);
+  if (!list.length) return `<div class="card p-12 text-center text-muted">${ic('search-x', 'w-8 h-8 mx-auto mb-3 opacity-60')}${t('noResults')}</div>`;
+  const feat = !q && S.newsCat === 'all' && S.newsSort === 'new', shown = list.slice(0, S.newsN - (feat ? 1 : 0));   // өргөн карт 2 зай эзэлдэг тул тор тэгш дүүрнэ
+  const cards = shown.map((n, i) => newsCard(n, feat && i === 0).replace('<button ', `<button data-na="${i >= fromN ? 1 : 0}" style="--i:${Math.max(0, i - fromN)}" `)).join('');
+  const pct = Math.round((shown.length / list.length) * 100);
+  return `<p class="mb-4 text-[13.5px] text-muted">${q ? L([`«${esc(S.newsQ.trim())}»: ${list.length} илэрц`, `“${esc(S.newsQ.trim())}”: ${list.length} results`]) : L([`Нийт ${num(list.length)} мэдээ`, `${num(list.length)} stories`])}</p>
+    <div class="na-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${cards}</div>
+    <div class="mt-10 flex flex-col items-center gap-3"><span class="text-[13px] text-muted tnum">${L([`${num(list.length)} мэдээнээс ${num(shown.length)}-г үзлээ`, `Showing ${num(shown.length)} of ${num(list.length)}`])}</span><span class="na-prog"><i style="width:${pct}%"></i></span>
+      ${list.length > shown.length ? `<button type="button" class="btn btn-ink mt-1" data-act="news-more">${ic('chevrons-down', 'w-[18px] h-[18px]')}${L(['Цааш үзэх', 'Load more'])}</button>` : ''}</div>`;
+}
+function setNewsSort(v) {
+  if (v === S.newsSort) return;
+  S.newsSort = v; S.newsN = NEWS_STEP; selectTab('nsort', v);
+  swap($('#news-grid'), newsGridAll(), 0);
+}
 function newsPanel() {
   return `<div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0" id="news-chips">${chips('news-cat', NEWS_CATS.map((c) => [c, c === 'all' ? t('f_all') : L(RUB[c].t), c === 'all' ? '' : RUB[c].c]), S.newsCat)}</div><div id="news-grid">${newsGrid()}</div>`;
 }
@@ -123,11 +162,13 @@ function setSvcTab(v) {
   const q = $('#svc-q'); if (q) q.value = '';
   if (!$('#svc-grid')) return;
   selectTab('svc', v); swap($('#svc-grid'), svcGrid(), dir);
+  renderPageLinks();
 }
 function setNewsCat(v) {
-  S.newsCat = v;
+  S.newsCat = v; S.newsN = NEWS_STEP;
   $$('[data-act="news-cat"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
-  if ($('#news-grid')) swap($('#news-grid'), newsGrid(), 0);
+  if ($('#news-grid')) swap($('#news-grid'), S.route === 'page' && S.page === 'news' ? newsGridAll() : newsGrid(), 0);
+  renderPageLinks();
 }
 
 /* ================= Life events ================= */
@@ -199,13 +240,29 @@ const MEDIA_F = ['all', 'video', 'live', 'photo', 'podcast'];
 const MEDIA_MAX = 6;
 const MSPAN = { 4: 'lg:col-span-4', 5: 'lg:col-span-5', 6: 'lg:col-span-6', 7: 'lg:col-span-7', 12: 'lg:col-span-12' };
 const MLAYOUT = { 1: [12], 2: [6, 6], 3: [4, 4, 4], 4: [7, 5, 5, 7], 5: [7, 5, 4, 4, 4], 6: [7, 5, 5, 4, 4, 4] };
+/* /media хуудсанд: «Мэдээ мэдээлэл» хуудастай ижил (цайвар дэвсгэр, хайлт, ангилал, тоо, 3 баганат тор), бүх бичлэг хязгааргүй */
+const mediaPg = () => S.route === 'page' && S.page === 'media';
+function mediaList() {
+  const q = mediaPg() ? S.mediaQ.trim().toLowerCase() : '';
+  let list = MEDIA.map((m, i) => ({ m, i })).filter(({ m }) => S.media === 'all' || m.type === S.media);
+  if (q) list = list.filter(({ m }) => (L(m.t) + ' ' + L(m.d || ['', ''])).toLowerCase().includes(q));
+  return mediaPg() ? list : list.slice(0, MEDIA_MAX);
+}
+function mediaCountText() { const n = mediaList().length, q = S.mediaQ.trim(); return q ? L([`«${q}»: ${n} илэрц`, `“${q}”: ${n} results`]) : L([`Нийт ${n} бичлэг`, `${n} items`]); }
 function mediaCards() {
-  const list = MEDIA.map((m, i) => ({ m, i })).filter(({ m }) => S.media === 'all' || m.type === S.media).slice(0, MEDIA_MAX);
-  if (!list.length) return `<p class="sm:col-span-2 lg:col-span-12 py-16 text-center text-white/60">${L(['Энэ төрлийн медиа алга', 'Nothing in this category yet'])}</p>`;
-  const n = list.length, spans = MLAYOUT[n], firstWide = n % 2 === 1 || n === 6, lastWide = (n - (firstWide ? 1 : 0)) % 2 === 1;
+  const pg = mediaPg(), list = mediaList();
+  if (!list.length) return pg ? `<div class="sm:col-span-2 lg:col-span-3 card p-12 text-center text-muted">${ic('search-x', 'w-8 h-8 mx-auto mb-3 opacity-60')}${t('noResults')}</div>` : `<p class="sm:col-span-2 lg:col-span-12 py-16 text-center text-white/60">${L(['Энэ төрлийн медиа алга', 'Nothing in this category yet'])}</p>`;
+  const n = list.length, spans = MLAYOUT[n] || [], firstWide = n % 2 === 1 || n === 6, lastWide = (n - (firstWide ? 1 : 0)) % 2 === 1;
   return list.map(({ m, i }, k) => {
-    const feat = k === 0 && (n === 6 || n === 1 || n === 5), tall = k === 0 && n === 6;
-    const cls = [MSPAN[spans[k]], k === 0 && firstWide ? 'sm:col-span-2' : '', tall ? 'sm:row-span-2' : '', k === n - 1 && lastWide && k ? 'sm:col-span-2' : ''].join(' ');
+    let feat, tall, cls;
+    if (pg) {   // мэдээний хуудас шиг эхнийх нь том; 3 баганат тор сүүлийн мөрөнд ганц карт үлдээхгүйгээр дүүрэхээр: n%3=2 → өргөн, n%3=0 → 2×2
+      feat = k === 0 && S.media === 'all' && !S.mediaQ.trim() && n % 3 !== 1; tall = feat && n % 3 === 0;
+      cls = feat ? 'sm:col-span-2' + (tall ? ' lg:row-span-2' : '') : '';
+    }
+    else {
+      feat = k === 0 && (n === 6 || n === 1 || n === 5); tall = k === 0 && n === 6;
+      cls = [MSPAN[spans[k]], k === 0 && firstWide ? 'sm:col-span-2' : '', tall ? 'sm:row-span-2' : '', k === n - 1 && lastWide && k ? 'sm:col-span-2' : ''].join(' ');
+    }
     const pill = 'inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full bg-black/55 backdrop-blur text-[12.5px] font-bold';
     const badge = m.type === 'live' ? `<span class="inline-flex items-center gap-2 h-7 px-2.5 rounded-full bg-ubred text-white text-[12.5px] font-bold"><span class="live" style="--dot:#fff"></span>${t('m_live')}</span>`
       : m.type === 'video' ? `<span class="${pill}">${ic('play', 'w-3.5 h-3.5')}${t('m_video')}</span>`
@@ -222,12 +279,22 @@ function mediaCards() {
   }).join('');
 }
 function renderMedia() {
-  $('#media').innerHTML = `<div class="media-band text-white relative overflow-hidden isolate">${mediaBg()}<div class="relative max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
-    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div><h2 class="h-section text-white">${t('mediaTitle')}</h2><p class="mt-2 text-white/60">${t('mediaDesc')}</p></div>
+  const sec = $('#media');
+  if (mediaPg()) {
+    if (MEDIA_IO) MEDIA_IO.disconnect();
+    sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 lg:pt-10 pb-16 lg:pb-24">
+      <div class="relative w-full sm:max-w-[420px]">${ic('search', 'w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none')}<input id="media-q" data-input="mediaQ" type="search" value="${esc(S.mediaQ)}" placeholder="${esc(L(['Медиа хайх...', 'Search media...']))}" class="field !pl-11" aria-label="${esc(L(['Медиа хайх', 'Search media']))}" autocomplete="off"/></div>
+      <div class="flex gap-2 overflow-x-auto no-scrollbar mt-4 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="media-chips">${chips('media-f', MEDIA_F.map((v) => [v, v === 'all' ? t('f_all') : t('m_' + v)]), S.media)}</div>
+      <p class="mt-6 mb-4 text-[13.5px] text-muted" id="media-count">${esc(mediaCountText())}</p>
+      <div id="media-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-[250px] lg:auto-rows-[280px] gap-5">${mediaCards()}</div></div>`;
+    if (!sec.classList.contains('media-in')) observeOnce($('#media-grid'), () => { sec.classList.add('media-in'); setTimeout(() => sec.classList.add('media-done'), 1500); }, 0.05);
+    return;
+  }
+  sec.innerHTML = `<div class="media-band text-white relative overflow-hidden isolate">${mediaBg()}<div class="relative max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div class="sec-ttl"><h2 class="h-section text-white">${t('mediaTitle')}</h2><p class="mt-2 text-white/60">${t('mediaDesc')}</p></div>
       <div class="flex gap-2 overflow-x-auto no-scrollbar min-w-0 -mx-4 px-4 sm:mx-0 sm:px-0" id="media-chips">${chips('media-f', MEDIA_F.map((v) => [v, v === 'all' ? t('f_all') : t('m_' + v)]), S.media, true)}</div></div>
     <div id="media-grid" class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 auto-rows-[236px] lg:auto-rows-[248px] gap-4">${mediaCards()}</div></div></div>`;
   // Картууд дэлгэцэнд орж ирэхэд дараалан гарч ирнэ (нэг удаа)
-  const sec = $('#media');
   if (!sec.classList.contains('media-in')) observeOnce($('#media-grid'), () => { sec.classList.add('media-in'); setTimeout(() => sec.classList.add('media-done'), 1500); }, 0.12);
   // хөдөлгөөнт дэвсгэр: дэлгэцэнд харагдахгүй үед зогсоно
   if (MEDIA_IO) MEDIA_IO.disconnect();
@@ -249,7 +316,7 @@ function mediaBg() {
 }
 function setMediaF(v) {
   S.media = v; $$('[data-act="media-f"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
-  const g = $('#media-grid');
+  const g = $('#media-grid'), c = $('#media-count'); if (c) c.textContent = mediaCountText();
   swap(g, mediaCards(), 0, (el) => { el.classList.add('mc-fresh'); setTimeout(() => el.classList.remove('mc-fresh'), 1000); });
 }
 
@@ -399,7 +466,7 @@ function renderProjects() {
   const avg = Math.round(PROJECTS.reduce((a, p) => a + p.p, 0) / PROJECTS.length), done = PROJECTS.filter((p) => p.p >= 100).length;
   const stat = (v, l) => `<div><p class="text-[30px] font-extrabold tnum leading-none tracking-tight">${v}</p><p class="text-[13px] text-muted mt-1.5">${l}</p></div>`;
   $('#projects').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
-    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6"><div><h2 class="h-section">${t('projTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('projDesc')}</p></div>
+    <div class="pg-dup flex flex-col lg:flex-row lg:items-end justify-between gap-6"><div class="sec-ttl"><h2 class="h-section">${t('projTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('projDesc')}</p></div>
     <div class="flex flex-wrap gap-x-9 gap-y-3">${stat(PROJECTS.length, L(['мега төсөл', 'flagship projects']))}${stat(avg + '%', t('avgProgress'))}${stat(done, L(['ашиглалтад орсон', 'completed']))}</div></div>
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-8 relative min-w-0"><div id="proj-map" class="rounded-[8px] overflow-hidden border border-line h-[440px] sm:h-[520px] lg:h-[600px]"></div>
@@ -487,7 +554,7 @@ function renderData() {
   const k = (v) => (EN() ? Math.round(v / 1000) + 'k' : Math.round(v / 1000) + ' мян');
   const drawn = $('#data').classList.contains('drawn');
   $('#data').innerHTML = `<div class="on-navy"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20"><div>
-  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4"><div><h2 class="h-section">${t('dataTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('dataDesc')}</p></div><span class="live-badge self-start lg:self-auto"><span class="live" style="--dot:rgb(var(--c-green))"></span>${t('updated')} <span class="tnum text-ink" data-live="clocks">${clock(true)}</span></span></div>
+  <div class="pg-dup flex flex-col lg:flex-row lg:items-end justify-between gap-4"><div class="sec-ttl"><h2 class="h-section">${t('dataTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('dataDesc')}</p></div><span class="live-badge self-start lg:self-auto"><span class="live" style="--dot:rgb(var(--c-green))"></span>${t('updated')} <span class="tnum text-ink" data-live="clocks">${clock(true)}</span></span></div>
   <div class="mt-8 grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 lg:gap-5" id="data-grid">
     <div class="card fx-card p-5 sm:p-6 md:col-span-6 lg:col-span-7" data-card="aqi">${pmFX()}<div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('aqi')}</h3><p class="text-[13px] text-muted">${t('aqi24')}</p></div>${liveBadge(c.c)}</div>
       <div class="mt-4 flex flex-wrap items-end gap-x-6 gap-y-3"><div><p class="text-[60px] leading-[.9] font-extrabold tnum tracking-tight" data-live="aqi" data-roll>${rollWrap(S.aqi, !drawn)}</p><p class="mt-2 font-bold" style="color:${c.c}">${t(c.k)}</p></div><p class="text-[13.5px] text-muted max-w-[36ch] leading-snug">${t('aqiAdvice')}</p>
@@ -581,7 +648,7 @@ function selectEv(id, pan) {
 }
 function renderEvents() {
   $('#events').innerHTML = `<div class="bg-card border-y border-line"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
-    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div><h2 class="h-section">${t('evTitle')}</h2><p class="mt-2 text-muted">${t('evDesc')}</p></div>${tabs('evview', [['list', t('v_list'), 'list'], ['cal', t('v_cal'), 'calendar-days'], ['map', t('v_map'), 'map']], S.evView, { label: t('evTitle'), cls: 'self-start lg:self-auto' })}</div>
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div class="sec-ttl"><h2 class="h-section">${t('evTitle')}</h2><p class="mt-2 text-muted">${t('evDesc')}</p></div>${tabs('evview', [['list', t('v_list'), 'list'], ['cal', t('v_cal'), 'calendar-days'], ['map', t('v_map'), 'map']], S.evView, { label: t('evTitle'), cls: 'self-start lg:self-auto' })}</div>
     <div class="mt-6 flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0" id="ev-filters">${evFilters()}</div>
     <div id="ev-panel" class="mt-6">${evPanel()}</div></div></div>`;
   afterEvPanel();
@@ -669,7 +736,7 @@ function renderTr() {
   const sec = $('#transparency');
   sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-      <div><span class="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[.12em] text-greenink"><span class="live" style="--dot:rgb(var(--c-green))"></span>${L(['Нээлттэй өгөгдөл', 'Open data'])}</span>
+      <div class="sec-ttl"><span class="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[.12em] text-greenink"><span class="live" style="--dot:rgb(var(--c-green))"></span>${L(['Нээлттэй өгөгдөл', 'Open data'])}</span>
         <h2 class="h-section mt-2">${t('trTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('trDesc')}</p></div>
       <p class="text-[13px] text-muted inline-flex items-center gap-2 shrink-0">${ic('refresh-cw', 'w-4 h-4')}${L(['Шинэчлэгдсэн: өнөөдөр', 'Updated: today'])} <b class="text-ink tnum">${hhmm(now)}</b></p>
     </div>
@@ -691,6 +758,7 @@ function setTr(v) {
   if (v === S.tr) return;
   const order = ['res', 'ord', 'tender'], dir = order.indexOf(v) > order.indexOf(S.tr) ? 1 : -1;
   S.tr = v; selectTab('tr', v); swap($('#tr-panel'), trRows(), dir);
+  renderPageLinks();
 }
 
 /* ================= Засаг дарга: ажлын хуваарь, мэдээ =================

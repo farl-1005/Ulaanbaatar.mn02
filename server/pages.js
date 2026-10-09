@@ -14,7 +14,19 @@ try { sharp = require('sharp'); } catch (e) { console.warn('  ⚠ sharp олдс
 const ROOT = path.join(__dirname, '..'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
 const TEMPLATE = path.join(SITE, 'index.html'), INDEX = path.join(DIST, 'news-index.json'), OG_DIR = path.join(DIST, '.og');
 const ID_RE = /^[\w.-]{1,80}$/, PHOTO_RE = /^assets\/news\/[\w.-]+$/, SCENE_RE = /^[a-z]+:[a-z]+:\d+$/;
-const NEWS_P = /^\/news\/([^/]+)\/?$/, OG_P = /^\/og\/([\w.-]+)\.jpg$/;
+const NEWS_P = /^\/news\/([^/]+)\/?$/, OG_P = /^\/og\/([\w.-]+)\.jpg$/, PAGE_P = /^\/([a-z]+)\/?$/;
+/* Цэсний тусдаа хуудсууд (src/core.js PAGES-тэй ижил): хаяг → гарчиг, тайлбар */
+const PAGES = {
+  news: ['Мэдээ мэдээлэл', 'Нийслэлийн Засаг дарга, дүүрэг, харьяа байгууллагуудын бүх мэдээ, зар мэдээлэл.'],
+  services: ['Үйлчилгээ', 'Иргэн, аж ахуйн нэгжид зориулсан бүх үйлчилгээ, амьдралын нөхцөл бүрт хэрэгтэй алхмууд.'],
+  events: ['Арга хэмжээ', 'Хотод болох соёл, спорт, иргэний арга хэмжээ.'],
+  media: ['Медиа', 'Хотын видео, шууд дамжуулалт, фото сурвалжилга, подкаст.'],
+  projects: ['Бүтээн байгуулалт', 'Нийслэлийн мега төслүүдийн гүйцэтгэл, төсөв, хугацаа.'],
+  data: ['Хотын өгөгдөл', 'Агаарын чанар, түгжрэл, цаг агаар, хүн ам, төсвийн бодит цагийн самбар.'],
+  transparency: ['Ил тод байдал', 'Нийслэлийн ИТХ-ын тогтоол, Засаг даргын захирамж, тендер.'],
+  about: ['Хотын тухай', 'Нийслэлийн Засаг даргын ажлын хуваарь, удирдлага, түүх, харьяа байгууллагууд.'],
+};
+const pageKey = (p) => { const m = p.match(PAGE_P); return m && PAGES[m[1]] ? m[1] : null; };
 const W = 1200, H = 630;
 const PUBLISHER = 'Нийслэлийн Засаг даргын Тамгын газар';
 
@@ -171,7 +183,7 @@ ${srcUrl ? `<p class="mt-8"><a href="${esc(srcUrl)}" rel="noopener">Эх сур�
 }
 
 /* ================= Чиглүүлэлт ================= */
-const handles = (p) => p === '/' || p === '/index.html' || p === '/sitemap.xml' || p === '/robots.txt' || NEWS_P.test(p) || OG_P.test(p);
+const handles = (p) => p === '/' || p === '/index.html' || p === '/sitemap.xml' || p === '/robots.txt' || NEWS_P.test(p) || OG_P.test(p) || !!pageKey(p);
 
 function send(req, res, code, type, body, extra) {
   res.writeHead(code, Object.assign({ 'Content-Type': type, 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' }, extra));
@@ -190,7 +202,7 @@ async function handle(req, res, p, opts = {}) {
     if (p === '/sitemap.xml') {
       const all = allNews(); if (!all) return building();
       const url = (loc, mod) => `<url><loc>${esc(o + loc)}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`;
-      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[url('/', all.news[0] && all.news[0].at)].concat(all.news.map((n) => url('/news/' + encodeURIComponent(n.id), n.at))).join('\n')}\n</urlset>\n`;
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[url('/', all.news[0] && all.news[0].at)].concat(Object.keys(PAGES).map((k) => url('/' + k))).concat(all.news.map((n) => url('/news/' + encodeURIComponent(n.id), n.at))).join('\n')}\n</urlset>\n`;
       return send(req, res, 200, 'application/xml; charset=utf-8', xml);
     }
 
@@ -211,6 +223,12 @@ async function handle(req, res, p, opts = {}) {
       const n = ID_RE.test(id) && all.news.find((x) => x.id === id);
       const out = n ? newsPage(o, n, all) : page(o, { path: '/', image: ogUrl('site', null), noindex: true });
       return out ? html(n ? 200 : 404, out) : building();
+    }
+
+    const pk = pageKey(p);
+    if (pk) {   // /news, /services ...: ижил апп, хаягаар нь хуудсаа нээнэ
+      const out = page(o, { path: '/' + pk, title: PAGES[pk][0] + ' · ulaanbaatar.mn', desc: PAGES[pk][1], image: ogUrl('site', null) });
+      return out ? html(200, out) : building();
     }
 
     // Нүүр хуудас
