@@ -66,7 +66,7 @@ const SCHEMA = {
   ] },
   mediaitems: { icon: 'clapperboard', one: ['медиа', 'media item'], idp: 'm', title: (x) => L(x.t), fields: [
     ['t', 'bi', ['Гарчиг', 'Title'], { req: 1 }], ['d', 'bi', ['Дэд гарчиг', 'Subtitle']],
-    ['type', 'chips', ['Төрөл', 'Type'], { options: () => [['video', L(['Видео', 'Video'])], ['live', L(['Шууд дамжуулалт', 'Live'])], ['photo', L(['Фото', 'Photo'])], ['podcast', L(['Подкаст', 'Podcast'])]], def: 'video' }],
+    ['type', 'chips', ['Төрөл', 'Type'], { options: () => [['live', 'Live'], ['photo', L(['Фото сурвалжилга', 'Photo report'])], ['poster', L(['Постер', 'Poster'])], ['podcast', L(['Подкаст', 'Podcast'])]], def: 'live' }],
     ['img', 'image', ['Нүүр зураг', 'Cover image']],
     ['url', 'url', ['Бичлэгийн холбоос (YouTube, Facebook г.м.). Бөглөвөл дарахад тэр рүү шилжинэ.', 'Link to the video or audio (YouTube etc.). If set, clicking opens it.']],
     ['dur', 'text', ['Үргэлжлэх хугацаа (видео, подкаст), жишээ 12:34', 'Duration (video, podcast), e.g. 12:34']],
@@ -117,7 +117,7 @@ const SCHEMA = {
     ['budget', 'rows', ['Төсвийн гүйцэтгэл улирлаар (тэрбум ₮)', 'Budget by quarter (₮ billion)'], { add: ['Улирал нэмэх', 'Add a quarter'], blank: () => ({ plan: 0, act: 0 }), sub: [['plan', 'number', ['Төлөвлөгөө', 'Plan']], ['act', 'number', ['Гүйцэтгэл', 'Actual']]] }],
     ['roads', 'rows', ['Түгжрэлтэй замууд (0–10)', 'Busiest roads (0–10)'], { add: ['Зам нэмэх', 'Add a road'], blank: () => ({ n: ['', ''], v: 5 }), sub: [['n', 'bi', ['Зам', 'Road']], ['v', 'number', ['Түгжрэл', 'Congestion']]] }],
   ] },
-  menu: { icon: 'menu', one: ['цэсийн бүлэг', 'menu group'], idp: 'menu', title: (x) => (x.lbl && L(x.lbl)) || (x.k ? t(x.k) : ''), fields: [
+  menu: { icon: 'menu', one: ['цэсийн бүлэг', 'menu group'], idp: 'menu', title: (x) => (x.lbl && L(x.lbl)) || (x.k ? t(x.k, { n: PROJECTS.length }) : ''), fields: [
     ['lbl', 'bi', ['Цэсийн нэр (хоосон бол «Гарчиг, текст» хэсгийн утгыг ашиглана)', 'Menu label (empty = the value from "Headings & text")']],
     ['sec', 'chips', ['Дарахад очих хэсэг', 'Section it scrolls to'], { options: () => SECS.map(([v, l]) => [v, L(l)]), def: 'hub' }],
     ['items', 'rows', ['Холбоосууд', 'Links'], { add: ['Холбоос нэмэх', 'Add a link'], blank: () => ({ i: 'file-text', t: ['', ''], d: ['', ''], go: { sec: 'hub' } }), sub: [
@@ -148,7 +148,7 @@ const SECS = [['hero', ['Нүүр', 'Home']], ['hub', ['Мэдээ, үйлчил
 function admDests() {
   const out = [], seen = new Set(), add = (go, label) => { const k = JSON.stringify(go); if (!seen.has(k)) { seen.add(k); out.push([k, label]); } };
   SECS.forEach(([v, l]) => add({ sec: v }, L(l)));
-  DEF.menu.forEach((m) => (m.items || []).forEach((it) => it.go && add(it.go, `${m.k ? t(m.k) : ''} › ${L(it.t)}`)));
+  DEF.menu.forEach((m) => (m.items || []).forEach((it) => it.go && add(it.go, `${m.k ? t(m.k, { n: PROJECTS.length }) : ''} › ${L(it.t)}`)));
   SITS.forEach((x) => add({ sec: 'situations', sit: x.id }, `${L(['Амьдралын нөхцөл', 'Life events'])} › ${L(x.t)}`));
   ['res', 'ord', 'tender'].forEach((k) => add({ sec: 'transparency', tr: k }, `${L(['Ил тод байдал', 'Transparency'])} › ${k === 'res' ? L(['Тогтоол', 'Resolutions']) : k === 'ord' ? L(['Захирамж', 'Orders']) : L(['Тендер', 'Tenders'])}`));
   return out;

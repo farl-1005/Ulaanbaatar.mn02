@@ -52,7 +52,7 @@ const S = {
   user: store.get('user', null),
   route: 'home',
   hub: 'news', newsCat: 'all', svcTab: 'citizen', svcQ: '',
-  page: null, newsQ: '', newsSort: 'new', newsN: 12, mediaQ: '',
+  page: null, newsQ: '', newsSort: 'new', newsN: 12, mediaQ: '', mediaN: 12,
   sit: 'birth', sitDone: store.get('sitDone', { birth: [0] }),
   media: 'all',
   projSt: 'all', projSel: null,
@@ -64,6 +64,8 @@ const S = {
   vote: store.get('vote', null),
   breaking: [], incoming: 0,
   aqi: 87, temp: -4, traffic: 6,
+  air: null,   // IQAir-аас ирэхэд { live, ts, main, series } (features.js loadAir)
+  wx: { temp: -4, feels: -9, hum: 58, wind: 4, dir: 315, code: 3, day: 1, daily: null, live: 0 },   // Open-Meteo-оос ирэхэд солигдоно (features.js loadWeather)
   tickerOn: true,
   chat: [], chatOpen: false,
 };
@@ -117,7 +119,11 @@ function evDate(w) {
   return addDays(n, off);
 }
 function weekendKeys() { const n = today(), dow = n.getDay(); if (dow === 0) return [dkey(n)]; if (dow === 6) return [dkey(n), dkey(addDays(n, 1))]; return [dkey(addDays(n, 6 - dow)), dkey(addDays(n, 7 - dow))]; }
-function aqiCat(v) { if (v <= 50) return { k: 'aqiGood', c: '#10A36A' }; if (v <= 100) return { k: 'aqiMod', c: '#E5A800' }; if (v <= 150) return { k: 'aqiUsg', c: '#F08C1A' }; return { k: 'aqiBad', c: '#D81E34' }; }
+/* AQI (АНУ-ын EPA) 6 ангилал: өнгө + зөвлөмж */
+function aqiCat(v) { if (v <= 50) return { k: 'aqiGood', c: '#10A36A', adv: 'aqiAdvGood' }; if (v <= 100) return { k: 'aqiMod', c: '#E5A800', adv: 'aqiAdvice' }; if (v <= 150) return { k: 'aqiUsg', c: '#F08C1A', adv: 'aqiAdvUsg' }; if (v <= 200) return { k: 'aqiBad', c: '#D81E34', adv: 'aqiAdvBad' }; if (v <= 300) return { k: 'aqiVBad', c: '#8F3F97', adv: 'aqiAdvVBad' }; return { k: 'aqiHaz', c: '#7E0023', adv: 'aqiAdvHaz' }; }
+const POL = { p2: 'PM2.5', p1: 'PM10', o3: 'O₃', n2: 'NO₂', s2: 'SO₂', co: 'CO' };
+/* Шкал дээрх байрлал (0–1): 6 ангилал тэнцүү өргөнтэй */
+function aqiPos(v) { const b = [0, 50, 100, 150, 200, 300, 500]; for (let i = 1; i < b.length; i++) if (v <= b[i]) return (i - 1 + (v - b[i - 1]) / (b[i] - b[i - 1])) / 6; return 1; }
 const pm25 = () => Math.round(S.aqi * 0.36);
 
 /* ================= Motion helpers ================= */
@@ -184,7 +190,7 @@ function ring(p, size, stroke, color, extra = '') {
 
 /* ================= Modal / toast ================= */
 let MODAL = null;
-const SIZES = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'sm:max-w-4xl', search: 'sm:max-w-2xl max-sm:h-full max-sm:max-h-none' };
+const SIZES = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'sm:max-w-4xl', media: 'sheet-media', search: 'sm:max-w-2xl max-sm:h-full max-sm:max-h-none' };
 function openModal(o) {
   closeModal(true);
   const wrap = document.createElement('div');
@@ -240,7 +246,7 @@ const MENU = [
     { i: 'newspaper', t: ['Бүх мэдээ', 'All news'], d: ['Хотын захиргаа, дүүрэг, байгууллагын мэдээ', 'From City Hall, districts and agencies'], go: { sec: 'hub', hub: 'news', cat: 'all' } },
     { i: 'megaphone', t: ['Зар', 'Notices'], d: ['Хуваарь, хаалт, ажлын байр, мэдэгдэл', 'Schedules, closures, jobs, announcements'], go: { sec: 'hub', hub: 'news', cat: 'zar' } },
     { i: 'calendar-days', t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ', 'Culture, sport and civic events'], go: { sec: 'events' } },
-    { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Видео, шууд дамжуулалт, фото, подкаст', 'Video, live streams, photos, podcasts'], go: { sec: 'media' } } ] },
+    { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Live, фото сурвалжилга, постер, подкаст', 'Live, photo reports, posters, podcasts'], go: { sec: 'media' } } ] },
   { k: 'nav_build', sec: 'projects', items: [
     { i: 'hard-hat', t: ['24 мега төсөл', '24 flagship projects'], d: ['Төсөл бүрийн гүйцэтгэл, төсөв, хугацаа', 'Progress, budget and timeline for each'], go: { sec: 'projects' } },
     { i: 'map-pinned', t: ['Газрын зураг', 'Map'], d: ['Бүх төслийг газрын зураг дээр', 'Every project on the map'], go: { sec: 'projects', focus: 'map' } } ] },
@@ -259,7 +265,7 @@ const MENU = [
 function goAttrs(go) { return Object.entries(go).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' '); }
 /* Цэсийн холбоос: сайтын хэсэг (go) эсвэл гадаад хаяг (href). Admin-ы «Үндсэн цэс»-ээс засагдана. */
 function itemAct(it) { return it.href ? `data-act="ext-link" data-href="${esc(it.href)}"` : `data-act="go" ${goAttrs(it.go || { sec: 'hero' })}`; }
-function menuLabel(m) { return m.lbl && L(m.lbl) ? esc(L(m.lbl)) : m.k ? t(m.k) : ''; }
+function menuLabel(m) { return m.lbl && L(m.lbl) ? esc(L(m.lbl)) : m.k ? esc(t(m.k, { n: PROJECTS.length })) : ''; }
 
 /* ================= Header ================= */
 function langToggle(dark) {
@@ -311,19 +317,30 @@ function setHash(sec) {
     else if (location.hash !== h) history.replaceState(null, '', h || location.pathname + location.search);
   } catch (e) { /* ignore */ }
 }
+/* ================= Цаг агаар (WMO код → нэр, тэмдэг) ================= */
+const WX = [
+  [[0], ['Цэлмэг', 'Clear'], 'sun', 'moon'], [[1], ['Ихэвчлэн цэлмэг', 'Mostly clear'], 'sun', 'moon'], [[2], ['Багавтар үүлтэй', 'Partly cloudy'], 'cloud-sun', 'cloud-moon'],
+  [[3], ['Үүлэрхэг', 'Cloudy'], 'cloud', 'cloud'], [[45, 48], ['Манантай', 'Fog'], 'cloud-fog'], [[51, 53, 55, 56, 57], ['Шиврээ бороо', 'Drizzle'], 'cloud-drizzle'],
+  [[61, 63, 65, 66, 67], ['Бороо', 'Rain'], 'cloud-rain'], [[80, 81, 82], ['Аадар бороо', 'Showers'], 'cloud-rain-wind'], [[71, 73, 75, 77, 85, 86], ['Цас', 'Snow'], 'cloud-snow'],
+  [[95, 96, 99], ['Аянга цахилгаантай', 'Thunderstorm'], 'cloud-lightning'],
+];
+function wxInfo(code, day = 1) { const r = WX.find((x) => x[0].includes(+code)) || WX[3]; return { t: L(r[1]), i: (!day && r[3]) || r[2] }; }
+function wxDir(deg) { const k = Math.round((((+deg % 360) + 360) % 360) / 45) % 8; return L([['хойноос', 'зүүн хойноос', 'зүүнээс', 'зүүн өмнөөс', 'өмнөөс', 'баруун өмнөөс', 'баруунаас', 'баруун хойноос'][k], ['from N', 'from NE', 'from E', 'from SE', 'from S', 'from SW', 'from W', 'from NW'][k]]); }
+const wxT = (v) => Math.round(+v);
 function pulseSegs(mobile) {
+  const w = S.wx, wi = wxInfo(w.code, w.day);
   const cat = aqiCat(S.aqi);
   const segCls = mobile ? 'h-11 px-3.5 rounded-xl bg-white/[.07] border border-white/10 whitespace-nowrap' : 'h-full px-3 xl:px-4 hover:bg-white/10 whitespace-nowrap';
   const bar = Array.from({ length: 10 }, (_, i) => `<i class="w-[3px] h-3 rounded-full ${i < S.traffic ? 'bg-ubamber' : 'bg-white/20'}"></i>`).join('');
   const segs = [
-    { hl: 'weather', html: `${ic('cloud-sun', 'w-[22px] h-[22px] text-white/90')}<span class="text-left leading-tight"><b class="block tnum text-[15px]" data-live="temp">${S.temp}°C</b><span class="block lg:hidden xl:block text-[11.5px] text-white/60">${t('cloudy')}</span></span>`,
-      pop: `<p class="text-[13px] text-muted">${t('weather')}</p><p class="text-[26px] font-extrabold tnum mt-1">${S.temp}°C <span class="text-[14px] font-semibold text-muted">${t('feels')} ${S.temp - 5}°</span></p><div class="grid grid-cols-2 gap-2 mt-3 text-[13px]"><span class="text-muted">${t('wind')}</span><b>4 м/с, ${t('windDir')}</b><span class="text-muted">${t('humidity')}</span><b>58%</b></div>` },
+    { hl: 'weather', html: `${ic(wi.i, 'w-[22px] h-[22px] text-white/90')}<span class="text-left leading-tight"><b class="block tnum text-[15px]">${wxT(w.temp)}°C</b><span class="block lg:hidden xl:block text-[11.5px] text-white/60">${esc(wi.t)}</span></span>`,
+      pop: `<p class="text-[13px] text-muted">${t('weather')} · ${esc(wi.t)}</p><p class="text-[26px] font-extrabold tnum mt-1">${wxT(w.temp)}°C <span class="text-[14px] font-semibold text-muted">${t('feels')} ${wxT(w.feels)}°</span></p><div class="grid grid-cols-2 gap-2 mt-3 text-[13px]"><span class="text-muted">${t('wind')}</span><b>${Math.round(w.wind)} ${L(['м/с', 'm/s'])}, ${wxDir(w.dir)}</b><span class="text-muted">${t('humidity')}</span><b>${Math.round(w.hum)}%</b></div>${w.live ? `<p class="mt-3 text-[11.5px] text-muted">${L(['Эх сурвалж', 'Source'])}: Open-Meteo</p>` : ''}` },
     { hl: 'aqi', html: `<span class="live" style="--dot:${cat.c}"></span><span class="text-left leading-tight"><b class="block tnum text-[15px]">AQI <span data-live="aqi">${S.aqi}</span></b><span class="block lg:hidden xl:block text-[11.5px] text-white/60">${t(cat.k)}</span></span>`,
-      pop: `<p class="text-[13px] text-muted">${t('aqi')}</p><p class="text-[26px] font-extrabold tnum mt-1"><span data-live="aqi">${S.aqi}</span> <span class="text-[14px] font-semibold" style="color:${cat.c}">${t(cat.k)}</span></p><div class="mt-3 h-2 rounded-full relative" style="background:linear-gradient(90deg,#10A36A 0 25%,#E5A800 25% 50%,#F08C1A 50% 75%,#D81E34 75%)"><i class="absolute -top-1 w-1.5 h-4 rounded-[3px] bg-ink" style="left:calc(${Math.min(98, S.aqi / 2)}% - 3px)"></i></div><p class="text-[13px] text-muted mt-3 leading-snug">${t('aqiAdvice')}</p>` },
+      pop: `<p class="text-[13px] text-muted">${t('aqi')}</p><p class="text-[26px] font-extrabold tnum mt-1"><span data-live="aqi">${S.aqi}</span> <span class="text-[14px] font-semibold" style="color:${cat.c}">${t(cat.k)}</span></p><div class="mt-3 h-2 rounded-full relative" style="background:linear-gradient(90deg,#10A36A 0 16.67%,#E5A800 16.67% 33.33%,#F08C1A 33.33% 50%,#D81E34 50% 66.67%,#8F3F97 66.67% 83.33%,#7E0023 83.33%)"><i class="absolute -top-1 w-1.5 h-4 rounded-[3px] bg-ink" style="left:calc(${Math.min(98, aqiPos(S.aqi) * 100).toFixed(1)}% - 3px)"></i></div><p class="text-[13px] text-muted mt-3 leading-snug">${t(cat.adv)}</p>${S.air && S.air.live ? `<p class="mt-2 text-[11.5px] text-muted">${L(['Эх сурвалж', 'Source'])}: ${S.air.src === 'iqair' ? 'IQAir' : 'Open-Meteo · CAMS'}</p>` : ''}` },
     { hl: 'traffic', html: `${ic('car-front', 'w-[22px] h-[22px] text-white/90')}<span class="text-left leading-tight"><b class="block tnum text-[15px]">${S.traffic}/10</b><span class="flex items-center gap-[2px] mt-1">${bar}</span></span>`,
       pop: `<p class="text-[13px] text-muted">${t('congestion')}</p><p class="text-[26px] font-extrabold tnum mt-1">${S.traffic}/10 <span class="text-[14px] font-semibold text-amberink">${t('busy')}</span></p><ul class="mt-3 space-y-2 text-[13px]">${ROADS.map(([n, v]) => `<li class="flex justify-between gap-3"><span>${esc(L(n))}</span><b class="tnum">${v}</b></li>`).join('')}</ul>` },
   ];
-  const shs = [`${ic('cloud-sun', 'w-4 h-4 text-white/85')}<b class="tnum">${S.temp}°C</b><span class="text-white/60">${t('cloudy')}</span>`, `<span class="live" style="--dot:${cat.c}"></span><b class="tnum">AQI <span data-live="aqi">${S.aqi}</span></b><span class="text-white/60">${t(cat.k)}</span>`, `${ic('car-front', 'w-4 h-4 text-white/85')}<span class="text-white/60">${t('traffic')}</span><b class="tnum">${S.traffic}/10</b><span class="flex items-center gap-[2px]">${bar}</span>`];
+  const shs = [`${ic(wi.i, 'w-4 h-4 text-white/85')}<b class="tnum">${wxT(w.temp)}°C</b><span class="text-white/60">${esc(wi.t)}</span>`, `<span class="live" style="--dot:${cat.c}"></span><b class="tnum">AQI <span data-live="aqi">${S.aqi}</span></b><span class="text-white/60">${t(cat.k)}</span>`, `${ic('car-front', 'w-4 h-4 text-white/85')}<span class="text-white/60">${t('traffic')}</span><b class="tnum">${S.traffic}/10</b><span class="flex items-center gap-[2px]">${bar}</span>`];
   if (mobile === 'strip') return `<div class="flex items-center -ml-3">${segs.map((s, i) => `${i ? '<span class="w-px h-4 bg-white/15 mx-1"></span>' : ''}<div class="pulse-seg"><button type="button" class="h-[38px] px-3 flex items-center gap-2 text-[12.5px] rounded-md hover:bg-white/10 transition-colors whitespace-nowrap" data-act="go" data-sec="data" data-hl="${s.hl}">${shs[i]}</button><div class="pop"><div class="card p-4 text-ink shadow-2xl">${s.pop}<button type="button" class="mt-3 text-[13px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="data" data-hl="${s.hl}">${t('more')}${ic('chevron-right', 'w-4 h-4')}</button></div></div></div>`).join('')}</div>`;
   if (mobile) return `<div class="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2.5">${segs.map((s) => `<button type="button" class="${segCls} flex items-center gap-2.5 shrink-0" data-act="go" data-sec="data" data-hl="${s.hl}">${s.html}</button>`).join('')}<span class="shrink-0 h-11 px-3 flex items-center gap-2 text-[12.5px] text-white/60 tnum">${ic('clock-3', 'w-4 h-4')}<span data-live="clock">${clock()}</span></span></div>`;
   return `<div class="flex items-stretch h-12 rounded-2xl border border-white/15 bg-white/[.05]">${segs.map((s, i) => `${i ? '<span class="w-px bg-white/15 my-2.5"></span>' : ''}<div class="pulse-seg"><button type="button" class="${segCls} flex items-center gap-2.5 ${i === 0 ? 'rounded-l-2xl' : ''} ${i === 2 ? 'rounded-r-2xl' : ''} transition-colors" data-act="go" data-sec="data" data-hl="${s.hl}">${s.html}</button><div class="pop"><div class="card p-4 text-ink shadow-2xl">${s.pop}<button type="button" class="mt-3 text-[13px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="data" data-hl="${s.hl}">${t('more')}${ic('chevron-right', 'w-4 h-4')}</button></div></div></div>`).join('')}</div>`;
@@ -354,12 +371,12 @@ function renderHeader() {
     <span class="hidden md:inline-flex">${a11yBtn()}</span><span class="hidden md:inline-flex">${themeBtn(false)}</span>
     <span class="hidden md:block">${userBtn()}</span>
     <button type="button" data-act="menu" class="lg:hidden w-10 h-10 rounded-lg border border-line grid place-items-center hover:bg-soft" aria-label="${esc(t('menu'))}">${ic('menu')}</button>`;
-  $('#topstrip').innerHTML = `<div class="hidden lg:block"><div class="max-w-site mx-auto px-8 h-[38px] flex items-center justify-between gap-6">${pulseSegs('strip')}<div class="flex items-center gap-5 text-[12.5px] text-white/70 whitespace-nowrap">${CMS.canEdit ? `<button type="button" data-act="admin" class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-white/10 hover:bg-white/20 text-white font-semibold transition-colors">${ic('pencil-line', 'w-3.5 h-3.5')}${L(['Сайтыг засах', 'Edit site'])}</button>` : ''}<span class="inline-flex items-center gap-1.5 tnum">${ic('clock-3', 'w-3.5 h-3.5')}<span data-live="clock">${clock()}</span></span><span class="inline-flex items-center gap-1.5">${ic('phone', 'w-3.5 h-3.5')}${t('hotlineShort')} <b class="text-white tnum">1200</b></span></div></div></div><div class="lg:hidden">${pulseSegs(true)}</div>`;
+  $('#topstrip').innerHTML = `<div class="hidden lg:block"><div class="max-w-site mx-auto px-8 h-[38px] flex items-center justify-between gap-6"><div id="pulse-strip">${pulseSegs('strip')}</div><div class="flex items-center gap-5 text-[12.5px] text-white/70 whitespace-nowrap">${CMS.canEdit ? `<button type="button" data-act="admin" class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-white/10 hover:bg-white/20 text-white font-semibold transition-colors">${ic('pencil-line', 'w-3.5 h-3.5')}${L(['Сайтыг засах', 'Edit site'])}</button>` : ''}<span class="inline-flex items-center gap-1.5 tnum">${ic('clock-3', 'w-3.5 h-3.5')}<span data-live="clock">${clock()}</span></span><span class="inline-flex items-center gap-1.5">${ic('phone', 'w-3.5 h-3.5')}${t('hotlineShort')} <b class="text-white tnum">1200</b></span></div></div></div><div class="lg:hidden">${pulseSegs(true)}</div>`;
   /* Цэс: хөвөгч «dock» капсул. Шингэн тодруулга, гэрэлтэх хүрээ, доод ирмэгт уншилтын явцыг харуулах алхан хээ (setupNav). */
   const navBtn = (m, i) => `<li class="flex"><button type="button" class="nav-btn" data-menu="${i}" data-sec="${esc(m.sec)}" aria-expanded="false" aria-haspopup="true"><span>${menuLabel(m)}</span>${ic('chevron-down', 'nav-chev w-3.5 h-3.5')}</button></li>`;
   $('#hdr-nav').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8"><nav class="dock" id="navbar" aria-label="Main"><span class="dock-glass" aria-hidden="true"><i></i></span><div class="dock-in">
     <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoEmblem('w-[34px] h-[34px]')}</button>
-    <ul class="dock-items" id="nav-items"><li class="nav-pill" id="nav-pill" aria-hidden="true"></li>${MENU.map(navBtn).join('')}</ul>
+    <ul class="dock-items" id="nav-items"><li class="nav-pill" id="nav-pill" aria-hidden="true"></li><li class="nav-home-li"><button type="button" class="nav-btn nav-home" data-act="home">${ic('house', 'w-[17px] h-[17px]')}<span>${L(['Нүүр', 'Home'])}</span></button></li>${MENU.map(navBtn).join('')}</ul>
     <div class="ml-auto flex items-center gap-2 pl-3 shrink-0">
       <button type="button" data-act="search" class="dock-search" aria-label="${esc(t('search'))}" title="${esc(t('search'))} (Ctrl K)">${ic('search', 'w-[18px] h-[18px]')}</button>
     </div>
@@ -424,14 +441,14 @@ function setupNav() {
       }
       placeCaret(btn);
     }
-    $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', String(+b.dataset.menu === i)));
+    $$('.nav-btn[data-menu]', nav).forEach((b) => b.setAttribute('aria-expanded', String(+b.dataset.menu === i)));
     pillTo(btn);
   };
-  const close = () => { megaOpen = -1; mega.classList.remove('open'); $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', 'false')); pillTo(null); };
+  const close = () => { megaOpen = -1; mega.classList.remove('open'); $$('.nav-btn[data-menu]', nav).forEach((b) => b.setAttribute('aria-expanded', 'false')); pillTo(null); };
   nav._close = close; nav._moveInd = () => { if (megaOpen < 0) pillTo(null); };
-  nav.addEventListener('mouseover', (e) => { const b = e.target.closest('.nav-btn'); if (b) open(+b.dataset.menu, true); else if (e.target.closest('#mega')) clearTimeout(megaTimer); });
+  nav.addEventListener('mouseover', (e) => { const b = e.target.closest('.nav-btn[data-menu]'); if (b) open(+b.dataset.menu, true); else if (e.target.closest('#mega')) clearTimeout(megaTimer); });
   nav.addEventListener('mouseleave', () => { megaTimer = setTimeout(close, 160); });
-  nav.addEventListener('click', (e) => { const b = e.target.closest('.nav-btn'); if (b) { const i = +b.dataset.menu, pk = MENU[i] && pageOf({ sec: MENU[i].sec }); if (pk) { close(); openPage(pk); return; } if (megaOpen === i && !hoverOpen) close(); else open(i, false); } else if (e.target.closest('[data-act="go"], [data-act="ext-link"]')) close(); });
+  nav.addEventListener('click', (e) => { const b = e.target.closest('.nav-btn[data-menu]'); if (b) { const i = +b.dataset.menu, pk = MENU[i] && pageOf({ sec: MENU[i].sec }); if (pk) { close(); openPage(pk); return; } if (megaOpen === i && !hoverOpen) close(); else open(i, false); } else if (e.target.closest('[data-act="go"], [data-act="ext-link"]')) close(); });
   nav.addEventListener('focusout', (e) => { if (!nav.contains(e.relatedTarget)) close(); });
   /* Курсорын байрлалд хүрээ гэрэлтэнэ (.dock::before) */
   nav.addEventListener('pointermove', (e) => { const r = nav.getBoundingClientRect(); nav.style.setProperty('--mx', Math.round(e.clientX - r.left) + 'px'); nav.style.setProperty('--my', Math.round(e.clientY - r.top) + 'px'); });
@@ -462,6 +479,7 @@ function setActiveNav(sec) {
   const pg = S.route === 'page' && PAGES[S.page], idx = pg ? pg.m : map[sec];
   $$('.nav-btn').forEach((b) => b.classList.toggle('is-active', +b.dataset.menu === idx && (!!pg || sec !== 'hero')));
   const nav = $('#navbar'); if (nav && megaOpen < 0 && nav._moveInd) nav._moveInd($('.nav-btn.is-active', nav));
+  const hb = nav && $('.nav-home', nav); if (hb) hb.classList.toggle('is-active', S.route === 'home' && sec === 'hero');   // «Нүүр» цэс үргэлж байна; нүүрний эхэнд байхад тодорно
   const bb = pg ? { services: 'services', news: 'news', events: 'news', media: 'news' }[S.page] || '' : { hero: 'home', hub: S.hub === 'services' ? 'services' : 'news', situations: 'services', media: 'news', events: 'news' }[sec] || 'home';
   $$('.bb-item').forEach((b) => b.setAttribute('aria-current', String(S.route === 'my' ? b.dataset.bb === 'my' : b.dataset.bb === bb)));
 }
@@ -644,7 +662,7 @@ function setRoute(r) {
     pageView(true); renderPageHero();
     const R = { hub: renderHub, situations: renderSits, gov: renderGov, media: renderMedia, projects: renderProjects, data: renderData, events: renderEvents, transparency: renderTr, about: renderAbout };
     P.secs.forEach((id) => R[id] && R[id]());
-    document.title = L(P.t) + ' · ulaanbaatar.mn';
+    document.title = pgT(P) + ' · ulaanbaatar.mn';
     try { if ((PRETTY ? location.pathname + location.hash : location.hash) !== pageHref(S.page)) history.pushState({ ubPage: S.page }, '', pageHref(S.page)); } catch (e) { /* ignore */ }
     requestAnimationFrame(() => initTabs($('#view-home')));
     window.scrollTo(0, was === 'news' && S.pageFor === S.page && S.pageY != null ? S.pageY : 0);   // мэдээнээс буцахад хуудсандаа байсан газраа
@@ -666,12 +684,14 @@ const PAGES = {
   services: { secs: ['hub', 'situations'], m: 0, c: '#D81E34', i: 'layout-grid', t: ['Үйлчилгээ', 'Services'], d: ['Иргэн, аж ахуйн нэгжид зориулсан бүх үйлчилгээ, амьдралын нөхцөл бүрт хэрэгтэй алхмууд нэг дор.', 'Every service for residents and businesses, with step-by-step guides for life events.'] },
   news: { secs: ['hub'], m: 1, c: '#1D5BFF', i: 'newspaper', t: ['Мэдээ мэдээлэл', 'News'], d: ['Нийслэлийн Засаг дарга, дүүрэг, харьяа байгууллагуудын бүх мэдээ, зар мэдээлэл.', 'All news and notices from City Hall, districts and city agencies.'] },
   events: { secs: ['events'], m: 1, c: '#E58A00', i: 'calendar-days', hide: 1, t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ: жагсаалт, хуанли, газрын зураг.', 'Culture, sport and civic events: list, calendar and map.'] },
-  media: { secs: ['media'], m: 1, c: '#7C4DFF', i: 'clapperboard', hide: 1, t: ['Медиа', 'Media'], d: ['Хотын видео, шууд дамжуулалт, фото сурвалжилга, подкаст.', 'City videos, live streams, photo stories and podcasts.'] },
-  projects: { secs: ['projects'], m: 2, c: '#F08C1A', i: 'hard-hat', hide: 1, t: ['Бүтээн байгуулалт', 'Development'], d: ['Нийслэлийн мега төслүүдийн гүйцэтгэл, төсөв, хугацааг газрын зураг дээрээс хянаарай.', 'Track the progress, budget and timeline of flagship projects on the map.'] },
+  media: { secs: ['media'], m: 1, c: '#7C4DFF', i: 'clapperboard', hide: 1, t: ['Медиа', 'Media'], d: ['Нийслэлийн Live дамжуулалт, фото сурвалжилга, постер, подкаст.', 'Live streams, photo reports, posters and podcasts from City Hall.'] },
+  projects: { secs: ['projects'], m: 2, c: '#F08C1A', i: 'hard-hat', hide: 1, tk: 'nav_build', t: ['Бүтээн байгуулалт', 'Development'], d: ['Нийслэлийн мега төслүүдийн гүйцэтгэл, төсөв, хугацааг газрын зураг дээрээс хянаарай.', 'Track the progress, budget and timeline of flagship projects on the map.'] },
   data: { secs: ['data'], m: 3, c: '#0EA068', i: 'activity', hide: 1, dark: 'var(--c-navy)', t: ['Хотын өгөгдөл', 'City data'], d: ['Агаарын чанар, түгжрэл, цаг агаар, хүн ам, төсвийн бодит цагийн самбар.', 'A live dashboard of air quality, traffic, weather, population and budget.'] },
   transparency: { secs: ['transparency'], m: 4, c: '#0E9AA7', i: 'scroll-text', hide: 1, t: ['Ил тод байдал', 'Transparency'], d: ['Нийслэлийн ИТХ-ын тогтоол, Засаг даргын захирамж, тендерийн мэдээлэл нээлттэй.', "City Council resolutions, the Governor's orders and tenders, in the open."] },
   about: { secs: ['gov', 'about'], m: 5, c: '#D81E34', i: 'landmark', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн Засаг даргын ажлын хуваарь, хотын удирдлага, түүх, харьяа байгууллагууд.', "The Governor's schedule, city leadership, history and agencies."] },
 };
+/* Хуудасны гарчиг: tk бол цэсний нэртэй ижил (жишээ нь «24 мега төсөл») */
+const pgT = (P) => (P.tk ? t(P.tk, { n: PROJECTS.length }) : L(P.t));
 /* Цэсийн «go» холбоос аль хуудас руу очих вэ (нүүрний hero бол null) */
 function pageOf(o) {
   if (!o || !o.sec || o.sec === 'hero') return null;
@@ -701,7 +721,7 @@ function openPage(k, o = {}) {
     if (o.svc) { S.svcTab = o.svc; S.svcQ = ''; }
     if (o.sit) S.sit = o.sit;
     if (o.tr) S.tr = o.tr;
-    S.newsN = 12; S.newsQ = ''; S.mediaQ = '';
+    S.newsN = 12; S.newsQ = ''; S.mediaQ = ''; S.mediaN = 12;
     if (S.route === 'home') S.homeY = window.scrollY;
     S.page = k; setRoute('page');
   }
@@ -728,7 +748,7 @@ function pageStats(k) {
     news: () => [[NEWS.filter((x) => !x.draft).length, L(['мэдээ', 'stories'])], [NEWS.filter((x) => x.ago < 1440).length, L(['өнөөдөр', 'today'])], [NEWS.filter((x) => x.zar || x.cat === 'zar').length, L(['зар', 'notices'])]],
     services: () => [[ALL_SVC.length, L(['үйлчилгээ', 'services'])], [ALL_SVC.filter((s) => s.m === 'on').length, L(['онлайнаар', 'online'])], [SITS.length, L(['амьдралын нөхцөл', 'life events'])]],
     events: () => [[EVENTS.length, L(['арга хэмжээ', 'events'])], [EVENTS.filter((e) => e.w >= 0 && e.w < 7).length, L(['энэ 7 хоногт', 'this week'])], [EVENTS.filter((e) => !e.price).length, L(['үнэгүй', 'free'])]],
-    media: () => [[MEDIA.length, L(['бичлэг', 'items'])], [MEDIA.filter((m) => m.type === 'video').length, L(['видео', 'videos'])], [MEDIA.filter((m) => m.type === 'photo').length, L(['фото цомог', 'galleries'])]],
+    media: () => [[MEDIA.filter((m) => m.type === 'live').length, 'Live'], [MEDIA.filter((m) => m.type === 'photo').length, L(['фото сурвалжилга', 'photo reports'])], [MEDIA.filter((m) => m.type === 'poster').length, L(['постер', 'posters'])]],
     projects: () => [[PROJECTS.length, L(['мега төсөл', 'projects'])], [Math.round(PROJECTS.reduce((a, p) => a + (+p.p || 0), 0) / Math.max(1, PROJECTS.length)) + '%', L(['дундаж гүйцэтгэл', 'avg. progress'])], [PROJECTS.filter((p) => +p.p >= 100).length, L(['ашиглалтад орсон', 'completed'])]],
     data: () => [[`<span data-live="aqi">${S.aqi}</span>`, 'AQI'], [S.temp + '°', L(['агаарын хэм', 'temperature'])], [S.traffic + '/10', L(['түгжрэл', 'congestion'])]],
     transparency: () => [[(DOCS.res || []).length, L(['тогтоол', 'resolutions'])], [(DOCS.ord || []).length, L(['захирамж', 'orders'])], [(DOCS.tender || []).length, L(['тендер', 'tenders'])]],
@@ -777,13 +797,13 @@ function renderPageHero() {
   const m = MENU[P.m], top = m && pageOf({ sec: m.sec });
   const crumbs = [`<button type="button" data-act="home">${t('home')}</button>`];
   if (top && top !== S.page) crumbs.push(`<button type="button" data-act="page" data-v="${top}">${menuLabel(m)}</button>`);
-  crumbs.push(`<span aria-current="page">${esc(L(P.t))}</span>`);
+  crumbs.push(`<span aria-current="page">${esc(pgT(P))}</span>`);
   el.style.background = P.dark ? `rgb(${P.dark})` : '';   // бараан хэсэгтэй хуудсанд толгой нь тэр дэвсгэртэйгээ нэг үргэлжилнэ
   const side = S.page === 'data' ? dataClockHTML() : `<dl class="pg-stats">${pageStats(S.page).map(([v, l], i) => `<div style="--i:${i}"><dt>${esc(l)}</dt><dd class="tnum">${v}</dd></div>`).join('')}</dl>`;
   el.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-5 lg:pt-7"><div class="pg-hero ${P.dark ? 'is-dark' : ''}" style="--pc:${P.c}">
     <span class="pg-aur" aria-hidden="true"></span><span class="pg-big" aria-hidden="true">${ic(P.i, 'w-full h-full', 1.1)}</span>
     <nav class="pg-crumbs" aria-label="${L(['Байршил', 'Breadcrumb'])}">${crumbs.join(ic('chevron-right', 'w-3.5 h-3.5 opacity-50'))}</nav>
-    <div class="pg-main"><div class="min-w-0"><span class="pg-ic">${ic(P.i, 'w-6 h-6')}</span><h1 class="pg-t">${esc(L(P.t))}</h1><p class="pg-d">${esc(L(P.d))}</p></div>
+    <div class="pg-main"><div class="min-w-0"><span class="pg-ic">${ic(P.i, 'w-6 h-6')}</span><h1 class="pg-t">${esc(pgT(P))}</h1><p class="pg-d">${esc(L(P.d))}</p></div>
       ${side}</div>
     <div class="pg-links" id="pg-links">${pageLinksHTML()}</div>
   </div></div>`;

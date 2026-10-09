@@ -389,8 +389,96 @@ function openVote(tab, opts = {}) {
 }
 
 /* ================= Media player ================= */
+/* ---- Бодит медиа (ulaanbaatar.mn): Live = Facebook/YouTube видео (дарахад л ачаална), Фото = цомог, Постер = том зураг + текст, Подкаст ---- */
+/* Цомгийн эх зураг 2–5 МБ: сервертэй үед /api/img жижигрүүлж (WebP) өгнө, сервергүй бол эх хаяг */
+const mediaImg = (u, w) => (PRETTY && /^https:\/\/ulaanbaatar\.mn\/files\//.test(u) ? `/api/img?w=${w}&u=${encodeURIComponent(u)}` : u);
+function videoEmbed(u) {
+  const y = String(u).match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([\w-]{6,})/);
+  if (y) return `https://www.youtube-nocookie.com/embed/${y[1]}?autoplay=1`;
+  if (/facebook\.com|fb\.watch/.test(u)) return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(u)}&show_text=false&autoplay=true&width=1280`;
+  return '';
+}
+/* ---- Медиа үзэгч (ulaanbaatar.mn): зүүн талд бараан «тайз», баруун талд мэдээлэл + «Бусад ...». Төрөл бүр өөрийн өнгөтэй ---- */
+const MV_TYPE = {
+  live: { c: '#E5253B', i: 'radio', k: 'm_live' }, photo: { c: '#3B7BFF', i: 'images', k: 'm_photo' },
+  poster: { c: '#F2A516', i: 'image', k: 'm_poster' }, podcast: { c: '#8B5CFF', i: 'headphones', k: 'm_podcast' },
+};
+function mvDate(m) {
+  const d = parseUB(m.date || ''); if (!d) return '';
+  return EN() ? `${EN_MON[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} · ${hhmm(d)}` : `${d.getFullYear()} оны ${fDate(d)} · ${hhmm(d)}`;
+}
+function openMediaLive(m0) {
+  let m = m0, ph = 0, playing = false, zoom = false;
+  const st = () => {
+    const ty = MV_TYPE[m.type] || MV_TYPE.poster, photos = m.photos || [], cover = m.img || mediaFallback(m);
+    return { ty, photos, cover, src: NEWS_SRC + m.nid, embed: m.video && videoEmbed(m.video), amb: m.type === 'photo' && photos.length ? mediaImg(photos[ph], 240) : (/^(assets|https)/.test(cover) ? cover : '') };
+  };
+  const stage = (x) => {
+    const close = `<button type="button" class="mv-x lg:hidden" data-act="modal-close" aria-label="${esc(t('close'))}">${ic('x', 'w-5 h-5')}</button>`;
+    const amb = x.amb ? `<img class="mv-amb" src="${esc(x.amb)}" alt="" aria-hidden="true">` : '';
+    if (m.type === 'live') return `<div class="mv-stage" id="mv-stage">${amb}${close}<div class="mv-frame">${playing && x.embed
+        ? `<iframe src="${esc(x.embed)}" class="mv-iframe" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen title="${esc(L(m.t))}"></iframe>`
+        : `<div class="scene !absolute inset-0">${Scene(x.cover)}</div><span class="mv-shade"></span>${m.img ? '' : '<span class="mcard-livebg"></span>'}
+          <span class="mv-live"><span class="live" style="--dot:#fff"></span>${t('m_live')}</span>
+          <button type="button" class="mv-play" data-act="mp-toggle" aria-label="${esc(t('play'))}"><i></i><i></i>${ic('play', 'w-9 h-9 ml-1')}</button>
+          <span class="mv-cap">${ic(/youtu/.test(m.video || '') ? 'youtube' : 'facebook', 'w-4 h-4')}${/youtu/.test(m.video || '') ? 'YouTube' : 'Facebook'} ${L(['бичлэг', 'video'])} · ${esc(mediaDate(m))}</span>`}</div></div>`;
+    if (m.type === 'photo' && x.photos.length) return `<div class="mv-stage" id="mv-stage">${amb}${close}
+        <div class="mv-photo" id="ph-main"><img src="${esc(mediaImg(x.photos[ph], 1280))}" alt="${esc(L(m.t))} ${ph + 1}" class="mv-img is-on" decoding="async"></div>
+        <span class="mv-count tnum" id="ph-count">${ph + 1} / ${x.photos.length}</span>
+        <button type="button" class="mv-fs" data-act="mv-fs" aria-label="${esc(L(['Бүтэн дэлгэцээр', 'Fullscreen']))}" title="${esc(L(['Бүтэн дэлгэцээр', 'Fullscreen']))}">${ic('maximize-2', 'w-[18px] h-[18px]')}</button>
+        ${x.photos.length > 1 ? `<button type="button" class="mv-nav mv-prev" data-act="ph" data-d="-1" aria-label="${esc(t('prev'))}">${ic('chevron-left', 'w-6 h-6')}</button><button type="button" class="mv-nav mv-next" data-act="ph" data-d="1" aria-label="${esc(t('next'))}">${ic('chevron-right', 'w-6 h-6')}</button>
+        <div class="mv-strip thin-scroll" id="ph-strip">${x.photos.map((u, k) => `<button type="button" class="mv-th ${k === ph ? 'is-on' : ''}" data-act="ph-go" data-k="${k}" aria-label="${k + 1}"><img src="${esc(mediaImg(u, 240))}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>`;
+    if (m.type === 'podcast') return `<div class="mv-stage mv-pod" id="mv-stage">${amb}${close}<div class="mv-disc"><span class="mv-vinyl"></span><div class="scene mv-art">${Scene(x.cover)}</div></div>
+        <p class="mv-pod-cap">${L(['«Нийслэл» подкаст', '"Niislel" podcast'])}</p><div class="mv-eq" aria-hidden="true">${Array.from({ length: 24 }, (_, k) => `<i style="--k:${k}"></i>`).join('')}</div></div>`;
+    return `<div class="mv-stage" id="mv-stage">${amb}${close}<div class="mv-poster ${zoom ? 'is-zoom' : ''}" id="mv-poster" data-act="mv-zoom" title="${esc(zoom ? L(['Жижигрүүлэх', 'Zoom out']) : L(['Томруулах', 'Zoom in']))}">${m.img ? `<img src="${esc(m.img)}" alt="${esc(L(m.t))}">` : `<div class="scene w-full aspect-[3/4]">${Scene(x.cover)}</div>`}</div>
+        <span class="mv-hint">${ic(zoom ? 'zoom-out' : 'zoom-in', 'w-4 h-4')}${zoom ? L(['Дарж жижигрүүлнэ', 'Click to zoom out']) : L(['Дарж томруулна', 'Click to zoom in'])}</span></div>`;
+  };
+  const panel = (x) => {
+    const rel = MEDIA.map((r, i) => [r, i]).filter(([r]) => r.live && r.type === m.type && r.id !== m.id).slice(0, 4);
+    const primary = m.type === 'live' && m.video ? `<a href="${esc(m.video)}" target="_blank" rel="noopener" class="mv-btn mv-btn-p">${ic('play', 'w-[18px] h-[18px]')}${/youtu/.test(m.video) ? L(['YouTube дээр үзэх', 'Watch on YouTube']) : L(['Facebook дээр үзэх', 'Watch on Facebook'])}</a>`
+      : `<a href="${esc(x.src)}" target="_blank" rel="noopener" class="mv-btn mv-btn-p">${ic(m.type === 'podcast' ? 'headphones' : 'external-link', 'w-[18px] h-[18px]')}${m.type === 'podcast' ? L(['ulaanbaatar.mn дээр сонсох', 'Listen on ulaanbaatar.mn']) : L(['ulaanbaatar.mn дээр үзэх', 'View on ulaanbaatar.mn'])}</a>`;
+    return `<aside class="mv-info">
+      <div class="flex items-center justify-between gap-3"><span class="mv-chip">${ic(x.ty.i, 'w-4 h-4')}${t(x.ty.k)}</span><button type="button" class="mv-close hidden lg:grid" data-act="modal-close" aria-label="${esc(t('close'))}">${ic('x', 'w-5 h-5')}</button></div>
+      <h2 class="mv-t">${esc(L(m.t))}</h2>
+      <div class="mv-meta"><span>${ic('calendar', 'w-4 h-4')}${esc(mvDate(m))}</span><span class="tnum">${ic('eye', 'w-4 h-4')}${num(m.views || 0)} ${L(['үзсэн', 'views'])}</span>${m.type === 'photo' && x.photos.length ? `<span class="tnum">${ic('images', 'w-4 h-4')}${x.photos.length} ${L(['зураг', 'photos'])}</span>` : ''}</div>
+      <div class="mv-body thin-scroll">${(m.body || []).length ? m.body.map((p) => `<p>${esc(p)}</p>`).join('') : `<p class="text-white/45">${m.type === 'live' ? L(['Шууд дамжуулалтын бичлэг. Тоглуулах товчийг дарж үзнэ үү.', 'A recorded live stream. Press play to watch.']) : L(['Тайлбар оруулаагүй байна.', 'No description.'])}</p>`}</div>
+      <div class="mv-acts">${primary}<button type="button" class="mv-btn mv-btn-i" data-act="mv-copy" title="${esc(L(['Холбоос хуулах', 'Copy link']))}" aria-label="${esc(L(['Холбоос хуулах', 'Copy link']))}">${ic('link', 'w-[18px] h-[18px]')}</button>${m.type === 'live' ? `<a href="${esc(x.src)}" target="_blank" rel="noopener" class="mv-btn mv-btn-i" title="ulaanbaatar.mn" aria-label="ulaanbaatar.mn">${ic('external-link', 'w-[18px] h-[18px]')}</a>` : ''}</div>
+      ${rel.length ? `<div class="mv-rel"><p class="mv-rel-h">${L(['Бусад', 'More'])} ${esc(t(x.ty.k).toLowerCase())}</p>${rel.map(([r, i], k) => `<button type="button" class="mv-ri" style="--i:${k}" data-act="mv-go" data-i="${i}"><span class="scene mv-ri-th">${Scene(r.img || mediaFallback(r))}</span><span class="min-w-0"><b>${esc(L(r.t))}</b><span>${esc(mediaDate(r))} · ${num(r.views || 0)}</span></span></button>`).join('')}</div>` : ''}
+    </aside>`;
+  };
+  const render = () => { const x = st(); return `<div class="mv" style="--mc:${x.ty.c}">${stage(x)}${panel(x)}</div>`; };
+  // Фото: хуруугаар гүйлгэх; Постер: курсорын байрлалаар томруулах
+  const after = (sheet) => {
+    const sg = $('#mv-stage', sheet); if (!sg) return;
+    if (m.type === 'photo') { let x0 = null; sg.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') x0 = e.clientX; }); sg.addEventListener('pointerup', (e) => { if (x0 != null && Math.abs(e.clientX - x0) > 40) MS.ph(e.clientX < x0 ? 1 : -1); x0 = null; }); }
+    const pz = $('#mv-poster', sheet); if (pz) pz.addEventListener('pointermove', (e) => { if (!zoom) return; const r = pz.getBoundingClientRect(); pz.style.setProperty('--ox', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%'); pz.style.setProperty('--oy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%'); });
+  };
+  openModal({ size: 'media', label: L(m.t), render, after });
+  const swapTo = (next) => { m = next; ph = 0; playing = false; zoom = false; const v = MODAL && $('.mv', MODAL.sheet); if (v && v.animate && !reduced) v.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, fill: 'forwards' }).finished.then(() => { paintModal(); const n = $('.mv', MODAL.sheet); if (n) n.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.2,.8,.2,1)' }); }); else paintModal(); };
+  MS = {
+    mpToggle: () => { const x = st(); if (!x.embed) { if (m.video) window.open(m.video, '_blank', 'noopener'); return; } playing = true; paintModal(true); },
+    ph: (dlt) => { const n = (m.photos || []).length; if (m.type === 'photo' && n > 1) MS.phGo((ph + dlt + n) % n); },
+    phGo: (k) => {
+      const photos = m.photos || []; if (!photos[k] || k === ph) return; ph = k;
+      const box = $('#ph-main'); if (box) {   // хоёр зураг зөөлөн уусна
+        const old = $('.mv-img.is-on', box), img = new Image(); img.className = 'mv-img'; img.alt = `${L(m.t)} ${ph + 1}`; img.decoding = 'async'; img.src = mediaImg(photos[ph], 1280);
+        const show = () => { box.appendChild(img); requestAnimationFrame(() => { img.classList.add('is-on'); if (old) { old.classList.remove('is-on'); setTimeout(() => old.remove(), 450); } }); };
+        if (img.complete) show(); else { img.onload = show; img.onerror = show; }
+      }
+      const amb = $('#mv-stage .mv-amb'); if (amb) amb.src = mediaImg(photos[ph], 240);
+      const c = $('#ph-count'); if (c) c.textContent = `${ph + 1} / ${photos.length}`;
+      $$('#ph-strip .mv-th').forEach((b) => { const on = +b.dataset.k === ph; b.classList.toggle('is-on', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: reduced ? 'auto' : 'smooth' }); });
+      if (photos[ph + 1]) { const pre = new Image(); pre.src = mediaImg(photos[ph + 1], 1280); }   // дараагийнхыг урьдчилан ачаална
+    },
+    go: (i) => { if (MEDIA[i]) swapTo(MEDIA[i]); },
+    zoom: () => { zoom = !zoom; const pz = $('#mv-poster'), h = $('.mv-hint'); if (pz) { pz.classList.toggle('is-zoom', zoom); pz.title = zoom ? L(['Жижигрүүлэх', 'Zoom out']) : L(['Томруулах', 'Zoom in']); } if (h) h.innerHTML = `${ic(zoom ? 'zoom-out' : 'zoom-in', 'w-4 h-4')}${zoom ? L(['Дарж жижигрүүлнэ', 'Click to zoom out']) : L(['Дарж томруулна', 'Click to zoom in'])}`; },
+    fs: () => { const sg = $('#mv-stage'); if (!sg) return; if (document.fullscreenElement) document.exitFullscreen(); else if (sg.requestFullscreen) sg.requestFullscreen().catch(() => {}); },
+    copy: async () => { const u = NEWS_SRC + m.nid; try { await navigator.clipboard.writeText(u); toast(t('copied'), 'link'); } catch (e) { toast(u, 'link'); } },
+  };
+}
 function openMedia(i) {
   const m = MEDIA[i]; if (!m) return;
+  if (m.live) { openMediaLive(m); return; }
   if (/^https?:\/\//.test(m.url || '')) { window.open(m.url, '_blank', 'noopener'); return; }   // admin-аас оруулсан бодит бичлэг
   let playing = false, pos = 0, timer = null, ph = 0, viewers = m.viewers || 0, liveSec = 4333;
   const durS = m.dur ? m.dur.split(':').reduce((a, b) => a * 60 + +b, 0) : 0;
@@ -609,7 +697,7 @@ If anyone may be in danger, tell them to call 101 (fire), 102 (police) or 103 (a
 When one page feature would help, end with exactly one action tag on its own line, chosen from: [[report]] [[vote]] [[services]] [[data]] [[events]] [[transparency]] [[login]] [[situation:ID]] (ID is one of birth, marriage, home, business, retire, move).
 
 Facts (Ulaanbaatar time ${clock()}, ${today().getMonth() + 1}-р сарын ${today().getDate()}):
-- Weather ${S.temp}°C, cloudy, wind 4 m/s. Air quality AQI ${S.aqi} (moderate), PM2.5 about ${pm25()} µg/m³; yellow air alert from 20:00 tonight. Advice: children, older adults and people with breathing conditions should limit long outdoor activity.
+- Weather ${Math.round(S.wx.temp)}°C, ${wxInfo(S.wx.code, S.wx.day).t}, feels like ${Math.round(S.wx.feels)}°C, wind ${Math.round(S.wx.wind)} m/s, humidity ${Math.round(S.wx.hum)}%. Air quality AQI ${S.aqi} (${aqiCat(S.aqi).k.replace('aqi', '')})${S.air && S.air.live ? ', measured by IQAir' + (S.air.main ? ', main pollutant ' + (POL[S.air.main] || S.air.main) : '') : ', PM2.5 about ' + pm25() + ' µg/m³'}; yellow air alert from 20:00 tonight. Advice: children, older adults and people with breathing conditions should limit long outdoor activity.
 - Traffic congestion index ${S.traffic}/10 (busy). Busiest: Peace Avenue 8.2, Chinggis Avenue 7.4, Ring Road 6.6.
 - Active alerts:\n${alerts}
 - Hazards (potholes, broken street lights, uncollected waste, leaks, unsafe structures or open manholes) can be reported with the site's "Эрсдэл мэдээлэх" form in about a minute: choose a type, tap the map, add a photo. Reports go to the responsible agency within 30 minutes and can be tracked in "Миний булан" after signing in with ДАН (the national single sign-in: e-Mongolia app QR, one-time code or internet bank).
@@ -674,6 +762,7 @@ document.addEventListener('click', (e) => {
   const a = el.dataset.act, d = el.dataset;
   switch (a) {
     case 'page': openPage(d.v, d.cat ? { cat: d.cat } : {}); break;
+    case 'media-more': { const from = S.mediaN; S.mediaN += MEDIA_STEP; const g = $('#media-grid'); if (g) g.innerHTML = mediaCards(from); break; }
     case 'news-more': { const from = S.newsN; S.newsN += NEWS_STEP; const g = $('#news-grid'); if (g) g.innerHTML = newsGridAll(from); break; }
     case 'home': S.homeY = 0; if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
     case 'lang': setLang(d.v); break;
@@ -730,6 +819,10 @@ document.addEventListener('click', (e) => {
     case 'mp-toggle': if (MS.mpToggle) MS.mpToggle(); break;
     case 'ph': if (MS.ph) MS.ph(+d.d); break;
     case 'ph-go': if (MS.phGo) MS.phGo(+d.k); break;
+    case 'mv-go': if (MS && MS.go) MS.go(+d.i); break;
+    case 'mv-zoom': if (MS && MS.zoom) MS.zoom(); break;
+    case 'mv-fs': if (MS && MS.fs) MS.fs(); break;
+    case 'mv-copy': if (MS && MS.copy) MS.copy(); break;
     case 'proj-st': setProjSt(d.v); break;
     case 'proj': selectProject(d.id, true); break;
     case 'proj-close': S.projSel = null; selectProject(null, false); break;
@@ -770,7 +863,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('input', (e) => {
   const el = e.target;
   if (el.dataset.input === 'svcQ') { S.svcQ = el.value; $('#svc-grid').innerHTML = svcGrid(); }
-  else if (el.dataset.input === 'mediaQ') { S.mediaQ = el.value; $('#media-grid').innerHTML = mediaCards(); $('#media-count').textContent = mediaCountText(); }
+  else if (el.dataset.input === 'mediaQ') { S.mediaQ = el.value; S.mediaN = MEDIA_STEP; $('#media-grid').innerHTML = mediaCards(); $('#media-count').textContent = mediaCountText(); }
   else if (el.dataset.input === 'newsQ') { S.newsQ = el.value; S.newsN = NEWS_STEP; $('#news-grid').innerHTML = newsGridAll(1e9); }   // бичих үед дахин хөдөлгөөнгүй
   else if (el.dataset.input === 'trQ') { S.trQ = el.value; $('#tr-panel').innerHTML = trRows(true); }   // хайх үед дахин хөдөлгөөнгүй
   else if (el.id === 'chat-in') autoGrow(el);
@@ -851,11 +944,49 @@ function setupToTop() {
   const q = () => { if (!TT.raf) TT.raf = requestAnimationFrame(toTopUpd); };
   addEventListener('scroll', q, { passive: true }); addEventListener('resize', q, { passive: true });
 }
+/* ================= Цаг агаар: Open-Meteo-оос бодит өгөгдөл =================
+   Эхлээд манай сервер (/api/weather, 10 минутын кэш), байхгүй бол (нэг файлт хувилбар) Open-Meteo руу шууд. 10 минут тутам шинэчилнэ. */
+const WX_OM = 'https://api.open-meteo.com/v1/forecast?latitude=47.9184&longitude=106.9177&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FUlaanbaatar&forecast_days=6&wind_speed_unit=ms';
+let WX_AT = 0;
+async function loadWeather() {
+  let w = null;
+  try { const r = await fetch('/api/weather'); if (r.ok) w = await r.json(); } catch (e) { /* сервергүй */ }
+  if (!w || typeof w.temp !== 'number') {
+    try {
+      const j = await (await fetch(WX_OM)).json(), c = j.current, d = j.daily;
+      w = { temp: c.temperature_2m, feels: c.apparent_temperature, hum: c.relative_humidity_2m, wind: c.wind_speed_10m, dir: c.wind_direction_10m, code: c.weather_code, day: c.is_day, daily: d.time.map((tm, i) => [tm, d.temperature_2m_max[i], d.temperature_2m_min[i], d.weather_code[i]]) };
+    } catch (e) { return; }   // сүлжээгүй бол хуучин утгаа үлдээнэ
+  }
+  if (!w || typeof w.temp !== 'number') return;
+  WX_AT = Date.now(); S.wx = Object.assign({}, w, { live: 1 }); S.temp = Math.round(w.temp);
+  paintWeather();
+}
+/* ================= Агаарын чанар: IQAir (сервер /api/air, 10 минутын кэш, 24 цагийн түүхтэй) =================
+   Түлхүүргүй (IQAIR_API_KEY) эсвэл сервергүй үед жишээ утга хэвээр үлдэнэ. */
+let AIR_AT = 0;
+async function loadAir() {
+  let a = null;
+  try { const r = await fetch('/api/air'); if (r.ok) a = await r.json(); } catch (e) { /* сервергүй */ }
+  if (!a || typeof a.aqi !== 'number') return;
+  AIR_AT = Date.now(); S.aqi = a.aqi; S.air = { live: 1, ts: a.ts, main: a.main || '', src: a.src || '', seriesSrc: a.seriesSrc || a.src || '', pol: a.pol || null, series: Array.isArray(a.series) ? a.series : [] };
+  paintAir();
+}
+function paintAir() {
+  const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
+  const ac = $('[data-card="aqi"]'); if (ac) { ac.innerHTML = aqiCardInner(true); bindAqiHover(); }
+  setLive('aqi', S.aqi);
+}
+function paintWeather() {
+  const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
+  const wc = $('[data-card="weather"]'); if (wc) wc.innerHTML = weatherCardInner();
+}
 function startLive() {
   setInterval(() => {
     if (document.hidden) return;
-    if (Math.random() < 0.55) S.aqi = Math.max(84, Math.min(91, S.aqi + (Math.random() < 0.5 ? -1 : 1)));
-    setLive('aqi', S.aqi); setLive('pm25', pm25());
+    if (!(S.air && S.air.live)) {   // жишээ горимд л AQI бага зэрэг хэлбэлзэнэ; IQAir холбогдсон бол бодит утга
+      if (Math.random() < 0.55) S.aqi = Math.max(84, Math.min(91, S.aqi + (Math.random() < 0.5 ? -1 : 1)));
+      setLive('aqi', S.aqi); setLive('pm25', pm25());
+    }
     $$('[data-live="clocks"]').forEach((el) => { el.textContent = clock(true); });
     updAqiChart();
   }, 5000);
@@ -878,7 +1009,7 @@ function renderAll() {
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
   $('#skip-link').textContent = L(['Үндсэн агуулга руу шилжих', 'Skip to main content']);
   document.documentElement.lang = EN() ? 'en' : 'mn';
-  if (S.route === 'page' && PAGES[S.page]) document.title = L(PAGES[S.page].t) + ' · ulaanbaatar.mn';
+  if (S.route === 'page' && PAGES[S.page]) document.title = pgT(PAGES[S.page]) + ' · ulaanbaatar.mn';
   else if (S.route !== 'news') document.title = siteTitle();
 }
 function siteTitle() { return EN() ? 'ulaanbaatar.mn · City portal (concept)' : 'ulaanbaatar.mn · Нийслэлийн портал (концепц)'; }
@@ -910,6 +1041,8 @@ function init() {
   initCMS();
   setTimeout(() => { S.intro = false; const h = $('#hero > div'); if (h) h.classList.remove('intro'); }, 2300);
   setupObservers(); startLive(); initChatCapability(); setupToTop();
+  loadWeather(); loadAir(); setInterval(() => { if (!document.hidden) { loadWeather(); loadAir(); } }, 600e3);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (Date.now() - WX_AT > 600e3) loadWeather(); if (Date.now() - AIR_AT > 600e3) loadAir(); });
   const h = decodeURIComponent((location.hash || '').slice(1)), nid = urlNewsId();
   const sk = $('#skip-link'); if (sk) sk.addEventListener('click', (e) => { e.preventDefault(); $('#main').focus(); });   // <base href="/"> үед #main нүүр рүү үсрэхгүй
   if (nid) {

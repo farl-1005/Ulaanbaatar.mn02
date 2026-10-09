@@ -12,7 +12,7 @@ catch (e) { console.error('✗ Шаардлагатай сангууд сууг�
 
 const ROOT = __dirname, SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
 const FILES = ['data.js', 'data2.js', 'scene.js', 'core.js', 'sections.js', 'skyline.js', 'cms.js', 'admin.js', 'features.js'];
-const { getLiveNews, IMG_DIR } = require('./news');
+const { getLiveNews, getLiveMedia, IMG_DIR } = require('./news');
 const pascal = (n) => n.split('-').filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 /** Бүтээнэ. Амжилттай бол null, алдаатай бол алдааны текст буцаана. */
@@ -20,6 +20,8 @@ async function build() {
   const t0 = Date.now();
   const live = await getLiveNews();
   console.log('  📰 ' + live.note);
+  const media = await getLiveMedia();
+  console.log('  🎬 ' + media.note);
   const js = FILES.map((f) => `/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n');
   const html = fs.readFileSync(path.join(SRC, 'template.html'), 'utf8');
   const ICONS = {}, missing = [];
@@ -29,12 +31,13 @@ async function build() {
   const LOGO = 'data:image/webp;base64,' + fs.readFileSync(path.join(SRC, 'logo.webp')).toString('base64');   // src/logo.webp-г солиход лого солигдоно
   // Бодит мэдээ: dist/site нь жижигрүүлсэн зургийг (assets/news/*.webp), нэг файлт хувилбар нь эх зургийг ашиглана.
   const liveFor = (local) => JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
-  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\n${js}\n})();`;
+  const mediaFor = (local) => JSON.stringify(media.items.map(({ imgFile, imgSrc, ...m }) => Object.assign(m, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
+  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\n${js}\n})();`;
   const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
   // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data.js-ийг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
   let idx;
-  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\n${fs.readFileSync(path.join(SRC, 'data.js'), 'utf8')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data.js' }); }
+  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\nconst LIVE_MEDIA=[];\n${fs.readFileSync(path.join(SRC, 'data.js'), 'utf8')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data.js' }); }
   catch (e) { return 'data.js алдаа: ' + e.message; }
   const newsIndex = {
     src: idx.NEWS_SRC,
@@ -42,7 +45,7 @@ async function build() {
     news: idx.NEWS.map(({ id, t, l, b, d, img, cat, live, zar }) => ({ id, t, l, b, d, img, cat, live, zar })),
   };
   fs.mkdirSync(path.join(SITE, 'assets', 'news'), { recursive: true });
-  for (const n of live.items) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
+  for (const n of live.items.concat(media.items)) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
   fs.mkdirSync(path.join(SITE, 'assets'), { recursive: true });
   try { execSync('npx tailwindcss -c tailwind.config.js -i src/input.css -o dist/.tailwind.css --minify', { cwd: ROOT, stdio: 'pipe' }); }
   catch (e) { return 'CSS алдаа: ' + ((e.stderr && e.stderr.toString()) || e.message); }

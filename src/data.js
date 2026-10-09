@@ -25,7 +25,7 @@ const I = {
   todayRange: ['Өнөөдөр', 'Today'],
   nav_services: ['Үйлчилгээ', 'Services'],
   nav_news: ['Мэдээ', 'News'],
-  nav_build: ['Бүтээн байгуулалт', 'Development'],
+  nav_build: ['{n} мега төсөл', '{n} flagship projects'],   // {n} = төслийн тоо (admin-аас нэмэхэд өөрөө өөрчлөгдөнө)
   nav_data: ['Хотын өгөгдөл', 'City data'],
   nav_open: ['Ил тод байдал', 'Transparency'],
   nav_about: ['Хотын тухай', 'About the city'],
@@ -97,8 +97,8 @@ const I = {
   where: ['Хаана', 'Where'],
 
   mediaTitle: ['Медиа', 'Media'],
-  mediaDesc: ['Хотын видео, шууд дамжуулалт, фото сурвалжилга, подкаст', 'City video, live streams, photo stories and podcasts'],
-  m_video: ['Видео', 'Video'], m_live: ['Шууд', 'Live'], m_photo: ['Фото', 'Photos'], m_podcast: ['Подкаст', 'Podcast'],
+  mediaDesc: ['Live дамжуулалт, фото сурвалжилга, постер, подкаст: ulaanbaatar.mn-ээс', 'Live streams, photo reports, posters and podcasts from ulaanbaatar.mn'],
+  m_video: ['Видео', 'Video'], m_live: ['Live', 'Live'], m_photo: ['Фото сурвалжилга', 'Photo reports'], m_poster: ['Постер', 'Posters'], m_podcast: ['Подкаст', 'Podcast'],
   watching: ['{n} үзэж байна', '{n} watching'],
   photosN: ['{n} фото', '{n} photos'],
   prev: ['Өмнөх', 'Previous'], next: ['Дараах', 'Next'],
@@ -126,7 +126,13 @@ const I = {
   updated: ['Шинэчлэгдсэн', 'Updated'],
   aqi24: ['Сүүлийн 24 цаг, AQI', 'Last 24 hours, AQI'],
   aqiAdvice: ['Ихэнх хүнд аюулгүй. Хүүхэд, ахмад настан, амьсгалын замын өвчтэй хүмүүс гадаа удаан байхгүй байхыг зөвлөж байна.', 'Fine for most people. Children, older adults and people with breathing conditions should limit long outdoor activity.'],
-  aqiGood: ['Сайн', 'Good'], aqiMod: ['Дунд зэрэг', 'Moderate'], aqiUsg: ['Мэдрэг бүлэгт муу', 'Unhealthy for sensitive groups'], aqiBad: ['Эрүүл мэндэд муу', 'Unhealthy'],
+  aqiGood: ['Сайн', 'Good'], aqiMod: ['Дунд зэрэг', 'Moderate'], aqiUsg: ['Мэдрэг бүлэгт муу', 'Unhealthy for sensitive groups'], aqiBad: ['Эрүүл мэндэд муу', 'Unhealthy'], aqiVBad: ['Маш муу', 'Very unhealthy'], aqiHaz: ['Аюултай', 'Hazardous'],
+  aqiAdvGood: ['Агаарын чанар сайн байна. Гадаа идэвхтэй байхад тохиромжтой.', 'Air quality is good. A great time to be active outdoors.'],
+  aqiAdvUsg: ['Хүүхэд, ахмад настан, жирэмсэн эх, зүрх, амьсгалын замын өвчтэй хүмүүс гадаа удаан байхаас зайлсхийнэ үү.', 'Children, older adults, pregnant women and people with heart or lung conditions should limit time outdoors.'],
+  aqiAdvBad: ['Бүх хүн гадаа байх хугацаагаа багасгаж, гадагш гарахдаа N95 амны хаалт зүүнэ үү.', 'Everyone should cut time outdoors and wear an N95 mask when going out.'],
+  aqiAdvVBad: ['Гадаа гарахаас зайлсхийж, цонхоо хааж, агаар цэвэршүүлэгч ашиглана уу.', 'Avoid going out, keep windows closed and use an air purifier.'],
+  aqiAdvHaz: ['Онц аюултай. Гэрээсээ гарахгүй байж, агаар цэвэршүүлэгч ажиллуулна уу.', 'Hazardous. Stay indoors and run an air purifier.'],
+  mainPol: ['Гол бохирдуулагч', 'Main pollutant'],
   feels: ['Мэдрэгдэх', 'Feels like'], wind: ['Салхи', 'Wind'], humidity: ['Чийгшил', 'Humidity'], windDir: ['баруун хойноос', 'from NW'],
   congestion: ['Түгжрэлийн индекс', 'Congestion index'],
   busiest: ['Хамгийн ачаалалтай', 'Busiest roads'],
@@ -402,9 +408,18 @@ const ADMIN_NAMES = [
 /* ================= Media ================= */
 const MEDIA = [
   { type: 'live', img: 'civic:navy:31', viewers: 1240, t: ['Нийслэлийн ИТХ-ын ээлжит хуралдаан', 'City Council regular session'], d: ['Хуралдааны танхимаас шууд', 'Live from the council chamber'] },
-  { type: 'video', img: 'bridge:day:32', dur: '12:34', t: ['Туул хурдны зам: дроноос харахад', 'Tuul Expressway from a drone'], d: ['2-р хэсгийн ажил 64% хүрлээ', 'Section 2 has reached 64%'] },
+  { type: 'live', img: 'bridge:day:32', dur: '12:34', t: ['Туул хурдны зам: дроноос харахад', 'Tuul Expressway from a drone'], d: ['2-р хэсгийн ажил 64% хүрлээ', 'Section 2 has reached 64%'] },
   { type: 'photo', img: 'skyline:dusk:33', n: 31, t: ['Намрын Улаанбаатар', 'Ulaanbaatar in autumn'], d: ['Фото сурвалжилга', 'Photo story'] },
   { type: 'podcast', img: 'ger:dusk:34', dur: '38:12', ep: '#24', t: ['«Хотын яриа»: Гэр хорооллыг хэрхэн дахин төлөвлөх вэ?', '"City Talk": how should ger districts be redeveloped?'], d: ['Хот төлөвлөгч, иргэдийн төлөөлөлтэй', 'With a planner and residents'] },
-  { type: 'video', img: 'road:night:35', dur: '3:05', t: ['Ухаалаг гэрлэн дохио хэрхэн ажилладаг вэ', 'How the smart traffic lights work'], d: ['3 минутын тайлбар', 'A three-minute explainer'] },
+  { type: 'poster', img: 'road:night:35', dur: '3:05', t: ['Ухаалаг гэрлэн дохио хэрхэн ажилладаг вэ', 'How the smart traffic lights work'], d: ['3 минутын тайлбар', 'A three-minute explainer'] },
   { type: 'photo', img: 'school:day:36', n: 18, t: ['Шинэ цэцэрлэгийн нээлт', 'A new kindergarten opens'], d: ['Сүхбаатар дүүрэг', 'Sükhbaatar District'] },
 ];
+/* Бодит медиа: build үед ulaanbaatar.mn-ээс татсан LIVE_MEDIA (news.js getLiveMedia). Байвал жишээ медиаг солино.
+   «Бүгд» жагсаалтад төрлүүд ээлжилнэ (Live, Фото, Постер, Подкаст, Live ...), тиймээс нүүрний 6-д бүгд орно. */
+(function () {
+  if (typeof LIVE_MEDIA === 'undefined' || !LIVE_MEDIA.length) return;
+  const by = {}; LIVE_MEDIA.forEach((m) => (by[m.type] = by[m.type] || []).push(m));
+  const out = [];
+  for (let k = 0; out.length < LIVE_MEDIA.length; k++) ['live', 'photo', 'poster', 'podcast'].forEach((ty) => { const x = (by[ty] || [])[k]; if (x) out.push(x); });
+  MEDIA.splice(0, MEDIA.length, ...out.map((m) => ({ id: m.id, nid: m.nid, type: m.type, live: 1, t: [m.t, ''], d: ['', ''], date: m.d, views: m.views, img: m.img, video: m.video, photos: m.photos, n: m.photos.length, body: m.body })));
+})();

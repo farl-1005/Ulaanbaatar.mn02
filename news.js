@@ -8,7 +8,8 @@ const fs = require('fs'), path = require('path');
 const API = 'https://ulaanbaatar.mn:8443/api/article?type=TIME_HISTORY&pageSize=';
 const COUNT = 30, CACHE_MIN = 15, IMG_W = 960, IMG_MAX_BYTES = 25e6, TIMEOUT = 10000;
 const CACHE = process.env.NEWS_CACHE_DIR || path.join(__dirname, 'dist', '.news'),   // production-д байнгын диск дээр (Dockerfile)
-      IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json');
+      IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json'), MEDIA_FILE = path.join(CACHE, 'media.json');
+const API_TYPE = 'https://ulaanbaatar.mn:8443/api/article?type=';
 
 /* ---- HTML → цэвэр текстийн догол мөрүүд (клиент талд esc() хийгдэнэ) ---- */
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', laquo: '«', raquo: '»', ndash: '–', mdash: '—', hellip: '…', middot: '·', bull: '•', deg: '°', times: '×' };
@@ -128,8 +129,43 @@ async function getLiveNews({ force = false, log = console.log } = {}) {
   }
 }
 
-module.exports = { getLiveNews, IMG_DIR, paragraphs, splitLead, classify };
+/* ---- Медиа: Live (Facebook видео), Фото сурвалжилга (зургийн цомог), Постер, Подкаст ----
+   Нүүр зургийг мэдээнийх шиг жижигрүүлнэ. Цомгийн зургийн эх хаягийг хадгална (серверийн /api/img жижигрүүлж үзүүлнэ). */
+const MEDIA_TYPES = [['LIVE', 'live', 12], ['PHOTO', 'photo', 12], ['POSTER', 'poster', 12], ['PODCAST', 'podcast', 6]];
+const FILE_URL = /^https:\/\/ulaanbaatar\.mn\/files\/[^"'<>\s]+$/, VIDEO_URL = /^https:\/\/(www\.|m\.|web\.)?(facebook\.com|fb\.watch|youtube\.com|youtu\.be)\//;
+async function refreshMedia(log) {
+  const items = [];
+  for (const [api, type, n] of MEDIA_TYPES) {
+    const j = await fetchJSON(API_TYPE + api + '&pageSize=' + n);
+    for (const a of (j && j.data && j.data.list) || []) {
+      if (a.enable === false || !a.urlId) continue;
+      const html = String(a.content || '');
+      const photos = [...new Set([...(Array.isArray(a.photos) ? a.photos.map((p) => p && p.url) : []), ...[...html.matchAll(/<img[^>]+src="([^"]+)"/gi)].map((m) => m[1])])].filter((u) => FILE_URL.test(u || '')).slice(0, 60);
+      const cover = a.coverImg && FILE_URL.test(a.coverImg.url || '') ? a.coverImg.url : photos[0];
+      items.push({ id: 'md' + a.urlId, nid: String(a.urlId), type, d: ubDate(a.startDate || a.createdDate), views: +a.views || 0, t: String(a.title || '').trim(),
+        body: paragraphs(html).slice(0, 10), video: type === 'live' && VIDEO_URL.test(a.videoUrl || '') ? a.videoUrl : '', photos: type === 'photo' ? photos : [], _src: cover });
+    }
+  }
+  if (!items.length) throw new Error('медиа хоосон');
+  fs.mkdirSync(IMG_DIR, { recursive: true });
+  const queue = items.filter((m) => m._src);
+  const fresh = queue.filter((m) => !fs.existsSync(path.join(IMG_DIR, m.nid + '.webp'))).length;
+  if (fresh) log(`  ↓ ${fresh} медиа зураг татаж жижигрүүлж байна...`);
+  await Promise.all(Array.from({ length: 4 }, async () => { for (let m; (m = queue.shift());) m.imgFile = await thumb(m.nid, m._src); }));
+  items.forEach((m) => { m.imgSrc = m._src; delete m._src; });
+  fs.writeFileSync(MEDIA_FILE, JSON.stringify({ at: Date.now(), items }));
+  return items;
+}
+async function getLiveMedia({ force = false, log = console.log } = {}) {
+  let cache = null;
+  try { cache = JSON.parse(fs.readFileSync(MEDIA_FILE, 'utf8')); } catch (e) { /* кэш алга */ }
+  if (cache && Date.now() - cache.at < CACHE_MIN * 60000 && !force) return { items: cache.items, note: `кэшээс ${cache.items.length} медиа` };
+  try { const items = await refreshMedia(log); return { items, note: `ulaanbaatar.mn-ээс ${items.length} медиа шинэчиллээ` }; }
+  catch (e) { return cache ? { items: cache.items, note: `⚠ медиа API-д холбогдож чадсангүй (${e.message}), хуучин кэш` } : { items: [], note: `⚠ медиа API-д холбогдож чадсангүй (${e.message}), жишээ медиа` }; }
+}
+
+module.exports = { getLiveNews, getLiveMedia, IMG_DIR, paragraphs, splitLead, classify };
 
 if (require.main === module) {
-  getLiveNews({ force: true }).then((r) => console.log('✓ ' + r.note));
+  getLiveNews({ force: true }).then((r) => console.log('✓ ' + r.note)).then(() => getLiveMedia({ force: true })).then((r) => console.log('✓ ' + r.note));
 }
