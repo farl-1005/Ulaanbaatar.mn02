@@ -156,10 +156,11 @@ function newsPage(o, n, all) {
   };
   const article = `<article class="max-w-[1140px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
 <nav class="text-[13.5px] text-muted"><a href="/">Нүүр</a> › <a href="/#hub">Мэдээ</a> › ${esc(cat)}</nav>
-<h1 class="mt-4 text-[30px] sm:text-[40px] lg:text-[48px] font-extrabold leading-[1.08] tracking-[-0.025em] text-balance">${esc(title)}</h1>
+<header class="news-head mt-6" style="--rc:${esc(r.c || '#D81E34')}"><div class="news-head-in">
+<h1 class="text-[30px] sm:text-[40px] lg:text-[48px] font-extrabold leading-[1.08] tracking-[-0.025em] text-balance">${esc(title)}</h1>
 ${lead ? `<p class="mt-5 text-[18px] sm:text-[20px] leading-relaxed text-ink/80 font-medium">${esc(lead)}</p>` : ''}
 ${n.at ? `<p class="mt-4 text-[13px] text-muted"><time datetime="${n.at}">${dateMn(n.at)}</time> · ${esc(PUBLISHER)}</p>` : ''}
-${PHOTO_RE.test(n.img || '') ? `<figure class="mt-8"><img src="/${esc(n.img)}" alt="${esc(title)}" class="w-full rounded-[22px]"></figure>` : ''}
+</div>${PHOTO_RE.test(n.img || '') ? `<figure class="news-head-fig"><img src="/${esc(n.img)}" alt="${esc(title)}" class="w-full aspect-[16/9] lg:aspect-[21/9] object-cover"></figure>` : ''}</header>
 ${body.length ? `<div class="news-paper mt-8 max-w-[760px]">${body.length > 1 ? `<p class="news-intro">${esc(body[0])}</p>` : ''}<div class="news-text">${(body.length > 1 ? body.slice(1) : body).map((x) => `<p>${esc(x)}</p>`).join('')}</div></div>` : ''}
 ${srcUrl ? `<p class="mt-8"><a href="${esc(srcUrl)}" rel="noopener">Эх сурвалж</a></p>` : ''}
 </article>`;

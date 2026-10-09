@@ -524,3 +524,15 @@ html.a11y .ai-vote .ai-check { stroke-dashoffset: 0; }
 .news-text > p + p { margin-top: 1.35em; }
 @media (min-width: 640px) { .news-text { font-size: 18px; } }
 
+/* ---- Мэдээний толгой карт: ангиллын өнгөөр дээд зураас, булангийн гэрэлтэлт, доод талд бүтэн зураг ---- */
+.news-head { position: relative; overflow: hidden; isolation: isolate; background: rgb(var(--c-card)); border: 1px solid rgb(var(--c-line)); border-radius: 24px;
+  box-shadow: 0 1px 2px rgb(var(--shadow) / .04), 0 24px 48px -36px rgb(var(--shadow) / .35); }
+.news-head::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--rc, rgb(var(--c-red))); z-index: 2; }
+.news-head::after { content: ""; position: absolute; z-index: -1; top: -160px; right: -120px; width: 480px; height: 480px; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--rc, rgb(var(--c-red))) 16%, transparent), transparent); pointer-events: none; }
+.news-head-in { padding: 24px 20px 22px; }
+@media (min-width: 640px) { .news-head { border-radius: 28px; } .news-head-in { padding: 36px 44px 28px; } }
+.news-head-fig { position: relative; border-top: 1px solid rgb(var(--c-line)); }
+.news-cap { position: absolute; left: 14px; bottom: 14px; display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 99px;
+  background: rgb(0 0 0 / .45); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: #fff; font-size: 11.5px; font-weight: 600; z-index: 2; }
+

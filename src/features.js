@@ -97,14 +97,14 @@ function renderNewsPage() {
       <button type="button" class="hover:text-ink font-semibold" style="color:${r.c}" data-act="go" data-sec="hub" data-hub="news" data-cat="${n.cat}">${esc(L(r.t))}</button>
     </nav>
 
-    <header class="mt-6 lg:mt-8">
+    <header class="news-head mt-6 lg:mt-8" style="--rc:${r.c}"><div class="news-head-in">
       <div class="flex flex-wrap items-center gap-2">
         <span class="badge" style="background:${r.c}1A;color:${r.c}"><i class="w-2 h-2 rounded-full" style="background:${r.c}"></i>${esc(L(r.t))}</span>
         ${n.br ? `<span class="badge b-red">${ic('zap', 'w-3.5 h-3.5')}${L(['Шуурхай', 'Breaking'])}</span>` : ''}
         ${n.zar ? `<span class="badge b-off">${ic('megaphone', 'w-3.5 h-3.5')}${esc(L(RUB.zar.t))}</span>` : ''}
       </div>
       <h1 class="mt-4 max-w-[920px] text-[30px] sm:text-[40px] lg:text-[48px] font-extrabold leading-[1.08] tracking-[-0.025em] text-balance">${esc(L(n.t))}</h1>
-      <p class="mt-5 max-w-[820px] text-[18px] sm:text-[20px] leading-relaxed text-ink/75 text-pretty">${esc(Lf(n.l))}</p>
+      <p class="mt-4 sm:mt-5 max-w-[820px] text-[17px] sm:text-[19px] leading-relaxed text-ink/70 text-pretty">${esc(Lf(n.l))}</p>
       <div class="mt-6 pt-5 border-t border-line flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <span class="w-11 h-11 rounded-full bg-ubred text-white grid place-items-center shrink-0">${ic('landmark', 'w-5 h-5')}</span>
@@ -112,12 +112,12 @@ function renderNewsPage() {
           <span class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-muted"><span class="inline-flex items-center gap-1">${ic('calendar', 'w-3.5 h-3.5')}${when}</span><span class="inline-flex items-center gap-1">${ic('clock-3', 'w-3.5 h-3.5')}${newsMins(n)} ${L(['мин унших', 'min read'])}</span><span class="inline-flex items-center gap-1 tnum">${ic('eye', 'w-3.5 h-3.5')}${num(n.views || 0)} ${t('views')}</span></span></div>
         </div>
         ${newsShare(n)}
-      </div>
+      </div></div>
+      ${n.img ? `<figure class="news-head-fig"><div class="scene aspect-[16/9] lg:aspect-[21/9]">${Scene(n.img)}</div><figcaption class="news-cap">${ic('camera', 'w-3.5 h-3.5')}${photo ? L(['Зураг: ulaanbaatar.mn', 'Photo: ulaanbaatar.mn']) : L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>` : ''}
     </header>
 
-    ${n.img ? `<figure class="mt-8"><div class="scene aspect-[16/9] lg:aspect-[21/9] rounded-[22px] lg:rounded-[28px] overflow-hidden">${Scene(n.img)}</div><figcaption class="mt-2.5 text-[12.5px] text-muted">${photo ? L(['Зураг: ulaanbaatar.mn', 'Photo: ulaanbaatar.mn']) : L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>` : '<div class="mt-8 h-1.5 rounded-full bg-ubyellow max-w-[880px]"></div>'}
 
-    <div class="mt-10 lg:mt-12 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-10 xl:gap-16">
+    <div class="mt-6 lg:mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 lg:gap-10 xl:gap-12">
       <article id="nbody" class="min-w-0 w-full max-w-[760px] mx-auto lg:max-w-none lg:mx-0">
         ${enOnlyMn ? `<p class="mb-6 rounded-xl bg-soft px-4 py-3 text-[14px] text-muted flex gap-2.5">${ic('languages', 'w-5 h-5 shrink-0')}<span>The full article is published in Mongolian only.${n.sumEn && n.sumEn.length ? ' Below is an English summary.' : ''} <button type="button" class="font-semibold text-ink underline underline-offset-2" data-act="lang" data-v="mn">Read in Mongolian</button></span></p>` : ''}
         <div class="news-paper">
