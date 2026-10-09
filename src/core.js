@@ -334,11 +334,19 @@ function renderHeader() {
     <span class="hidden md:block">${userBtn()}</span>
     <button type="button" data-act="menu" class="lg:hidden w-10 h-10 rounded-lg border border-line grid place-items-center hover:bg-soft" aria-label="${esc(t('menu'))}">${ic('menu')}</button>`;
   $('#topstrip').innerHTML = `<div class="hidden lg:block"><div class="max-w-site mx-auto px-8 h-[38px] flex items-center justify-between gap-6">${pulseSegs('strip')}<div class="flex items-center gap-5 text-[12.5px] text-white/70 whitespace-nowrap">${CMS.canEdit ? `<button type="button" data-act="admin" class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-white/10 hover:bg-white/20 text-white font-semibold transition-colors">${ic('pencil-line', 'w-3.5 h-3.5')}${L(['Сайтыг засах', 'Edit site'])}</button>` : ''}<span class="inline-flex items-center gap-1.5 tnum">${ic('clock-3', 'w-3.5 h-3.5')}<span data-live="clock">${clock()}</span></span><span class="inline-flex items-center gap-1.5">${ic('phone', 'w-3.5 h-3.5')}${t('hotlineShort')} <b class="text-white tnum">1200</b></span></div></div></div><div class="lg:hidden">${pulseSegs(true)}</div>`;
-  $('#hdr-nav').innerHTML = `<nav class="navbar" id="navbar" aria-label="Main"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center relative">
+  /* Цэс: хөвөгч «dock» капсул. Шингэн тодруулга, гэрэлтэх хүрээ, доод ирмэгт уншилтын явцыг харуулах алхан хээ (setupNav). */
+  const navBtn = (m, i) => `<li class="flex"><button type="button" class="nav-btn" data-menu="${i}" data-sec="${esc(m.sec)}" aria-expanded="false" aria-haspopup="true"><span>${menuLabel(m)}</span>${ic('chevron-down', 'nav-chev w-3.5 h-3.5')}</button></li>`;
+  const ctaBtn = (act, cls, icon, label) => `<button type="button" class="cta-pill ${cls}" data-act="${act}" aria-label="${esc(label)}" title="${esc(label)}"><span class="cta-pill-ic">${animIcon(icon, 'w-[18px] h-[18px]')}</span><span class="cta-pill-t">${label}</span></button>`;
+  $('#hdr-nav').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8"><nav class="dock" id="navbar" aria-label="Main"><div class="dock-in">
     <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoMark('w-[34px] h-[34px]')}</button>
-    <ul class="flex items-stretch h-full relative" id="nav-items">${MENU.map((m, i) => `<li class="h-full flex"><button type="button" class="nav-btn h-full px-3 xl:px-4 flex items-center gap-1 font-semibold text-[15px] text-ink/80 hover:text-ink transition-colors" data-menu="${i}" data-sec="${m.sec}" aria-expanded="false" aria-haspopup="true">${menuLabel(m)}${ic('chevron-down', 'w-4 h-4 opacity-50')}</button></li>`).join('')}<span class="nav-ind" id="nav-ind"></span></ul>
-    <div class="ml-auto flex items-center gap-2"><button type="button" class="cta-pill cta-red" data-act="report"><span class="cta-pill-ic">${animIcon('siren', 'w-[18px] h-[18px]')}</span>${t('cta_report')}</button><button type="button" class="cta-pill cta-blue" data-act="vote"><span class="cta-pill-ic">${animIcon('vote', 'w-[18px] h-[18px]')}</span>${t('cta_vote')}</button></div>
-    <div class="mega" id="mega" role="region"></div></div></nav>`;
+    <ul class="dock-items" id="nav-items"><li class="nav-pill" id="nav-pill" aria-hidden="true"></li>${MENU.map(navBtn).join('')}</ul>
+    <div class="ml-auto flex items-center gap-2 pl-3 shrink-0">
+      <button type="button" data-act="search" class="dock-search" aria-label="${esc(t('search'))}" title="${esc(t('search'))} (Ctrl K)">${ic('search', 'w-[18px] h-[18px]')}</button>
+      <span class="dock-div" aria-hidden="true"></span>
+      ${ctaBtn('report', 'cta-red', 'siren', t('cta_report'))}${ctaBtn('vote', 'cta-blue', 'vote', t('cta_vote'))}
+    </div>
+    <div class="mega" id="mega" role="region"><span class="mega-caret" aria-hidden="true"></span><div class="mega-card"><div class="mega-body"></div></div></div>
+  </div><span class="dock-orn" aria-hidden="true"><i></i><i class="dock-orn-fill"></i></span></nav></div>`;
   setupNav();
 }
 function megaHTML(i) {
@@ -351,24 +359,74 @@ function megaHTML(i) {
     () => `<p class="text-[13px] text-muted">${t('trStat2')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">37</p><p class="text-[13.5px] text-muted mt-2">${t('trStat1')}: <b class="text-ink tnum">1 248</b></p>`,
     () => `<p class="text-[13px] text-muted">${t('founded')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">1639</p><p class="text-[13.5px] text-muted mt-2">${t('adminV')}</p>`,
   ][i] || (() => ''))();
-  return `<div class="mt-2 rounded-2xl border border-line bg-card shadow-[0_30px_60px_-30px_rgb(var(--shadow)/.45)] p-5 grid grid-cols-12 gap-5">
-    <div class="col-span-8 grid grid-cols-2 gap-1.5 content-start">${m.items.map((it) => `<button type="button" class="flex gap-3 p-3 rounded-xl hover:bg-soft text-left transition-colors" ${itemAct(it)}><span class="w-10 h-10 rounded-xl bg-soft border border-line grid place-items-center text-ubred">${ic(it.i)}</span><span class="min-w-0"><b class="block text-[15px]">${esc(L(it.t))}</b><span class="block text-[13px] text-muted leading-snug mt-0.5">${esc(L(it.d))}</span></span></button>`).join('')}</div>
-    <div class="col-span-4 rounded-xl bg-soft p-5">${feat}</div></div>`;
+  return `<div class="p-4 xl:p-5 grid grid-cols-12 gap-4 xl:gap-5">
+    <div class="col-span-8 grid grid-cols-2 gap-1 content-start">${m.items.map((it, k) => `<button type="button" class="mega-item" style="--i:${k}" ${itemAct(it)}><span class="mega-ic">${ic(it.i)}</span><span class="min-w-0 flex-1"><b class="block text-[15px] leading-snug">${esc(L(it.t))}</b><span class="block text-[13px] text-muted leading-snug mt-0.5">${esc(L(it.d))}</span></span><span class="mega-go">${ic(it.href ? 'arrow-up-right' : 'arrow-right', 'w-4 h-4')}</span></button>`).join('')}</div>
+    <div class="col-span-4 mega-feat" style="--i:${m.items.length}">${feat}</div></div>`;
 }
 let megaTimer = null, megaOpen = -1, hoverOpen = false;
+const NAV_EASE = 'cubic-bezier(.22, 1, .36, 1)';
 function setupNav() {
   const nav = $('#navbar'); if (!nav) return;
-  const mega = $('#mega'), ind = $('#nav-ind');
-  const moveInd = (btn) => { if (!btn) { ind.style.opacity = 0; return; } ind.style.width = btn.offsetWidth - 16 + 'px'; ind.style.transform = `translateX(${btn.offsetLeft + 8}px)`; ind.style.opacity = 1; };
-  const open = (i, byHover) => { clearTimeout(megaTimer); if (megaOpen === i) { if (!byHover) hoverOpen = false; return; } hoverOpen = !!byHover; megaOpen = i; mega.innerHTML = megaHTML(i); mega.classList.add('open'); $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', String(+b.dataset.menu === i))); moveInd($(`.nav-btn[data-menu="${i}"]`, nav)); };
-  const close = () => { megaOpen = -1; mega.classList.remove('open'); $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', 'false')); moveInd($('.nav-btn.is-active', nav)); };
-  nav._close = close; nav._moveInd = moveInd;
+  const mega = $('#mega'), card = $('.mega-card', mega), body = $('.mega-body', mega), caret = $('.mega-caret', mega), pill = $('#nav-pill');
+  let pillOn = false;
+  /* Шингэн тодруулга: шинэ зүйл рүү шилжихдээ эхлээд хоёуланг нь хамрах хүртэл сунаж, дараа нь хумигдана */
+  const pillTo = (btn) => {
+    if (!btn) { pill.style.opacity = '0'; pillOn = false; return; }
+    const x = btn.parentElement.offsetLeft, w = btn.offsetWidth;
+    const cs = getComputedStyle(pill), x0 = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41, w0 = parseFloat(cs.width) || w;
+    pill.getAnimations().forEach((a) => a.cancel());
+    pill.style.width = w + 'px'; pill.style.transform = `translateX(${x}px)`;
+    if (pillOn && !reduced && Math.abs(x0 - x) > 1) {
+      const l = Math.min(x0, x), r = Math.max(x0 + w0, x + w);
+      // 1) 200мс: хоёуланг нь бүрхтэл сунана  2) 280мс: шинэ байрлалдаа зөөлөн хумигдана
+      pill.animate([
+        { transform: `translateX(${x0}px)`, width: w0 + 'px', easing: 'cubic-bezier(.45, 0, .25, 1)' },
+        { transform: `translateX(${l}px)`, width: r - l + 'px', offset: 0.42, easing: NAV_EASE },
+        { transform: `translateX(${x}px)`, width: w + 'px' },
+      ], { duration: 480 });
+    }
+    pill.style.opacity = '1'; pillOn = true;
+  };
+  const placeCaret = (btn) => { const r = btn.getBoundingClientRect(), m = mega.getBoundingClientRect(); caret.style.transform = `translateX(${Math.round(r.left + r.width / 2 - m.left - 7)}px) rotate(45deg)`; };
+  const open = (i, byHover) => {
+    clearTimeout(megaTimer);
+    if (megaOpen === i) { if (!byHover) hoverOpen = false; return; }
+    const prev = megaOpen, btn = $(`.nav-btn[data-menu="${i}"]`, nav);
+    hoverOpen = !!byHover; megaOpen = i;
+    if (prev < 0) {
+      body.innerHTML = megaHTML(i);
+      caret.style.transition = 'none'; placeCaret(btn); void caret.offsetWidth; caret.style.transition = '';
+      mega.classList.add('open');
+    } else {   // нээлттэй үед өөр цэс рүү: өндөр нь зөөлөн өөрчлөгдөж, агуулга чиглэлээрээ гулсана
+      const h0 = card.offsetHeight; body.innerHTML = megaHTML(i); const h1 = card.offsetHeight;
+      if (!reduced) {
+        const dir = i > prev ? 1 : -1;
+        card.animate([{ height: h0 + 'px' }, { height: h1 + 'px' }], { duration: 380, easing: NAV_EASE });
+        body.animate([{ opacity: 0, transform: `translateX(${dir * 26}px)` }, { opacity: 1, transform: 'none' }], { duration: 380, easing: NAV_EASE });
+      }
+      placeCaret(btn);
+    }
+    $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', String(+b.dataset.menu === i)));
+    pillTo(btn);
+  };
+  const close = () => { megaOpen = -1; mega.classList.remove('open'); $$('.nav-btn', nav).forEach((b) => b.setAttribute('aria-expanded', 'false')); pillTo(null); };
+  nav._close = close; nav._moveInd = () => { if (megaOpen < 0) pillTo(null); };
   nav.addEventListener('mouseover', (e) => { const b = e.target.closest('.nav-btn'); if (b) open(+b.dataset.menu, true); else if (e.target.closest('#mega')) clearTimeout(megaTimer); });
   nav.addEventListener('mouseleave', () => { megaTimer = setTimeout(close, 160); });
-  nav.addEventListener('click', (e) => { const b = e.target.closest('.nav-btn'); if (b) { const i = +b.dataset.menu; if (megaOpen === i && !hoverOpen) close(); else open(i, false); } else if (e.target.closest('[data-act="go"]')) close(); });
+  nav.addEventListener('click', (e) => { const b = e.target.closest('.nav-btn'); if (b) { const i = +b.dataset.menu; if (megaOpen === i && !hoverOpen) close(); else open(i, false); } else if (e.target.closest('[data-act="go"], [data-act="ext-link"]')) close(); });
   nav.addEventListener('focusout', (e) => { if (!nav.contains(e.relatedTarget)) close(); });
-  moveInd($('.nav-btn.is-active', nav));
+  /* Курсорын байрлалд хүрээ гэрэлтэнэ (.dock::before) */
+  nav.addEventListener('pointermove', (e) => { const r = nav.getBoundingClientRect(); nav.style.setProperty('--mx', Math.round(e.clientX - r.left) + 'px'); nav.style.setProperty('--my', Math.round(e.clientY - r.top) + 'px'); });
+  megaOpen = -1; dockProgress();
 }
+/* Алхан хээ хуудсыг гүйлгэх тусам өнгөөр дүүрнэ (нүүр хуудсанд) */
+let dockRaf = 0;
+function dockProgress() {
+  const n = $('#navbar'); if (!n) return;
+  const h = document.documentElement.scrollHeight - innerHeight;
+  n.style.setProperty('--prog', S.route === 'home' && h > 0 ? Math.min(1, Math.max(0, scrollY / h)).toFixed(4) : '0');
+}
+window.addEventListener('scroll', () => { if (!dockRaf) dockRaf = requestAnimationFrame(() => { dockRaf = 0; dockProgress(); }); }, { passive: true });
 function setActiveNav(sec) {
   const map = { hero: 1, hub: S.hub === 'services' ? 0 : 1, situations: 0, media: 1, projects: 2, data: 3, events: 1, transparency: 4, about: 5 };
   const idx = map[sec];
@@ -379,17 +437,42 @@ function setActiveNav(sec) {
 }
 
 /* ================= Ticker ================= */
+/* Яаралтай мэдээллийн капсул: мэдээлэл нэг нэгээр дээш гулсан солигдож, доод зураас дараагийнх хүртэлх хугацааг харуулна.
+   Хулганаар заах / фокуслах / «түр зогсоох» үед зогсоно. Хөдөлгөөн багасгах ба a11y горимд автоматаар солигдохгүй. */
+const TK = { i: 0, paused: false };
 function renderTicker() {
   const el = $('#ticker');
   if (!S.tickerOn || SET.tickerOn === false || !ALERTS.length) { el.innerHTML = ''; return; }
-  const items = ALERTS.map((a) => `<button type="button" data-act="alert" data-id="${a.id}" class="inline-flex items-center gap-2 text-[14px] hover:underline underline-offset-2 shrink-0">${ic(a.i, 'w-4 h-4')}<b>${esc(L(a.k))}.</b><span>${esc(Lf(a.t))}</span></button><span class="w-1.5 h-1.5 rotate-45 shrink-0" style="background:rgb(var(--c-tick-fg)/.45)"></span>`).join('');
-  el.innerHTML = `<div class="ticker relative" role="region" aria-label="${esc(t('urgent'))}"><div class="flex items-stretch h-11">
-    <div class="hazard w-3 sm:w-4 shrink-0" aria-hidden="true"><i></i></div>
-    <div class="max-w-site w-full mx-auto flex items-stretch min-w-0">
-      <div class="flex items-center gap-2.5 pl-3 sm:pl-5 lg:pl-6 pr-3 shrink-0 font-extrabold text-[13.5px]"><span class="beacon relative z-0 grid place-items-center w-7 h-7 rounded-full bg-ubred text-white">${ic('siren', 'w-4 h-4 wiggle')}</span><span class="hidden sm:inline">${t('urgent')}</span></div>
-      <div class="relative flex-1 overflow-hidden ticker-mask ticker-scroll no-scrollbar"><div class="ticker-track flex items-center h-full gap-6 whitespace-nowrap pl-3" style="--dur:${reduced ? 0 : 75}s">${items}${reduced ? '' : items}</div></div>
-      <button type="button" data-act="ticker-close" class="ticker-x shrink-0 w-11 grid place-items-center" aria-label="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button>
-    </div></div></div>`;
+  const n = ALERTS.length, auto = n > 1 && !reduced && !S.a11y;
+  if (TK.i >= n) TK.i = 0;
+  const items = ALERTS.map((a, k) => `<button type="button" data-act="alert" data-id="${a.id}" class="tk-item ${k === TK.i ? 'is-on' : ''}" ${k === TK.i ? '' : 'tabindex="-1" aria-hidden="true"'}><span class="tk-ic">${ic(a.i, 'w-4 h-4')}</span><b class="shrink-0">${esc(L(a.k))}</b><span class="tk-txt">${esc(Lf(a.t))}</span><span class="tk-more">${ic('arrow-up-right', 'w-3.5 h-3.5')}</span></button>`).join('');
+  const b = (k, icon, label, cls = 'grid') => `<button type="button" class="tk-b ${cls}" data-tk="${k}" aria-label="${esc(label)}" title="${esc(label)}">${ic(icon, 'w-4 h-4')}</button>`;
+  el.innerHTML = `<div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 pt-2.5"><div class="tk ${TK.paused ? 'is-paused' : ''}" role="region" aria-roledescription="${esc(L(['ээлжилсэн мэдээлэл', 'carousel']))}" aria-label="${esc(t('urgent'))}">
+    <div class="tk-tag"><span class="tk-stripes" aria-hidden="true"></span>${animIcon('siren', 'w-[18px] h-[18px] relative')}<span class="relative hidden sm:inline">${t('urgent')}</span></div>
+    <div class="tk-stage" aria-live="off">${items}</div>
+    <div class="tk-ctl">${n > 1 ? `${b('prev', 'chevron-left', L(['Өмнөх', 'Previous']), 'hidden sm:grid')}<span class="tk-count" data-tk-count>${TK.i + 1}<i>/</i>${n}</span>${b('next', 'chevron-right', L(['Дараах', 'Next']))}${auto ? `<button type="button" class="tk-b hidden sm:grid" data-tk="pause" aria-pressed="${TK.paused}" aria-label="${esc(L(['Түр зогсоох', 'Pause']))}" title="${esc(L(['Түр зогсоох', 'Pause']))}">${ic(TK.paused ? 'play' : 'pause', 'w-3.5 h-3.5')}</button>` : ''}<span class="tk-sep" aria-hidden="true"></span>` : ''}<button type="button" data-act="ticker-close" class="tk-b grid" aria-label="${esc(t('dismiss'))}" title="${esc(t('dismiss'))}">${ic('x', 'w-4 h-4')}</button></div>
+    ${auto ? '<span class="tk-prog" aria-hidden="true"><i></i></span>' : ''}</div></div>`;
+  if (!el.dataset.bound) {
+    el.dataset.bound = '1';
+    el.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-tk]'); if (!btn) return;
+      const k = btn.dataset.tk;
+      if (k === 'next') tkGo(1); else if (k === 'prev') tkGo(-1);
+      else if (k === 'pause') { TK.paused = !TK.paused; $('#ticker .tk').classList.toggle('is-paused', TK.paused); btn.setAttribute('aria-pressed', String(TK.paused)); btn.innerHTML = ic(TK.paused ? 'play' : 'pause', 'w-3.5 h-3.5'); }
+    });
+    el.addEventListener('animationend', (e) => { if (e.target.parentElement && e.target.parentElement.classList.contains('tk-prog') && !reduced && !S.a11y) tkGo(1); });
+  }
+}
+function tkGo(d) {
+  const its = $$('#ticker .tk-item'), n = its.length; if (n < 2) return;
+  const cur = its[TK.i]; TK.i = (TK.i + d + n) % n; const nx = its[TK.i];
+  cur.classList.remove('is-on'); cur.classList.add(d > 0 ? 'is-out' : 'is-out-down'); cur.setAttribute('aria-hidden', 'true'); cur.tabIndex = -1;
+  nx.classList.remove('is-out', 'is-out-down');
+  nx.style.transition = 'none'; nx.style.transform = `translateY(${d > 0 ? 100 : -100}%)`; void nx.offsetWidth;   // гарах чиглэлээс нь эхлүүлнэ
+  nx.style.transition = ''; nx.style.transform = ''; nx.classList.add('is-on'); nx.removeAttribute('aria-hidden'); nx.removeAttribute('tabindex');
+  setTimeout(() => { cur.style.transition = 'none'; cur.classList.remove('is-out', 'is-out-down'); void cur.offsetWidth; cur.style.transition = ''; }, 650);
+  const c = $('#ticker [data-tk-count]'); if (c) c.innerHTML = `${TK.i + 1}<i>/</i>${n}`;
+  const bar = $('#ticker .tk-prog i'); if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
 }
 
 /* ================= Bottom bar & mobile menu ================= */
