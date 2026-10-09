@@ -43,7 +43,7 @@ function newsBack() {
 window.addEventListener('popstate', () => {
   const id = urlNewsId();
   if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
-  else if (location.hash === '#admin') { if (S.route !== 'admin') setRoute('admin'); }
+  else if (/^#admin(\/|$)/.test(location.hash)) { admFromHash(location.hash); if (S.route !== 'admin') setRoute('admin'); else renderAdmin(); }
   else if (S.route === 'news') setRoute('home');
 });
 function newsMins(n) {
@@ -143,6 +143,39 @@ function renderNewsPage() {
     ${rel.length ? `<section class="mt-16 pt-10 border-t border-line"><div class="flex items-end justify-between gap-4"><h2 class="text-[24px] sm:text-[28px] font-extrabold tracking-[-0.02em]">${t('related')}</h2><button type="button" class="btn btn-sm btn-ghost" data-act="go" data-sec="hub" data-hub="news">${L(['Бүх мэдээ', 'All news'])}${ic('arrow-right', 'w-4 h-4')}</button></div><div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${rel.map((x) => newsCard(x, false)).join('')}</div></section>` : ''}
   </div>`;
   newsProgress();
+  renderSeason(true);
+}
+/* ================= Улирлын эффект (мэдээ унших хуудсанд): навч, цас, дэлбээ, алтан тоосонцор =================
+   Хуудасны дэвсгэр дээр, мэдээний картуудын АРД унана (текстийг дардаггүй). Admin → Тохиргоо → «Улирлын эффект». */
+const SEASON_L = { auto: ['Автомат', 'Auto'], spring: ['Хавар', 'Spring'], summer: ['Зун', 'Summer'], autumn: ['Намар', 'Autumn'], winter: ['Өвөл', 'Winter'], off: ['Унтраах', 'Off'] };
+const SEASON_IC = { auto: 'calendar', spring: 'flower-2', summer: 'sun', autumn: 'leaf', winter: 'snowflake', off: 'circle-off' };
+function seasonByDate() { const m = ubNow().getMonth(); return m >= 2 && m <= 4 ? 'spring' : m >= 5 && m <= 7 ? 'summer' : m >= 8 && m <= 10 ? 'autumn' : 'winter'; }
+function seasonNow() { const s = (SET && SET.season) || 'auto'; return s === 'auto' ? seasonByDate() : s; }
+function renderSeason(on) {
+  let el = $('#season');
+  const s = on && !reduced && !S.a11y ? seasonNow() : 'off';
+  if (s === 'off' || !SEASON_L[s]) { if (el) { el.innerHTML = ''; el.dataset.season = 'off'; } return; }
+  if (!el) { el = document.createElement('div'); el.id = 'season'; el.setAttribute('aria-hidden', 'true'); document.body.prepend(el); }
+  if (el.dataset.season === s && el.childElementCount) return;   // ижил улирал бол хөдөлгөөнийг дахин эхлүүлэхгүй
+  el.dataset.season = s; el.className = 'season-' + s;
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const leafA = (c, d) => `<svg viewBox="0 0 24 24"><path d="M12 1.5C6.5 6 4.2 10.4 5.2 15c.9 4 3.9 6.4 6.8 7.5 2.9-1.1 5.9-3.5 6.8-7.5 1-4.6-1.3-9-6.8-13.5z" fill="${c}"/><path d="M12 4v18M12 10l-3.2-2.4M12 14l3.4-2.6M12 17.5l-3-2.2" stroke="${d}" stroke-width=".9" stroke-linecap="round" fill="none"/></svg>`;
+  const leafB = (c, d) => `<svg viewBox="0 0 24 24"><path d="M12 1.8l1.6 4.4 3.6-2.2-.8 4.6 4.4-.6-2.6 3.6 3 1.6-4.4 1.4.6 2.6-3.8-1.2L12 22l-1.6-5.8-3.8 1.2.6-2.6-4.4-1.4 3-1.6-2.6-3.6 4.4.6-.8-4.6 3.6 2.2z" fill="${c}"/><path d="M12 21.5V7" stroke="${d}" stroke-width=".9" stroke-linecap="round"/></svg>`;
+  const autumn = [['#FACC15', '#A16207'], ['#F4B400', '#B07D00'], ['#FBBF24', '#B45309'], ['#EAB308', '#854D0E'], ['#FDE047', '#A16207'], ['#F59E0B', '#B45309'], ['#EA580C', '#9A3412']];   // голдуу шар, цөөн улбар
+  const cfg = {   // [тоо, унах(с), найгах далайц(px), найгах(с), хэмжээ(px), эргэх(с), дүрс]
+    autumn: [18, [14, 26], [30, 90], [3, 6], [16, 30], [3, 7], () => { const [c, d] = pick(autumn); return Math.random() < 0.55 ? leafA(c, d) : leafB(c, d); }],
+    winter: [42, [10, 20], [12, 40], [3, 6], [3, 8], [4, 8], () => '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/></svg>'],   // өнгө: input.css (цайвар горимд цэнхэрдүү, харанхуйд цагаан)
+    spring: [16, [16, 28], [40, 100], [3, 7], [10, 18], [3, 6], () => `<svg viewBox="0 0 24 24"><path d="M12 2c3.6 3.4 5 8.2 0 20-5-11.8-3.6-16.6 0-20z" fill="${pick(['#F9A8D4', '#F472B6', '#FBCFE8', '#FDA4AF', '#F9A8D4'])}"/></svg>`],
+    summer: [22, [18, 30], [20, 60], [4, 8], [3, 6], [2, 4], () => '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#FFD45C"/></svg>'],
+  }[s];
+  const r = (a) => (a[0] + Math.random() * (a[1] - a[0])).toFixed(1);
+  // өргөн дэлгэцэнд 75% нь контентын (1140px) хоёр хажуугийн хоосон зайд: картын ард нуугдаж үрэгдэхгүй
+  const m = Math.max(0, ((innerWidth - 1140) / 2 / innerWidth) * 100);
+  const xPos = () => (m > 4 && Math.random() < 0.75 ? (Math.random() < 0.5 ? Math.random() * m : 100 - Math.random() * m) : Math.random() * 100).toFixed(1);
+  el.innerHTML = Array.from({ length: cfg[0] }, () => {
+    const t = r(cfg[1]);
+    return `<span class="sf" style="--x:${xPos()}%;--t:${t}s;--dl:${(-Math.random() * t).toFixed(1)}s"><span class="sw" style="--sw:${r(cfg[2])}px;--st:${r(cfg[3])}s"><span class="lf" style="--s:${r(cfg[4])}px;--r:${r(cfg[5])}s;--a0:${Math.round(Math.random() * 360)}deg;--a1:${Math.round(Math.random() * 360 + 180)}deg;--ry:${Math.round(Math.random() * 120 + 60)}deg">${cfg[6]()}</span></span></span>`;
+  }).join('');
 }
 function newsProgress() {
   const bar = $('#nprog'), a = $('#nbody'); if (!bar || !a || S.route !== 'news') return;
@@ -762,21 +795,21 @@ function pushBreaking() {
   S.breaking.unshift({ id: n.id, ts: ubNow(), fresh: true });
   const l = $('#brk-list'); if (l) { l.innerHTML = breakingHTML(n.id); l.scrollTop = 0; }
 }
+/* data-roll-тэй (Хотын өгөгдөл) бол цифр эргэлдэнэ, бусад нь шууд солигдоно */
+function setLive(key, v) { $$(`[data-live="${key}"]`).forEach((el) => { if (el.hasAttribute('data-roll')) rollTo(el, v); else el.textContent = v; }); }
 function startLive() {
   setInterval(() => {
     if (document.hidden) return;
     if (Math.random() < 0.55) S.aqi = Math.max(84, Math.min(91, S.aqi + (Math.random() < 0.5 ? -1 : 1)));
     S.buses = Math.max(1000, Math.min(1052, S.buses + Math.round(Math.random() * 6 - 3)));
-    $$('[data-live="aqi"]').forEach((el) => { el.textContent = S.aqi; });
-    $$('[data-live="pm25"]').forEach((el) => { el.textContent = pm25(); });
-    $$('[data-live="buses"]').forEach((el) => { el.textContent = num(S.buses); });
+    setLive('aqi', S.aqi); setLive('pm25', pm25()); setLive('buses', num(S.buses));
     $$('[data-live="clocks"]').forEach((el) => { el.textContent = clock(true); });
     updAqiChart();
   }, 5000);
   setInterval(() => {
     if (document.hidden) return;
     S.riders += 3 + Math.floor(Math.random() * 12);
-    $$('[data-live="riders"]').forEach((el) => { el.textContent = num(S.riders); });
+    setLive('riders', num(S.riders));
     $$('[data-live="clock"]').forEach((el) => { el.textContent = clock(); });
   }, 1000);
   setInterval(() => { if (!document.hidden) pushBreaking(); }, 22000);
@@ -785,7 +818,7 @@ function startLive() {
 
 /* ================= Init ================= */
 function renderAll() {
-  renderHeader(); renderTicker(); renderHero(); renderHub(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); renderBottomBar(); renderChat();
+  renderHeader(); renderTicker(); renderHero(); renderHub(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); renderRail(); renderBottomBar(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
   initTabs(); setActiveNav(currentSec);
@@ -831,7 +864,7 @@ function init() {
     if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/cms.js)
   }
   else if (h === 'my' && S.user) setRoute('my');
-  else if (h === 'admin') setRoute('admin');
+  else if (h === 'admin' || h.startsWith('admin/')) { admFromHash(h); setRoute('admin'); }
   else if (['hub', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);
   window.addEventListener('resize', debounce(() => initTabs(), 150));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { initTabs(); const nav = $('#navbar'); if (nav && nav._moveInd) setActiveNav(currentSec); });

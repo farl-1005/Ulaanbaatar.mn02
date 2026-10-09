@@ -43,7 +43,7 @@ function renderHero() {
       <div class="hero-fade mt-8 pt-5 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-5" style="--d:.7s">${rel.map((r) => `<button type="button" class="group text-left flex sm:block gap-3 zoom-on" data-act="news" data-id="${r.id}"><div class="scene zoom rounded-xl w-24 h-[72px] sm:w-full sm:h-auto sm:aspect-[16/9] shrink-0">${Scene(r.img)}</div><span class="block sm:mt-3 text-[14.5px] font-semibold leading-snug group-hover:text-ubred transition-colors line-clamp-3">${esc(L(r.t))}</span></button>`).join('')}</div>
     </article>
     <aside class="lg:col-span-3 lg:order-1 min-w-0 hero-fade" style="--d:.25s" aria-label="${esc(t('breaking'))}">
-      <div class="mb-2 px-1"><h2 class="text-[19px] font-extrabold tracking-tight flex items-center gap-2.5"><span class="live"></span>${t('breaking')}</h2><p class="text-[12.5px] text-muted mt-0.5 pl-[18px]">${t('liveUpd')}</p></div>
+      <div class="brk-head mb-2 px-1"><h2 class="text-[19px] font-extrabold tracking-tight flex items-center gap-2.5">${fireIcon()}${t('breaking')}</h2><p class="text-[12.5px] text-muted mt-0.5 pl-[32px]">${t('liveUpd')}</p></div>
       <ol id="brk-list" class="space-y-0.5 max-h-[660px] overflow-auto thin-scroll fade-b pb-8 relative">${breakingHTML()}</ol>
       <button type="button" class="mt-1 px-1 text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button>
     </aside>
@@ -206,14 +206,14 @@ function mediaCards() {
     const meta = m.type === 'live' ? `<span class="inline-flex items-center gap-1.5 tnum">${ic('eye', 'w-4 h-4')}${t('watching', { n: num(m.viewers) })}</span>`
       : m.type === 'photo' ? `<span class="flex gap-1">${[0, 1, 2, 3, 4].map((k) => `<i class="w-1.5 h-1.5 rounded-full ${k ? 'bg-white/40' : 'bg-white'}"></i>`).join('')}</span>`
       : `<span class="inline-flex items-center gap-1.5 tnum">${ic(m.type === 'podcast' ? 'headphones' : 'clock-3', 'w-4 h-4')}${m.dur}</span>`;
-    return `<button type="button" class="group snap-start shrink-0 relative overflow-hidden rounded-[20px] text-left zoom-on ${feat ? 'w-[86vw] sm:w-[560px]' : 'w-[76vw] sm:w-[340px]'} h-[300px] sm:h-[380px]" data-act="media-open" data-i="${i}"><div class="scene zoom absolute inset-0">${Scene(m.img)}</div><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/5"></div>
+    return `<button type="button" class="group snap-start shrink-0 relative overflow-hidden rounded-[20px] text-left zoom-on ${feat ? 'w-[86vw] sm:w-[560px]' : 'w-[76vw] sm:w-[340px]'} h-[300px] sm:h-[380px]" data-act="media-open" data-i="${i}"><div class="scene zoom !absolute inset-0">${Scene(m.img)}</div><div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/5"></div>
       <div class="absolute left-4 top-4">${badge}</div>
       ${m.type === 'video' || m.type === 'live' ? `<span class="absolute inset-0 grid place-items-center"><span class="w-16 h-16 rounded-full bg-white/90 text-[#0B1D45] grid place-items-center shadow-xl transition-transform duration-300 group-hover:scale-110">${ic('play', 'w-7 h-7 ml-1')}</span></span>` : ''}
       <div class="absolute inset-x-0 bottom-0 p-5"><p class="text-[13px] text-white/65">${esc(L(m.d))}</p><p class="mt-1 ${feat ? 'text-[22px]' : 'text-[18px]'} font-extrabold leading-snug">${esc(L(m.t))}</p><div class="mt-3 flex items-center gap-3 text-[13px] text-white/75">${meta}</div></div></button>`;
   }).join('');
 }
 function renderMedia() {
-  $('#media').innerHTML = `<div class="media-band text-white"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
+  $('#media').innerHTML = `<div class="media-band text-white relative overflow-hidden isolate">${mediaBg()}<div class="relative max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div><h2 class="h-section text-white">${t('mediaTitle')}</h2><p class="mt-2 text-white/60">${t('mediaDesc')}</p></div>
       <div class="flex items-center gap-3 min-w-0"><div class="flex gap-2 overflow-x-auto no-scrollbar" id="media-chips">${chips('media-f', MEDIA_F.map((v) => [v, v === 'all' ? t('f_all') : t('m_' + v)]), S.media, true)}</div>
       <div class="hidden md:flex gap-2 shrink-0"><button type="button" class="icon-btn border border-white/20 hover:bg-white/10" data-act="media-scroll" data-d="-1" aria-label="${esc(t('prev'))}">${ic('chevron-left')}</button><button type="button" class="icon-btn border border-white/20 hover:bg-white/10" data-act="media-scroll" data-d="1" aria-label="${esc(t('next'))}">${ic('chevron-right')}</button></div></div></div>
@@ -222,6 +222,23 @@ function renderMedia() {
   const tr = $('#media-track'), pr = $('#media-prog');
   const upd = () => { const max = tr.scrollWidth - tr.clientWidth; pr.style.width = (max <= 2 ? 100 : Math.max(10, ((tr.scrollLeft + tr.clientWidth) / tr.scrollWidth) * 100)) + '%'; };
   tr.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd);
+  // хөдөлгөөнт дэвсгэр: дэлгэцэнд харагдахгүй үед зогсоно
+  if (MEDIA_IO) MEDIA_IO.disconnect();
+  const bg = $('#media .media-bg');
+  if (bg && 'IntersectionObserver' in window) { MEDIA_IO = new IntersectionObserver(([en]) => bg.classList.toggle('is-off', !en.isIntersecting)); MEDIA_IO.observe(bg); }
+}
+/* Медиа хэсгийн хөдөлгөөнт вектор дэвсгэр: туйлын туяа (3 гэрэлтэлт), урсах дууны долгион, дамжуулалтын цагираг. input.css .mb-* */
+let MEDIA_IO = null;
+function mediaBg() {
+  // Q/T муруйгаар синус долгион; 2880 өргөн (2 үе) тул -50% шилжихэд тасралтгүй давтагдана
+  const wave = (y, a, len) => { let d = `M0 ${y} Q${len / 4} ${y - a} ${len / 2} ${y}`; for (let x = len; x <= 2880; x += len / 2) d += ` T${x} ${y}`; return d; };
+  const lines = [[150, 26, 480, 'a'], [190, 40, 720, 'b'], [228, 18, 360, 'c'], [262, 34, 576, 'b'], [300, 22, 480, 'a']];
+  return `<div class="media-bg" aria-hidden="true">
+    <i class="mb-blob mb-b1"></i><i class="mb-blob mb-b2"></i><i class="mb-blob mb-b3"></i>
+    <svg class="mb-waves" viewBox="0 0 1440 420" preserveAspectRatio="none"><defs><linearGradient id="mbw" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".3" stop-color="#fff"/><stop offset=".7" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+      ${lines.map(([y, a, len, c], k) => `<g class="mb-line mb-l${k + 1}"><path class="mb-${c}" d="${wave(y, a, len)}"/></g>`).join('')}</svg>
+    <span class="mb-rings"><i></i><i></i><i></i></span>
+  </div>`;
 }
 function setMediaF(v) {
   S.media = v; $$('[data-act="media-f"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
@@ -426,6 +443,34 @@ function updAqiChart() {
   line.setAttribute('d', p); $('#aqi-area').setAttribute('d', area); $('#aqi-now').style.top = (Y(d[23].v) / 200) * 100 + '%';
 }
 function liveBadge(color) { return `<span class="live-badge"><span class="live" style="--dot:${color}"></span>${t('live')}</span>`; }
+/* ================= «Амьд хот»: өгөгдлөөс хамаарах хөдөлгөөн (Хотын өгөгдөл) ================= */
+let DATA_IO = null;
+const rnd = (a, b) => a + Math.random() * (b - a);
+/* Эргэлддэг цифр (одометр): цифр бүр 0–9 баганаар, --d-ээр байрлана. fromZero: эхлээд 0, харагдах үед жинхэнэ утга руу эргэлдэнэ */
+function rollWrap(v, fromZero) {
+  let k = 0;
+  return `<span class="sr-only">${esc(String(v))}</span><span class="rd-w" aria-hidden="true">${[...String(v)].map((ch) => (/\d/.test(ch)
+    ? `<span class="rd"><span class="rd-s" style="--d:${fromZero ? 0 : ch};--k:${k++}" ${fromZero ? `data-to="${ch}"` : ''}>${'0123456789'.split('').map((n) => `<i>${n}</i>`).join('')}</span></span>`
+    : `<span class="rd-c">${/\s/.test(ch) ? '&nbsp;' : esc(ch)}</span>`)).join('')}</span>`;
+}
+function rollTo(el, v) {
+  const s = String(v), sr = el.querySelector('.sr-only'), cols = el.querySelectorAll('.rd-w > span');
+  if (!sr || cols.length !== s.length || [...s].some((ch, i) => /\d/.test(ch) !== cols[i].classList.contains('rd'))) { el.innerHTML = rollWrap(s); return; }
+  sr.textContent = s;
+  [...s].forEach((ch, i) => { if (/\d/.test(ch)) { const c = cols[i].firstElementChild; c.removeAttribute('data-to'); c.style.setProperty('--d', ch); } });   // харагдахаас өмнө шинэчлэгдсэн бол хуучин утга руу буцахгүй
+}
+/* «Таны амьсгалж буй агаар»: AQI ихсэх тусам тоосонцор олширч, өнгө нь AQI ангиллын өнгө */
+function pmFX() {
+  const c = aqiCat(S.aqi), n = S.aqi <= 50 ? 8 : S.aqi <= 100 ? 22 : S.aqi <= 150 ? 34 : 48;
+  return `<div class="pm-field" aria-hidden="true" style="--pc:${c.c}">${Array.from({ length: n }, () => `<i style="--x:${rnd(0, 100).toFixed(1)}%;--y:${rnd(0, 100).toFixed(1)}%;--s:${rnd(2, 6).toFixed(1)}px;--t:${rnd(9, 20).toFixed(1)}s;--dl:${(-rnd(0, 20)).toFixed(1)}s;--dx:${Math.round(rnd(-46, 46))}px;--dy:${Math.round(rnd(-34, 34))}px;--o:${rnd(0.16, 0.5).toFixed(2)}"></i>`).join('')}</div>`;
+}
+/* Цаг агаарын амьд тэнгэр: 0°-оос доош бол цас, үүлтэй, Улаанбаатарын цагаар үүр/өдөр/үдэш/шөнө (шөнө од) */
+function skyFX() {
+  const h = ubNow().getHours(), tod = h >= 20 || h < 6 ? 'night' : h < 9 ? 'dawn' : h >= 17 ? 'dusk' : 'day';
+  const snow = S.temp <= 0 ? Array.from({ length: 36 }, () => `<i style="--x:${rnd(0, 100).toFixed(1)}%;--s:${rnd(2, 5).toFixed(1)}px;--t:${rnd(8, 16).toFixed(1)}s;--dl:${(-rnd(0, 16)).toFixed(1)}s;--dx:${Math.round(rnd(-36, 36))}px;--o:${rnd(0.3, 0.85).toFixed(2)}"></i>`).join('') : '';
+  const stars = tod === 'night' ? Array.from({ length: 18 }, () => `<b style="--x:${rnd(2, 98).toFixed(1)}%;--y:${rnd(3, 42).toFixed(1)}%;--t:${rnd(2, 5).toFixed(1)}s;--dl:${(-rnd(0, 5)).toFixed(1)}s"></b>`).join('') : '';
+  return `<div class="sky sky-${tod}" aria-hidden="true"><span class="sky-glow"></span>${stars}<span class="sky-cloud sky-c1"></span><span class="sky-cloud sky-c2"></span>${snow}</div>`;
+}
 function renderData() {
   const c = aqiCat(S.aqi), tot = POP.reduce((a, p) => a + p[2], 0), max = POP[0][2];
   const plan = BUDGET_Q.reduce((a, q) => a + q[0], 0), act = BUDGET_Q.reduce((a, q) => a + q[1], 0), bpct = Math.round((act / plan) * 100), bmx = Math.max(...BUDGET_Q.map((q) => q[0]));
@@ -433,15 +478,16 @@ function renderData() {
   const others = POP.slice(6).reduce((a, p) => a + p[2], 0);
   const popRows = POP.slice(0, 6).map((p) => [EN() ? p[1] : p[0], p[2]]).concat([[L(['Бусад 3 дүүрэг', 'Other 3 districts']), others]]);
   const k = (v) => (EN() ? Math.round(v / 1000) + 'k' : Math.round(v / 1000) + ' мян');
+  const drawn = $('#data').classList.contains('drawn');
   $('#data').innerHTML = `<div class="on-navy"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20"><div>
   <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4"><div><h2 class="h-section">${t('dataTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('dataDesc')}</p></div><span class="live-badge self-start lg:self-auto"><span class="live" style="--dot:rgb(var(--c-green))"></span>${t('updated')} <span class="tnum text-ink" data-live="clocks">${clock(true)}</span></span></div>
   <div class="mt-8 grid grid-cols-1 md:grid-cols-6 lg:grid-cols-12 gap-4 lg:gap-5" id="data-grid">
-    <div class="card p-5 sm:p-6 md:col-span-6 lg:col-span-7" data-card="aqi"><div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('aqi')}</h3><p class="text-[13px] text-muted">${t('aqi24')}</p></div>${liveBadge(c.c)}</div>
-      <div class="mt-4 flex flex-wrap items-end gap-x-6 gap-y-3"><div><p class="text-[60px] leading-[.9] font-extrabold tnum tracking-tight" data-live="aqi">${S.aqi}</p><p class="mt-2 font-bold" style="color:${c.c}">${t(c.k)}</p></div><p class="text-[13.5px] text-muted max-w-[36ch] leading-snug">${t('aqiAdvice')}</p>
-      <div class="ml-auto grid grid-cols-2 gap-x-5 gap-y-1 text-[13px]"><span class="text-muted">PM2.5</span><b class="tnum"><span data-live="pm25">${pm25()}</span> µg/m³</b><span class="text-muted">PM10</span><b class="tnum">58 µg/m³</b><span class="text-muted">NO2</span><b class="tnum">21 ppb</b></div></div>
+    <div class="card fx-card p-5 sm:p-6 md:col-span-6 lg:col-span-7" data-card="aqi">${pmFX()}<div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('aqi')}</h3><p class="text-[13px] text-muted">${t('aqi24')}</p></div>${liveBadge(c.c)}</div>
+      <div class="mt-4 flex flex-wrap items-end gap-x-6 gap-y-3"><div><p class="text-[60px] leading-[.9] font-extrabold tnum tracking-tight" data-live="aqi" data-roll>${rollWrap(S.aqi, !drawn)}</p><p class="mt-2 font-bold" style="color:${c.c}">${t(c.k)}</p></div><p class="text-[13.5px] text-muted max-w-[36ch] leading-snug">${t('aqiAdvice')}</p>
+      <div class="ml-auto grid grid-cols-2 gap-x-5 gap-y-1 text-[13px]"><span class="text-muted">PM2.5</span><b class="tnum"><span data-live="pm25" data-roll>${rollWrap(pm25(), !drawn)}</span> µg/m³</b><span class="text-muted">PM10</span><b class="tnum">58 µg/m³</b><span class="text-muted">NO2</span><b class="tnum">21 ppb</b></div></div>
       <div class="mt-5 pl-5">${aqiChart()}</div></div>
-    <div class="card p-5 sm:p-6 md:col-span-6 lg:col-span-5 flex flex-col" data-card="weather"><div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('weather')}</h3><p class="text-[13px] text-muted">${fDate(today(), true)}</p></div>${liveBadge('#0EA5E9')}</div>
-      <div class="mt-4 flex items-center gap-5"><span class="w-20 h-20 rounded-3xl bg-ubblue/10 text-ubblue grid place-items-center">${ic('cloud-sun', 'w-11 h-11', 1.6)}</span><div><p class="text-[56px] leading-none font-extrabold tnum tracking-tight">${S.temp}°</p><p class="font-semibold text-muted mt-1">${t('cloudy')}, ${t('feels').toLowerCase()} ${S.temp - 5}°</p></div></div>
+    <div class="card fx-card p-5 sm:p-6 md:col-span-6 lg:col-span-5 flex flex-col" data-card="weather">${skyFX()}<div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('weather')}</h3><p class="text-[13px] text-muted">${fDate(today(), true)}</p></div>${liveBadge('#0EA5E9')}</div>
+      <div class="mt-4 flex items-center gap-5"><span class="wx-ic w-20 h-20 rounded-3xl bg-ubblue/10 text-ubblue grid place-items-center">${ic('cloud-sun', 'w-11 h-11', 1.6)}</span><div><p class="text-[56px] leading-none font-extrabold tnum tracking-tight">${S.temp}°</p><p class="font-semibold text-muted mt-1">${t('cloudy')}, ${t('feels').toLowerCase()} ${S.temp - 5}°</p></div></div>
       <div class="mt-5 grid grid-cols-2 gap-2 text-[13.5px]"><div class="rounded-xl bg-soft p-3 flex items-center gap-2">${ic('wind', 'w-[18px] h-[18px] text-muted')}<span class="text-muted">${t('wind')}</span><b class="ml-auto tnum">4 м/с</b></div><div class="rounded-xl bg-soft p-3 flex items-center gap-2">${ic('droplet', 'w-[18px] h-[18px] text-muted')}<span class="text-muted">${t('humidity')}</span><b class="ml-auto tnum">58%</b></div></div>
       <div class="mt-auto pt-5 grid grid-cols-5 gap-1 text-center">${FORECAST.map((f, i) => { const dd = addDays(today(), i + 1); return `<div class="rounded-xl py-2"><p class="text-[12px] font-semibold text-muted">${EN() ? EN_WD[dd.getDay()] : MN_WDS[dd.getDay()]}</p>${ic(f[2], 'w-6 h-6 mx-auto my-1.5 text-ink/80', 1.7)}<p class="text-[13px] font-bold tnum">${f[0]}°</p><p class="text-[12px] text-muted tnum">${f[1]}°</p></div>`; }).join('')}</div></div>
     <div class="card p-5 sm:p-6 md:col-span-3 lg:col-span-4" data-card="traffic"><div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('congestion')}</h3><p class="text-[13px] text-muted">0–10</p></div>${liveBadge('rgb(var(--c-amber))')}</div>
@@ -453,15 +499,18 @@ function renderData() {
       <div class="mt-4 flex items-center gap-5"><span class="relative grid place-items-center">${ring(bpct, 96, 10, 'rgb(var(--c-blue))')}<b class="absolute text-[22px] font-extrabold tnum">${bpct}%</b></span><div class="text-[13px] space-y-1.5"><p class="flex items-center gap-2"><i class="w-2.5 h-2.5 rounded-sm bg-line"></i>${t('plan')}</p><p class="flex items-center gap-2"><i class="w-2.5 h-2.5 rounded-sm bg-ubblue"></i>${t('actual')}</p></div></div>
       <div class="mt-5 h-[110px] flex items-end gap-4">${BUDGET_Q.map((q, i) => `<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full flex items-end gap-1 h-full"><span class="bar-grow flex-1 rounded-t-md bg-line" style="height:${(q[0] / bmx) * 100}%"></span><span class="bar-grow flex-1 rounded-t-md bg-ubblue" style="height:${(q[1] / bmx) * 100}%;transition-delay:${0.1 + i * 0.08}s"></span></div><span class="text-[11.5px] text-muted font-semibold">${['I', 'II', 'III', 'IV'][i]}</span></div>`).join('')}</div></div>
     <div class="card p-5 sm:p-6 md:col-span-6 lg:col-span-12" data-card="transit"><div class="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-10"><div class="flex items-center gap-3 lg:w-[230px] shrink-0"><span class="w-12 h-12 rounded-2xl bg-ubred/10 text-ubred grid place-items-center">${ic('bus-front', 'w-6 h-6')}</span><div><h3 class="font-bold text-[17px]">${t('transit')}</h3><span class="mt-1 inline-flex">${liveBadge('rgb(var(--c-red))')}</span></div></div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-5 flex-1">${[[`<span data-live="buses">${num(S.buses)}</span>`, t('busesNow')], [`<span data-live="riders">${num(S.riders)}</span>`, t('ridersToday')], ['6.4 ' + t('minShort'), t('avgWait')], ['91%', t('onTime')]].map(([v, l]) => `<div><p class="text-[28px] font-extrabold tnum leading-none">${v}</p><p class="text-[13px] text-muted mt-1.5">${l}</p></div>`).join('')}</div></div></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-5 flex-1">${[[`<span data-live="buses" data-roll>${rollWrap(num(S.buses), !drawn)}</span>`, t('busesNow')], [`<span data-live="riders" data-roll>${rollWrap(num(S.riders), !drawn)}</span>`, t('ridersToday')], ['6.4 ' + t('minShort'), t('avgWait')], ['91%', t('onTime')]].map(([v, l]) => `<div><p class="text-[28px] font-extrabold tnum leading-none">${v}</p><p class="text-[13px] text-muted mt-1.5">${l}</p></div>`).join('')}</div></div></div>
   </div></div></div></div>`;
   const grid = $('#data-grid'), sec = $('#data');
   const reveal = () => {
     sec.classList.add('drawn');
     const n = $('.needle', grid); if (n) n.style.transform = `rotate(${n.dataset.ang}deg)`;
     if (!sec.dataset.counted) { sec.dataset.counted = '1'; countUp($('[data-count]', grid), tot); }
+    $$('.rd-s[data-to]', grid).forEach((s) => { s.style.setProperty('--d', s.dataset.to); s.removeAttribute('data-to'); });   // цифрүүд 0-ээс эргэлдэнэ
   };
   if (sec.classList.contains('drawn')) reveal(); else observeOnce(grid, reveal, 0.15);
+  if (DATA_IO) DATA_IO.disconnect();   // цас, тоосонцор: дэлгэцэнд харагдахгүй үед зогсоно
+  if ('IntersectionObserver' in window) { DATA_IO = new IntersectionObserver(([en]) => sec.classList.toggle('fx-off', !en.isIntersecting)); DATA_IO.observe(sec); }
   const wrap = $('#aqi-wrap');
   if (wrap) {
     const tip = $('#aqi-tip'), xl = $('#aqi-x');
@@ -648,6 +697,65 @@ function renderAbout() {
     <div class="lg:col-span-7"><h3 class="text-[19px] font-extrabold">${t('leadership')}</h3><ol class="mt-5">${STRUCT.map((s, i) => `<li class="relative flex gap-4 ${i < STRUCT.length - 1 ? 'pb-6' : ''}">${i < STRUCT.length - 1 ? '<span class="absolute left-[21px] top-12 bottom-1 w-px bg-line"></span>' : ''}<span class="relative w-11 h-11 rounded-2xl ${i === 2 ? 'bg-ubred text-white' : 'bg-card border border-line text-ubred'} grid place-items-center shrink-0">${ic(s.i, 'w-5 h-5')}</span><div class="pt-1"><b class="block text-[15.5px] leading-snug">${esc(L(s.t))}</b><span class="block text-[13.5px] text-muted mt-0.5">${esc(L(s.d))}</span></div></li>`).join('')}</ol></div></div>
     <div class="mt-12"><h3 class="text-[19px] font-extrabold">${t('adminHist')}</h3><p class="mt-1 text-[13px] text-muted">${t('adminHistD')}</p><ol class="mt-6 flex overflow-x-auto no-scrollbar snap-x pb-2 -mx-4 px-4 lg:mx-0 lg:px-0">${ADMIN_NAMES.map(([y, mn, en], i) => { const last = i === ADMIN_NAMES.length - 1; return `<li class="snap-start shrink-0 w-[172px] sm:w-[188px] relative pr-5">${last ? '' : '<span class="absolute left-2 right-0 top-[7px] h-px bg-line"></span>'}<span class="relative block w-3.5 h-3.5 rounded-full ${last ? 'bg-ubred' : 'bg-card border-2 border-ubred'}"></span><b class="block mt-3 text-[21px] font-extrabold tnum tracking-tight">${y}</b><span class="block mt-1 text-[13.5px] leading-snug ${last ? 'text-ink font-semibold' : 'text-muted'}">${esc(EN() ? en : mn)}</span></li>`; }).join('')}</ol></div>
     <div class="mt-12 rounded-[18px]" data-card="orgs"><h3 class="text-[19px] font-extrabold">${t('orgs')}</h3><ul class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${ORGS.map((o) => { const inner = `<span class="w-10 h-10 rounded-xl bg-soft grid place-items-center text-ubred shrink-0">${ic(o.i || 'building-2', 'w-5 h-5')}</span><span class="text-[14px] font-semibold leading-snug">${esc(L(o.t))}</span>`; return /^https?:\/\//.test(o.url || '') ? `<li><a href="${esc(o.url)}" target="_blank" rel="noopener" class="flex items-center gap-3 p-3 rounded-xl border border-line bg-card hover:border-ink/25 transition-colors">${inner}</a></li>` : `<li class="flex items-center gap-3 p-3 rounded-xl border border-line bg-card">${inner}</li>`; }).join('')}</ul></div></div>`;
+}
+
+/* ================= Босоо баннер =================
+   Өргөн дэлгэцийн (≥1840px) баруун хоосон зайд, зөвхөн идэвхтэй баннер байх үед харагдана:
+   admin-ы эхлэх/дуусах огноо, «Түр нуух», хэрэглэгч хаавал 24 цаг. Гүйлгэхэд дагаж явж (sticky), footer-оос өмнө зогсоно. */
+const RAIL = { i: 0, timer: null, shown: false, hover: false };
+function railActive() {
+  const hide = store.get('railHide', {}), now = Date.now();
+  return BANNERS.filter((b) => !b.off && b.t && L(b.t) && (!b.from || dayOffset(b.from) <= 0) && (!b.to || dayOffset(b.to) >= 0) && !(hide[b.id] && now - hide[b.id] < 864e5));
+}
+function railCard(b, o = {}) {
+  const th = RAIL_THEMES[b.theme] || RAIL_THEMES.red, left = b.to ? dayOffset(b.to) : null;
+  const act = b.act === 'vote' ? 'data-act="vote"' : b.act === 'report' ? 'data-act="report"'
+    : b.act === 'url' && /^https?:\/\//.test(b.href || '') ? `data-act="ext-link" data-href="${esc(b.href)}"` : `data-act="go" ${goAttrs(b.go || { sec: 'hero' })}`;
+  return `<article class="rail-slide ${o.on ? 'is-on' : ''}" style="--r1:${th[0]};--r2:${th[1]}" data-id="${esc(b.id || '')}" ${o.on ? '' : 'aria-hidden="true" inert'}>
+    <div class="rail-img scene">${Scene(b.img || 'skyline:dawn:21')}</div>
+    <span class="rail-mong mong" lang="mn-Mong" aria-hidden="true">${MONG}</span>
+    <div class="rail-body">
+      ${b.tag && L(b.tag) ? `<span class="rail-tag">${esc(L(b.tag))}</span>` : ''}
+      <h3 class="rail-t">${esc(L(b.t))}</h3>
+      ${b.d && L(b.d) ? `<p class="rail-d">${esc(L(b.d))}</p>` : ''}
+      ${left != null && left <= 30 ? `<p class="rail-left">${ic('hourglass', 'w-3.5 h-3.5')}${left > 0 ? L([`${left} хоног үлдлээ`, `${left} days left`]) : L(['Өнөөдөр дуусна', 'Ends today'])}</p>` : ''}
+      <button type="button" class="rail-btn" ${o.preview ? 'tabindex="-1"' : act}>${esc((b.btn && L(b.btn)) || L(['Дэлгэрэнгүй', 'Learn more']))}${ic('arrow-right', 'w-4 h-4')}</button>
+    </div></article>`;
+}
+function renderRail() {
+  let el = $('#rail');
+  if (!el) { el = document.createElement('aside'); el.id = 'rail'; $('#main').appendChild(el); }
+  clearInterval(RAIL.timer);
+  const list = railActive();
+  if (!list.length) { el.innerHTML = ''; el.hidden = true; return; }
+  if (RAIL.i >= list.length) RAIL.i = 0;
+  el.hidden = false; el.setAttribute('aria-label', L(['Онцлох', 'Featured']));
+  el.innerHTML = `<div class="rail-card ${RAIL.shown ? '' : 'rail-intro'}">
+    <button type="button" class="rail-x" data-rail="close" aria-label="${esc(L(['Хаах (24 цаг харагдахгүй)', 'Close (hidden for 24 h)']))}" title="${esc(L(['Хаах', 'Close']))}">${ic('x', 'w-4 h-4')}</button>
+    <div class="rail-stack">${list.map((b, k) => railCard(b, { on: k === RAIL.i })).join('')}</div>
+    ${list.length > 1 ? `<div class="rail-dots">${list.map((b, k) => `<button type="button" class="rail-dot ${k === RAIL.i ? 'is-on' : ''}" data-rail="${k}" aria-label="${k + 1} / ${list.length}"></button>`).join('')}</div>` : ''}
+  </div>`;
+  RAIL.shown = true;
+  if (!el.dataset.bound) {
+    el.dataset.bound = '1';
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-rail]'); if (!b) return;
+      if (b.dataset.rail !== 'close') { railGo(+b.dataset.rail); return; }
+      const cur = $('.rail-slide.is-on', el), hide = store.get('railHide', {});
+      if (cur) { hide[cur.dataset.id] = Date.now(); store.set('railHide', hide); }
+      const card = $('.rail-card', el);
+      if (reduced || !card) renderRail(); else { card.classList.add('is-closing'); setTimeout(renderRail, 340); }
+    });
+    el.addEventListener('mouseenter', () => { RAIL.hover = true; });
+    el.addEventListener('mouseleave', () => { RAIL.hover = false; });
+  }
+  if (list.length > 1 && !reduced && !S.a11y) RAIL.timer = setInterval(() => { if (!RAIL.hover && !document.hidden) railGo(RAIL.i + 1); }, 8000);
+}
+function railGo(i) {
+  const slides = $$('#rail .rail-slide'), dots = $$('#rail .rail-dot'), n = slides.length; if (n < 2) return;
+  RAIL.i = ((i % n) + n) % n;
+  slides.forEach((s, k) => { const on = k === RAIL.i; s.classList.toggle('is-on', on); s.toggleAttribute('inert', !on); if (on) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true'); });
+  dots.forEach((d, k) => d.classList.toggle('is-on', k === RAIL.i));
 }
 
 /* ================= Footer ================= */

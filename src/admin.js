@@ -11,6 +11,7 @@ const A_NAV = [   // [view, icon, label, group]
   ['services', 'layout-grid', ['Үйлчилгээ', 'Services'], 'content'],
   ['sits', 'route', ['Амьдралын нөхцөл', 'Life events'], 'content'],
   ['docs', 'scroll-text', ['Ил тод байдал', 'Transparency'], 'content'],
+  ['banners', 'panel-right', ['Босоо баннер', 'Side banner'], 'content'],
   ['struct', 'network', ['Удирдлагын бүтэц', 'City structure'], 'about'],
   ['orgs', 'building-2', ['Харьяа байгууллага', 'City agencies'], 'about'],
   ['history', 'history', ['Түүх', 'History'], 'about'],
@@ -24,6 +25,9 @@ const A_NAV = [   // [view, icon, label, group]
   ['texts', 'type', ['Гарчиг, текст', 'Headings & text'], 'sys'],
   ['settings', 'settings', ['Тохиргоо', 'Settings'], 'sys'],
 ];
+/* Admin-ы хэсэг бүр өөрийн хаягтай (#admin/banners г.м.): refresh хийхэд тэр хэсэгтээ үлдэнэ */
+function admHash() { return 'admin' + (ADM.view && ADM.view !== 'dash' ? '/' + ADM.view : ''); }
+function admFromHash(h) { const v = String(h || '').replace(/^#?admin\/?/, ''); if (v && A_NAV.some((n) => n[0] === v)) ADM.view = v; }
 const A_GROUPS = { content: ['Агуулга', 'Content'], about: ['Хотын тухай', 'About the city'], struct: ['Бүтэц, ангилал', 'Structure'], sys: ['Систем', 'System'] };
 const ICON_SET = ['triangle-alert', 'siren', 'droplets', 'zap', 'flame', 'wind', 'snowflake', 'construction', 'car-front', 'bus', 'tram-front', 'megaphone', 'info', 'file-text', 'baby', 'recycle', 'circle-parking', 'square-parking', 'map-pinned', 'map', 'hand-heart', 'school', 'graduation-cap', 'hard-hat', 'store', 'gavel', 'scale', 'landmark', 'briefcase', 'receipt-text', 'messages-square', 'building-2', 'database', 'stethoscope', 'house', 'heart', 'trees', 'wifi'];
 const REC_L = { skyline: ['Хот', 'City'], road: ['Зам', 'Road'], bus: ['Автобус', 'Bus'], build: ['Барилга', 'Construction'], bridge: ['Гүүр', 'Bridge'], cable: ['Дүүжин зам', 'Cable car'], park: ['Цэцэрлэг', 'Park'], school: ['Сургууль', 'School'], civic: ['Ордон', 'Civic'], heat: ['Дулаан', 'Heating'], air: ['Агаар', 'Air'], ger: ['Гэр хороолол', 'Ger district'], stage: ['Тайз', 'Stage'], sport: ['Спорт', 'Sport'], market: ['Зах', 'Market'], art: ['Урлаг', 'Art'], tech: ['Технологи', 'Tech'] };
@@ -81,6 +85,15 @@ const SCHEMA = {
     ['url', 'url', ['Баримтын холбоос (PDF г.м.). Бөглөвөл дарахад нээгдэнэ.', 'Link to the document (PDF etc.). If set, clicking opens it.']],
     ['st', 'chips', ['Тендерийн төлөв (зөвхөн тендер)', 'Tender status (tenders only)'], { options: () => [['open', t('tOpen')], ['eval', t('tEval')], ['won', t('tAwarded')]] }],
     ['due', 'date', ['Тендер хаагдах огноо', 'Tender closing date']], ['bud', 'number', ['Төсөв, сая ₮ (тендер)', 'Budget, ₮ million (tender)']],
+  ] },
+  banners: { icon: 'panel-right', one: ['баннер', 'banner'], idp: 'bn', title: (x) => L(x.t), fields: [
+    ['t', 'bi', ['Гарчиг', 'Title'], { req: 1 }], ['d', 'bitext', ['Тайлбар', 'Text'], { rows: 2 }], ['tag', 'bi', ['Шошго (жишээ: Аян, Арга хэмжээ)', 'Label (e.g. Campaign, Event)']],
+    ['theme', 'chips', ['Өнгө', 'Colour'], { options: () => Object.keys(RAIL_THEMES).map((k) => [k, L(RAIL_THEME_L[k]), RAIL_THEMES[k][0]]), def: 'red' }],
+    ['img', 'image', ['Зураг', 'Image']], ['btn', 'bi', ['Товчны бичиг', 'Button text']],
+    ['act', 'chips', ['Товч дарахад', 'Button action'], { options: () => [['go', L(['Сайтын хэсэг рүү', 'Go to a section'])], ['url', L(['Гадаад холбоос', 'External link'])], ['vote', t('cta_vote')], ['report', t('cta_report')]], def: 'go' }],
+    ['go', 'dest', ['Сайтын хэсэг («Сайтын хэсэг рүү» үед)', 'Page section (for "Go to a section")']], ['href', 'url', ['Гадаад холбоос («Гадаад холбоос» үед)', 'External link (for "External link")']],
+    ['from', 'date', ['Эхлэх огноо (хоосон бол шууд харагдана)', 'Start date (empty = right away)'], { empty: 1 }], ['to', 'date', ['Дуусах огноо (хоосон бол хугацаагүй). 30 хоногоос бага үлдвэл тоолуур гарна.', 'End date (empty = no end). A countdown shows in the last 30 days.'], { empty: 1 }],
+    ['flags', 'flags', ['Төлөв', 'Status'], { options: [['off', ['Түр нуух', 'Hide for now']]] }], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
   struct: { icon: 'network', one: ['бүтцийн нэгж', 'structure item'], idp: 'st', title: (x) => L(x.t), fields: [
     ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['d', 'bi', ['Тайлбар', 'Description']], ['i', 'icon', ['Тэмдэг', 'Icon']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
@@ -241,7 +254,7 @@ function admBadges(col, x) {
 }
 function admThumb(col, x) {
   if (col === 'news' || col === 'events') return x.zar ? `<span class="w-[72px] h-12 rounded-lg bg-ubyellow/25 text-amberink grid place-items-center shrink-0">${ic('megaphone', 'w-5 h-5')}</span>` : `<span class="scene w-[72px] h-12 rounded-lg shrink-0">${Scene(x.img)}</span>`;
-  if (col === 'mediaitems') return `<span class="scene w-[72px] h-12 rounded-lg shrink-0">${Scene(x.img)}</span>`;
+  if (col === 'mediaitems' || col === 'banners') return `<span class="scene w-[72px] h-12 rounded-lg shrink-0">${Scene(x.img)}</span>`;
   if (['rubrics', 'ecats', 'pcats'].includes(col)) return `<span class="w-11 h-11 rounded-xl grid place-items-center shrink-0" style="background:${esc(x.c || '#64748B')}22;color:${esc(x.c || '#64748B')}">${ic(x.i || 'tag', 'w-5 h-5')}</span>`;
   if (col === 'history') return `<span class="w-14 h-11 rounded-xl bg-soft grid place-items-center shrink-0 font-extrabold tnum text-[14px]">${esc(x.y || '')}</span>`;
   if (col === 'projects') { const c = PCAT[x.c] || PCAT.transport; return pctRing(Math.round(+x.p || 0), 44, 4.5, c.c, 11); }
@@ -254,6 +267,7 @@ function admMeta(col, x) {
   if (col === 'projects') { const c = PCAT[x.c] || PCAT.transport; return `<span>${esc(L(c.t))}</span><span>${bn(+x.bud || 0)}</span><span>${x.due || ''}</span>`; }
   if (col === 'mediaitems') return `<span>${esc({ video: L(['Видео', 'Video']), live: L(['Шууд', 'Live']), photo: L(['Фото', 'Photo']), podcast: L(['Подкаст', 'Podcast']) }[x.type] || '')}</span>${x.url ? `<span class="inline-flex items-center gap-1">${ic('link', 'w-3.5 h-3.5')}${L(['холбоостой', 'linked'])}</span>` : ''}`;
   if (col === 'sits') return `<span>${(x.steps || []).length} ${L(['алхам', 'steps'])}</span>`;
+  if (col === 'banners') { const th = RAIL_THEMES[x.theme] || RAIL_THEMES.red, st = x.off ? L(['Нуусан', 'Hidden']) : x.to && dayOffset(x.to) < 0 ? L(['Дууссан', 'Ended']) : x.from && dayOffset(x.from) > 0 ? L(['Хүлээгдэж буй', 'Scheduled']) : L(['Идэвхтэй', 'Active']); return `<span class="inline-flex items-center gap-1.5"><i class="w-2 h-2 rounded-full" style="background:${th[0]}"></i>${esc(st)}</span><span>${esc([x.from, x.to].filter(Boolean).join(' → ') || L(['Хугацаагүй', 'No end date']))}</span>`; }
   if (col === 'docs') return `<span>${esc({ res: L(['Тогтоол', 'Resolution']), ord: L(['Захирамж', 'Order']), tender: L(['Тендер', 'Tender']) }[x.kind] || '')}</span><span class="tnum">${esc(x.no || '')}</span><span>${esc(x.date || '')}</span>`;
   if (col === 'menu') return `<span>${(x.items || []).length} ${L(['холбоос', 'links'])}</span>`;
   if (col === 'faq') return `<span class="truncate">${esc(L(x.a || ['', '']).slice(0, 90))}</span>`;
@@ -309,7 +323,8 @@ function admBlankGeneric(col) {
     else if (type === 'icon') d.i = 'file-text';
     else if (type === 'color') d[k] = '#1D5BFF';
     else if (type === 'image') d.img = 'skyline:day:' + rseed();
-    else if (type === 'date') d[k] = isoDay(today());
+    else if (type === 'date') d[k] = o.empty ? '' : isoDay(today());
+    else if (type === 'dest') d[k] = { sec: 'hub' };
     else if (k === 'ord') d.ord = (mergedItems(col).reduce((m, x) => Math.max(m, +x.ord || 0), 0)) + 10;
   });
   if (col === 'rubrics') d.chip = 1;
@@ -330,6 +345,7 @@ function admField(f, doc) {
     case 'datetime': return `<label class="block">${lab}<input type="datetime-local" class="field" data-k="${k}" value="${esc(String(doc[k] || '').replace(' ', 'T'))}"/></label>`;
     case 'url': return `<label class="block">${lab}<input type="url" class="field" data-k="${k}" value="${esc(doc[k] || '')}" placeholder="https://"/></label>`;
     case 'text': return `<label class="block">${lab}<input class="field" data-k="${k}" value="${esc(doc[k] == null ? '' : doc[k])}"/></label>`;
+    case 'dest': { const cur = JSON.stringify(doc[k] || {}), opts = admDests(); if (!opts.some(([v]) => v === cur)) opts.unshift([cur, cur]); return `<label class="block">${lab}<select class="field" data-k="${k}" data-json="1">${opts.map(([v, l]) => `<option value="${esc(v)}" ${v === cur ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>`; }
     case 'color': return `<label class="block">${lab}<span class="flex items-center gap-3"><input type="color" class="w-14 h-11 rounded-lg border border-line bg-card p-1 cursor-pointer" data-k="${k}" value="${esc(/^#[0-9a-f]{6}$/i.test(doc[k] || '') ? doc[k] : '#1D5BFF')}"/><span class="text-[13px] text-muted">${L(['Сайт дээрх тэмдэглэгээ, шүүлтүүрийн өнгө', 'Used for labels and filters on the site'])}</span></span></label>`;
     case 'rows': return `<div>${lab}<div id="rows-${k}" class="space-y-3">${admRows(k, o, doc[k] || [])}</div></div>`;
     case 'flags': return `<div>${lab}<div class="rounded-xl border border-line divide-y divide-line">${o.options.map(([fk, fl]) => `<label class="flex items-center justify-between gap-4 px-4 py-3 cursor-pointer"><span class="text-[14px] font-semibold">${esc(L(fl))}</span><input type="checkbox" class="adm-switch" data-flag="${fk}" ${doc[fk] ? 'checked' : ''}/></label>`).join('')}</div></div>`;
@@ -381,6 +397,7 @@ function admPreview() {
   if (e.col === 'services') return svcTile(Object.assign({}, d, { id: 'prev', t: tt(d.t), d: d.d || ['', ''] }));
   if (e.col === 'projects') { const c = PCAT[d.c] || PCAT.transport; return `<div class="card p-4 flex items-center gap-3">${pctRing(Math.round(+d.p || 0), 56, 6, c.c, 13)}<div class="min-w-0"><p class="text-[12px] font-bold" style="color:${c.c}">${esc(L(c.t))}</p><p class="font-extrabold leading-snug">${esc(L(tt(d.n)))}</p><p class="text-[12.5px] text-muted">${bn(+d.bud || 0)}, ${d.due || ''}</p></div></div>`; }
   if (e.col === 'alerts') return `<div class="ticker rounded-xl p-3 flex items-start gap-2 text-[14px]">${ic(d.i || 'triangle-alert', 'w-4 h-4 mt-0.5')}<span><b>${esc(L(tt(d.k)))}.</b> ${esc(L(d.t || ['', '']))}</span></div>`;
+  if (e.col === 'banners') return `<div class="w-[212px] mx-auto"><div class="rail-stack">${railCard(Object.assign({}, d, { t: tt(d.t) }), { on: true, preview: true })}</div></div>`;
   if (e.col === 'mediaitems') return `<div class="card overflow-hidden"><div class="scene aspect-[16/10]">${Scene(d.img)}</div><div class="p-4"><p class="text-[12px] font-bold text-muted uppercase">${esc(d.type || '')}</p><p class="mt-1 font-bold leading-snug">${esc(L(tt(d.t)))}</p><p class="text-[13px] text-muted">${esc(L(d.d || ['', '']))}</p></div></div>`;
   if (['rubrics', 'ecats', 'pcats'].includes(e.col)) return `<span class="chip"><i class="w-2 h-2 rounded-full" style="background:${esc(d.c || '#1D5BFF')}"></i>${esc(L(tt(d.t)))}</span>`;
   const sc = SCHEMA[e.col];
@@ -421,6 +438,7 @@ function admEditorAfter(sh) {
     if (el.dataset.i != null) { const arr = Array.isArray(e.doc[k]) ? e.doc[k].slice() : ['', '']; arr[+el.dataset.i] = el.value; e.doc[k] = arr; }
     else if (el.type === 'number' || el.type === 'range') { e.doc[k] = el.value === '' ? null : +el.value; const rv = $(`[data-rv="${k}"]`, sh); if (rv) rv.textContent = el.value + '%'; }
     else if (el.type === 'datetime-local') e.doc[k] = el.value.replace('T', ' ');
+    else if (el.dataset.json) { try { e.doc[k] = JSON.parse(el.value); } catch (er) { /* ignore */ } }
     else e.doc[k] = el.value;
     admPrevUpdate();
   });
@@ -567,6 +585,8 @@ function admSettings() {
       <label class="block"><span class="adm-label">${L(['Гол мэдээ', 'Lead story'])}</span><select class="field" data-set="heroId">${opt(HERO_ID, true)}</select></label>
       <label class="block"><span class="adm-label">${L(['«Өнөөдөр хотод» хэсгийн онцлох мэдээ', 'Featured story in "Today in the city"'])}</span><select class="field" data-set="featuredId">${opt(FEATURED_ID, true)}</select></label>
       <div><span class="adm-label">${L(['Засаг даргын мэдээ (3 хүртэл)', "Governor's news (up to 3)"])}</span><div class="rounded-xl border border-line max-h-[260px] overflow-auto thin-scroll divide-y divide-line">${news.map((n) => `<label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer"><input type="checkbox" class="w-[18px] h-[18px] accent-[#1D5BFF]" data-gov="${n.id}" ${GOV.includes(n.id) ? 'checked' : ''}/><span class="text-[14px] leading-snug">${esc(L(n.t))}</span></label>`).join('')}</div></div>
+      <div><span class="adm-label">${L(['Улирлын эффект (мэдээ унших хуудсанд)', 'Seasonal effect (news pages)'])}</span><div class="flex flex-wrap gap-2">${Object.keys(SEASON_L).map((v) => `<button type="button" class="chip !h-9" data-act="adm-season" data-v="${v}" aria-pressed="${((SET && SET.season) || 'auto') === v}">${ic(SEASON_IC[v], 'w-4 h-4')}${esc(L(SEASON_L[v]))}${v === 'auto' ? `<span class="text-muted font-medium">· ${esc(L(SEASON_L[seasonByDate()]))}</span>` : ''}</button>`).join('')}</div>
+        <input type="hidden" data-set="season" value="${esc((SET && SET.season) || 'auto')}"/><p class="mt-2 text-[12.5px] text-muted">${L(['«Автомат» нь огноогоор: 3–5 сар хавар, 6–8 зун, 9–11 намар, 12–2 өвөл.', '"Auto" follows the date: Mar–May spring, Jun–Aug summer, Sep–Nov autumn, Dec–Feb winter.'])}</p></div>
       <label class="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3"><span><b class="block text-[14.5px]">${L(['Яаралтай анхааруулгын мөр', 'Urgent alert ticker'])}</b><span class="text-[13px] text-muted">${L(['Шар гүйдэг мөрийг сайт дээр харуулах', 'Show the yellow ticker on the site'])}</span></span><input type="checkbox" class="adm-switch" data-set="tickerOn" ${SET.tickerOn !== false ? 'checked' : ''}/></label>
       <div><span class="adm-label">${L(['Нүүр хуудасны «Түгээмэл үйлчилгээ» (8 хүртэл, сонгосон дарааллаар)', 'Home page "Popular services" (up to 8, in the order picked)'])}</span><div class="rounded-xl border border-line max-h-[260px] overflow-auto thin-scroll divide-y divide-line">${ALL_SVC.map((x) => `<label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer"><input type="checkbox" class="w-[18px] h-[18px] accent-[#1D5BFF]" data-quick="${esc(x.id)}" ${QUICK.includes(x.id) ? 'checked' : ''}/><span class="text-[14px] leading-snug flex-1">${esc(L(x.t))}</span>${QUICK.includes(x.id) ? `<span class="text-[12px] tnum text-muted">#${QUICK.indexOf(x.id) + 1}</span>` : ''}</label>`).join('')}</div></div>
       <label class="block"><span class="adm-label">${L(['AI туслахын санал болгох асуултууд (мөр бүрд: Монгол | English)', 'Assistant suggestion chips (one per line: Mongolian | English)'])}</span><textarea class="field font-mono !text-[13px]" rows="5" data-setl="chatChips">${esc(linesOf(CHAT_CHIPS))}</textarea></label>
@@ -590,7 +610,7 @@ document.addEventListener('click', async (ev) => {
     case 'adm-logout': await cmsLogout(); toast(L(['Удирдлагаас гарлаа', 'Signed out of admin']), 'log-out'); break;
     case 'adm-inbox-f': ADM.ibf = d.v; renderAdmin(); break;
     case 'adm-sub-del': { if (!armed('sub-' + d.id, el)) break; try { await apiCall('/submissions/' + encodeURIComponent(d.id), { method: 'DELETE' }); ADM.inbox = (ADM.inbox || []).filter((x) => x.id !== d.id); renderAdmin(); toast(L(['Устгалаа', 'Deleted']), 'trash-2'); } catch (e) { toast(cmsErr(e), 'triangle-alert'); } break; }
-    case 'adm-go': ADM.view = d.v; ADM.q = ''; ADM.f = 'all'; renderAdmin(); window.scrollTo(0, 0); break;
+    case 'adm-go': ADM.view = d.v; ADM.q = ''; ADM.f = 'all'; renderAdmin(); window.scrollTo(0, 0); setHash(admHash()); break;
     case 'adm-new': if (d.col) { ADM.view = d.col; renderAdmin(); } admOpen(d.col || ADM.view); break;
     case 'adm-edit': admOpen(d.col, d.id); break;
     case 'adm-filter': ADM.f = d.v; renderAdmin(); break;
@@ -608,8 +628,9 @@ document.addEventListener('click', async (ev) => {
     case 'adm-revert': { const e = ADM.edit; if (!e) break; try { await cmsRevert(e.col, e.id, SCHEMA[e.col].title(e.doc)); closeModal(); toast(L(['Анхны хувилбарт буцаалаа', 'Reverted to the original']), 'rotate-ccw'); } catch (er) { toast(cmsErr(er), 'triangle-alert'); } break; }
     case 'adm-tsave': { const k = d.k, mn = $(`[data-tk="${k}"][data-ti="0"]`).value, en = $(`[data-tk="${k}"][data-ti="1"]`).value; el.disabled = true; try { await cmsSave('texts', k, { mn, en }, k, 'update'); $$(`[data-trow="${k}"] [data-tdirty]`).forEach((x) => x.removeAttribute('data-tdirty')); toast(L(['Текст шинэчлэгдлээ', 'Text updated']), 'circle-check'); } catch (er) { el.disabled = false; toast(cmsErr(er), 'triangle-alert'); } break; }
     case 'adm-treset': try { await cmsRevert('texts', d.k, d.k); toast(L(['Анхны утгад буцлаа', 'Default restored']), 'rotate-ccw'); } catch (er) { toast(cmsErr(er), 'triangle-alert'); } break;
+    case 'adm-season': $$('[data-act="adm-season"]').forEach((b) => b.setAttribute('aria-pressed', String(b === el))); $('[data-set="season"]').value = d.v; break;
     case 'adm-set-save': { const gov = $$('[data-gov]').filter((x) => x.checked).map((x) => x.dataset.gov).slice(0, 3); const prevQ = QUICK.slice(), picked = $$('[data-quick]').filter((x) => x.checked).map((x) => x.dataset.quick), quick = prevQ.filter((id) => picked.includes(id)).concat(picked.filter((id) => !prevQ.includes(id))).slice(0, 8);
-      const body = { heroId: $('[data-set="heroId"]').value, featuredId: $('[data-set="featuredId"]').value, gov, tickerOn: $('[data-set="tickerOn"]').checked, quick, chatChips: $('[data-setl="chatChips"]').value, popSearch: $('[data-setl="popSearch"]').value }; try { await cmsSave('settings', 'main', body, L(['Тохиргоо', 'Settings']), 'update'); toast(L(['Тохиргоо хадгалагдлаа', 'Settings saved']), 'circle-check'); } catch (er) { toast(cmsErr(er), 'triangle-alert'); } break; }
+      const body = { heroId: $('[data-set="heroId"]').value, featuredId: $('[data-set="featuredId"]').value, gov, tickerOn: $('[data-set="tickerOn"]').checked, season: ($('[data-set="season"]') || {}).value || 'auto', quick, chatChips: $('[data-setl="chatChips"]').value, popSearch: $('[data-setl="popSearch"]').value }; try { await cmsSave('settings', 'main', body, L(['Тохиргоо', 'Settings']), 'update'); toast(L(['Тохиргоо хадгалагдлаа', 'Settings saved']), 'circle-check'); } catch (er) { toast(cmsErr(er), 'triangle-alert'); } break; }
     case 'adm-wipe': { if (!armed('wipe', el)) break; el.disabled = true; try { for (const c of CMS_COLS) for (const id of Object.keys(CMS.data[c] || {})) await cmsDelete(c, id); toast(L(['Сайт анхны агуулгадаа буцлаа', 'The site is back to its original content']), 'rotate-ccw'); } catch (er) { toast(cmsErr(er), 'triangle-alert'); } el.disabled = false; break; }
     default: break;
   }

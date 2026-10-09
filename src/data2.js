@@ -228,6 +228,17 @@ const PAYMENTS = [{ id: 'pay1', t: ['Хог хаягдлын төлбөр, 10-р
 const POLL = [['Гудамжны гэрэлтүүлэг', 'Street lighting', 1840], ['Хүүхдийн тоглоомын талбай', 'Playgrounds', 2310], ['Явган хүний зам', 'Footpaths', 1460], ['Ногоон байгууламж', 'Green space', 1190], ['Хяналтын камер', 'Safety cameras', 870]];
 const TOPICS = [['plan', 'Улаанбаатар 2040', 'Ulaanbaatar 2040'], ['road', 'Зам, тээвэр', 'Roads and transport'], ['green', 'Ногоон байгууламж', 'Green space'], ['safety', 'Аюулгүй байдал', 'Safety'], ['other', 'Бусад', 'Other']];
 
+/* ================= Босоо баннер: өргөн дэлгэцийн баруун хоосон зайд (sections.js renderRail, admin «Босоо баннер») ================= */
+const RAIL_THEMES = { red: ['#D81E34', '#7A0D20'], navy: ['#1A3576', '#070F26'], blue: ['#1D5BFF', '#0A2A8C'], green: ['#0EA068', '#04573A'], gold: ['#E9A213', '#8F5200'] };
+const RAIL_THEME_L = { red: ['Улаан', 'Red'], navy: ['Хар хөх', 'Navy'], blue: ['Цэнхэр', 'Blue'], green: ['Ногоон', 'Green'], gold: ['Алтан', 'Gold'] };
+const BANNERS = [
+  { id: 'b1', ord: 10, theme: 'red', img: 'skyline:dawn:21', tag: ['2026 он', '2026'], t: ['Бизнес эрхлэгчдийг дэмжих жил', 'Year of Supporting Entrepreneurs'],
+    d: ['Бизнесээ эхлүүлэх алхмууд, хөнгөлөлт, зөвлөгөө нэг дор.', 'Steps to start a business, incentives and advice in one place.'], btn: ['Алхмуудыг үзэх', 'See the steps'], act: 'go', go: { sec: 'situations', sit: 'business' }, from: '', to: '' },
+  { id: 'b2', ord: 20, theme: 'navy', img: 'park:green:57', tag: ['Санал асуулга', 'Poll'], t: ['Таны хороонд юу хэрэгтэй вэ?', 'What does your khoroo need?'],
+    d: ['2027 оны хорооны хөгжлийн сангийн санал асуулга нээлттэй байна.', 'The 2027 khoroo development fund poll is open.'], btn: ['Санал өгөх', 'Have your say'], act: 'vote', from: '',
+    to: (() => { const d = addDays(today(), 23); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })() },
+];
+
 /* ================= Chat (fallback answers) ================= */
 const FAQ = [
   { re: /халуун ус|hot water|ус тасар|усгүй/i, a: ['Баянзүрх дүүргийн 4, 5, 26-р хороонд {t+2} – {t+4} хооронд шугамын засвартай тул халуун ус тасарна. Бусад хороонд хэвийн. Ус нөөцлөхийг зөвлөж байна.', 'Hot water is off in Bayanzürkh khoroos 4, 5 and 26 from {t+2} to {t+4} for pipe repairs. Other khoroos are not affected. Store some water ahead.'], acts: ['alerts'] },

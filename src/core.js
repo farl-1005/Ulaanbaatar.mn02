@@ -30,6 +30,19 @@ function animIcon(name, c = 'w-6 h-6') {
   return ic(name, c);
 }
 animIcon.n = 0;
+/* Хөдөлгөөнт гал («Шуурхай мэдээ»): 3 давхар дөл тус бүр өөр хэмнэлээр найгана, ард нь гэрэлтэлт, дээш хөөрөх оч. input.css .fire-* */
+function fireIcon(cls = 'w-[22px] h-[28px]') {
+  const n = ++animIcon.n, g = (id, a, b) => `<linearGradient id="${id}${n}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
+  return `<svg class="fire ${cls} shrink-0" viewBox="0 0 24 30" aria-hidden="true" focusable="false"><defs>
+    <radialGradient id="fg${n}" cx="50%" cy="62%" r="52%"><stop offset="0" stop-color="#FFB020" stop-opacity=".6"/><stop offset=".55" stop-color="#FF6A13" stop-opacity=".22"/><stop offset="1" stop-color="#FF5A1F" stop-opacity="0"/></radialGradient>
+    ${g('fo', '#FF7A1A', '#E3262E')}${g('fm', '#FFB224', '#FF6A13')}${g('fi', '#FFF6D2', '#FFD45C')}</defs>
+    <g class="fire-ign"><ellipse class="fire-glow" cx="12" cy="20" rx="12" ry="10" fill="url(#fg${n})"/><g class="fire-body">
+      <path class="fire-o" fill="url(#fo${n})" d="M12.3 1.2C12.8 5 15.9 7.2 17.8 10.2C19.4 12.7 20.2 15.3 20.2 18.2C20.2 24.1 16.6 28.5 12 28.5C7.4 28.5 3.8 24.6 3.8 19C3.8 15.7 5.2 13.1 7.1 11.1C7.3 13.3 8.2 14.7 9.5 15.5C9 10.6 10 5.9 12.3 1.2Z"/>
+      <path class="fire-m" fill="url(#fm${n})" d="M12.4 9.2C13 12 15.4 13.9 16.4 16.4C17 17.8 17.2 19 17.2 20.4C17.2 24.3 14.9 26.9 12 26.9C9.1 26.9 6.8 24.6 6.8 21.3C6.8 19.2 7.7 17.6 8.9 16.4C9.1 17.8 9.7 18.7 10.6 19.2C10.3 15.8 10.9 12.4 12.4 9.2Z"/>
+      <path class="fire-i" fill="url(#fi${n})" d="M12.3 15.6C12.8 17.5 14.6 18.9 14.6 21.9C14.6 24.1 13.4 25.5 12 25.5C10.6 25.5 9.4 24.3 9.4 22.4C9.4 20.8 10.3 19.8 11 18.9C11.2 19.9 11.6 20.4 12 20.6C11.8 19 11.9 17.2 12.3 15.6Z"/>
+    </g></g>
+    <circle class="fire-ember e1" cx="8.5" cy="16" r=".95" fill="#FFC524"/><circle class="fire-ember e2" cx="15.5" cy="14" r=".8" fill="#FF8A1F"/><circle class="fire-ember e3" cx="12" cy="10.5" r=".65" fill="#FFE37A"/></svg>`;
+}
 
 /* ================= State ================= */
 const S = {
@@ -343,7 +356,7 @@ function renderHeader() {
   /* Цэс: хөвөгч «dock» капсул. Шингэн тодруулга, гэрэлтэх хүрээ, доод ирмэгт уншилтын явцыг харуулах алхан хээ (setupNav). */
   const navBtn = (m, i) => `<li class="flex"><button type="button" class="nav-btn" data-menu="${i}" data-sec="${esc(m.sec)}" aria-expanded="false" aria-haspopup="true"><span>${menuLabel(m)}</span>${ic('chevron-down', 'nav-chev w-3.5 h-3.5')}</button></li>`;
   const ctaBtn = (act, cls, icon, label) => `<button type="button" class="cta-pill ${cls}" data-act="${act}" aria-label="${esc(label)}" title="${esc(label)}"><span class="cta-pill-ic">${animIcon(icon, 'w-[18px] h-[18px]')}</span><span class="cta-pill-t">${label}</span></button>`;
-  $('#hdr-nav').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8"><nav class="dock" id="navbar" aria-label="Main"><div class="dock-in">
+  $('#hdr-nav').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8"><nav class="dock" id="navbar" aria-label="Main"><span class="dock-glass" aria-hidden="true"><i></i></span><div class="dock-in">
     <button type="button" data-act="home" class="mini-logo shrink-0" tabindex="-1" aria-hidden="true">${logoEmblem('w-[34px] h-[34px]')}</button>
     <ul class="dock-items" id="nav-items"><li class="nav-pill" id="nav-pill" aria-hidden="true"></li>${MENU.map(navBtn).join('')}</ul>
     <div class="ml-auto flex items-center gap-2 pl-3 shrink-0">
@@ -429,8 +442,20 @@ function setupNav() {
 let dockRaf = 0;
 function dockProgress() {
   const n = $('#navbar'); if (!n) return;
-  const h = document.documentElement.scrollHeight - innerHeight;
+  const h = document.documentElement.scrollHeight - innerHeight, w = n.offsetWidth;
   n.style.setProperty('--prog', S.route === 'home' && h > 0 ? Math.min(1, Math.max(0, scrollY / h)).toFixed(4) : '0');
+  n.style.setProperty('--gx', Math.round((scrollY * 0.45) % (w + 480) - 240) + 'px');   // шилэн дээгүүр гулсах туяа: гүйлгэх тусам зүүнээс баруун тийш
+  // Adaptive glass: цэсийн доорх хэсэг бараан бол шил бараан, бичиг цагаан болно
+  let dark = false;
+  if (n.classList.contains('stuck')) { const r = n.getBoundingClientRect(); dark = isDarkBg(document.elementFromPoint(r.left + r.width / 2, r.bottom + 8)); }
+  n.classList.toggle('on-dark', dark);
+}
+function isDarkBg(el) {   // хамгийн ойрын тунгалаг бус дэвсгэрийн гэрэлтэлт
+  for (; el && el !== document.documentElement; el = el.parentElement) {
+    const m = getComputedStyle(el).backgroundColor.match(/[\d.]+/g);
+    if (m && (m.length < 4 || +m[3] > 0.5)) return (0.2126 * m[0] + 0.7152 * m[1] + 0.0722 * m[2]) / 255 < 0.42;
+  }
+  return false;
 }
 window.addEventListener('scroll', () => { if (!dockRaf) dockRaf = requestAnimationFrame(() => { dockRaf = 0; dockProgress(); }); }, { passive: true });
 function setActiveNav(sec) {
@@ -613,7 +638,7 @@ function setRoute(r) {
   $('#view-home').hidden = r !== 'home'; $('#view-my').hidden = r !== 'my'; $('#view-admin').hidden = r !== 'admin'; $('#view-news').hidden = r !== 'news';
   if (was === 'news' && r !== 'news') document.title = siteTitle();
   if (r === 'my') { renderMy(); window.scrollTo(0, 0); setHash('my'); }
-  else if (r === 'admin') { renderAdmin(); window.scrollTo(0, 0); setHash('admin'); }
+  else if (r === 'admin') { renderAdmin(); window.scrollTo(0, 0); setHash(admHash()); }
   else if (r === 'news') { renderNewsPage(); window.scrollTo(0, 0); }
   else {
     if (PRETTY && location.pathname !== '/') { try { history.pushState(null, '', '/'); } catch (e) { /* ignore */ } }   // /news/<id>-ээс нүүр рүү: "Буцах" дарахад мэдээ рүүгээ буцна
@@ -621,6 +646,7 @@ function setRoute(r) {
     if (was === 'admin') renderAll(); else initTabs($('#view-home'));
     if (was === 'news' && S.homeY != null) window.scrollTo(0, S.homeY);   // мэдээнээс буцахад нүүрний байрлалаа сэргээнэ
   }
+  if (r !== 'news') renderSeason(false);   // улирлын эффект зөвхөн мэдээ унших хуудсанд (if/else гинжийн ГАДНА)
   setActiveNav(r === 'my' ? 'my' : r === 'news' ? 'hub' : 'hero');
 }
 function headerOffset() { const nav = $('#hdr-nav'), band = $('#hdr-band'); const h = innerWidth >= 1024 ? (nav ? nav.offsetHeight : 60) : (band ? band.offsetHeight : 56); return h + 14; }

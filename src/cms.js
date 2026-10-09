@@ -3,7 +3,7 @@
    artifact's shared db (cms/site/<collection>/<id>, admin-only writes, live for
    every signed-in viewer) or, outside claude.ai, this browser's storage. */
 const CMS_COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
-  'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq'];
+  'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners'];
 const cloneJ = (x) => JSON.parse(JSON.stringify(x));
 const dISO = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const linesOf = (pairs) => pairs.map((p) => p[0] + ' | ' + (p[1] || '')).join('\n');
@@ -20,9 +20,10 @@ const DEF_TAX = { city: cloneJ(RUB.city), zar: cloneJ(RUB.zar), civic: cloneJ(EC
 const DEF = {
   news: NEWS.map((n) => { const c = cloneJ(n); delete c.ts; delete c.ago; return c; }),
   alerts: cloneJ(ALERTS), events: cloneJ(EVENTS), projects: cloneJ(PROJECTS), services: cloneJ(ALL_SVC), texts: cloneJ(I),
-  settings: { heroId: HERO_ID, featuredId: FEATURED_ID, gov: GOV.slice(), tickerOn: true, quick: QUICK.slice(), chatChips: linesOf(CHAT_CHIPS), popSearch: linesOf(SQ_POP) },
+  settings: { heroId: HERO_ID, featuredId: FEATURED_ID, gov: GOV.slice(), tickerOn: true, season: 'auto', quick: QUICK.slice(), chatChips: linesOf(CHAT_CHIPS), popSearch: linesOf(SQ_POP) },
   // Сайтын бусад бүх агуулга (admin-аас засагдана). ord: жагсаалтын дараалал.
   mediaitems: MEDIA.map((m, i) => Object.assign({ id: 'm' + (i + 1), ord: (i + 1) * 10 }, cloneJ(m))),
+  banners: cloneJ(BANNERS),
   sits: SITS.map((x, i) => Object.assign({ ord: (i + 1) * 10 }, cloneJ(x))),
   docs: Object.keys(DOCS).flatMap((kind) => DOCS[kind].map((d, i) => { const x = Object.assign({ id: kind + (i + 1), kind }, cloneJ(d), { date: dISO(addDays(today(), -(d.ago || 0))) }); if (kind === 'tender') x.due = d.left ? dISO(addDays(today(), d.left)) : ''; delete x.ago; delete x.left; return x; })),
   struct: STRUCT.map((x, i) => Object.assign({ id: 'st' + (i + 1), ord: (i + 1) * 10 }, cloneJ(x))),
@@ -64,6 +65,7 @@ function applyOverlay() {
   setTaxonomy(PCAT, mergedItems('pcats'), 'transport', (x) => ({ i: x.i || 'hard-hat' }));
   // Агуулгын жагсаалтууд
   MEDIA.splice(0, MEDIA.length, ...byOrd(mergedItems('mediaitems')));
+  BANNERS.splice(0, BANNERS.length, ...byOrd(mergedItems('banners')));
   SITS.splice(0, SITS.length, ...byOrd(mergedItems('sits')).map((x) => Object.assign(x, { steps: (x.steps || []).filter((st) => st && st.t && (st.t[0] || st.t[1])) })));
   if (SITS.length && !SITS.find((x) => x.id === S.sit)) S.sit = SITS[0].id;
   const docs = mergedItems('docs');
