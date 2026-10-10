@@ -1052,7 +1052,8 @@ function init() {
   else if (urlPage()) { S.page = urlPage(); if (S.page === 'services') S.hub = 'services'; setRoute('page'); }
   else if (h === 'my' && S.user) setRoute('my');
   else if (h === 'admin' || h.startsWith('admin/')) { admFromHash(h); setRoute('admin'); }
-  else if (['hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency', 'about'].includes(h)) setTimeout(() => scrollToSec(h), 450);
+  else if (PAGE_ONLY.includes(h)) openPage(h, { sec: h });   // хуучин /#about холбоос
+  else if (['hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency'].includes(h)) setTimeout(() => scrollToSec(h), 450);
   window.addEventListener('resize', debounce(() => initTabs(), 150));
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { initTabs(); const nav = $('#navbar'); if (nav && nav._moveInd) setActiveNav(currentSec); });
   setTimeout(showChatTip, 6500);

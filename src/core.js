@@ -258,9 +258,9 @@ const MENU = [
     { i: 'stamp', t: ['Захирамж, шийдвэр', 'Orders and decisions'], d: ['Засаг даргын захирамж, шийдвэрүүд', "The Governor's orders"], go: { sec: 'transparency', tr: 'ord' } },
     { i: 'gavel', t: ['Тендер', 'Tenders'], d: ['Нээлттэй тендер, гэрээ, үр дүн', 'Open tenders, contracts, results'], go: { sec: 'transparency', tr: 'tender' } } ] },
   { k: 'nav_about', sec: 'about', items: [
-    { i: 'calendar-clock', t: ['Засаг дарга', 'The Governor'], d: ['Ажлын хуваарь, уулзалт, мэдээ', 'Schedule, meetings and news'], go: { sec: 'gov' } },
-    { i: 'landmark', t: ['Удирдлага', 'Leadership'], d: ['Хотын удирдлагын бүтэц', 'How the city is governed'], go: { sec: 'about' } },
-    { i: 'network', t: ['Харьяа байгууллагууд', 'City agencies'], d: ['Нийслэлийн агентлаг, газрууд', 'Agencies and departments'], go: { sec: 'about', hl: 'orgs' } } ] },
+    { i: 'info', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн товч танилцуулга, үндсэн баримт', 'The capital at a glance'], go: { sec: 'about' } },
+    { i: 'network', t: ['Удирдлагын бүтэц', 'How the city is governed'], d: ['ИТХ, Засаг дарга, Тамгын газар, дүүргүүд', 'Council, Governor, City Hall, districts'], go: { sec: 'about', hl: 'leadership' } },
+    { i: 'history', t: ['Засаг захиргааны нэрийн түүх', 'A century of city administration'], d: ['1924 оноос хойших нэрийн өөрчлөлт', 'Every name since 1924'], go: { sec: 'about', hl: 'adminhist' } } ] },
 ];
 function goAttrs(go) { return Object.entries(go).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' '); }
 /* Цэсийн холбоос: сайтын хэсэг (go) эсвэл гадаад хаяг (href). Admin-ы «Үндсэн цэс»-ээс засагдана. */
@@ -693,6 +693,7 @@ const PAGES = {
 /* Хуудасны гарчиг: tk бол цэсний нэртэй ижил (жишээ нь «24 мега төсөл») */
 const pgT = (P) => (P.tk ? t(P.tk, { n: PROJECTS.length }) : L(P.t));
 /* Цэсийн «go» холбоос аль хуудас руу очих вэ (нүүрний hero бол null) */
+const PAGE_ONLY = ['about'];   // нүүрэнд харагдахгүй, зөвхөн өөрийн хуудсанд (template.html-д hidden)
 function pageOf(o) {
   if (!o || !o.sec || o.sec === 'hero') return null;
   if (o.sec === 'hub') return o.hub === 'services' ? 'services' : o.hub === 'events' ? 'events' : 'news';
@@ -738,7 +739,7 @@ function pageView(on) {
   const home = $('#view-home'), P = on && PAGES[S.page];
   home.classList.toggle('page-mode', !!P); home.classList.toggle('pg-hide', !!(P && P.hide)); home.classList.toggle('pg-dark', !!(P && P.dark));
   $$(':scope > section', home).forEach((s) => {
-    s.hidden = P ? !(s.id === 'page-hero' || P.secs.includes(s.id)) : s.id === 'page-hero';
+    s.hidden = P ? !(s.id === 'page-hero' || P.secs.includes(s.id)) : s.id === 'page-hero' || PAGE_ONLY.includes(s.id);
     s.classList.toggle('pg-first', !!P && s.id === P.secs[0]);
   });
 }
