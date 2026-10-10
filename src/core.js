@@ -236,13 +236,13 @@ function toast(msg, icon = 'circle-check') {
 }
 
 /* ================= Navigation model ================= */
+/* Дараалал: Хотын тухай, Мэдээ, 24 мега төсөл, Үйлчилгээ, Ил тод байдал, Хотын өгөгдөл. id нь admin-ы засварыг (cms menu) байрлалаас үл хамааран холбоно. */
 const MENU = [
-  { k: 'nav_services', sec: 'situations', items: [
-    { i: 'route', t: ['Амьдралын нөхцөл', 'Life events'], d: ['Хүүхэд төрөх, гэрлэх, бизнес эхлүүлэх үед хэрэгтэй бүх алхам', 'Every step for a new baby, marriage or a new business'], go: { sec: 'situations' } },
-    { i: 'user-round', t: ['Иргэн', 'Residents'], d: ['Лавлагаа, тэтгэмж, төлбөр, бүртгэл', 'Certificates, benefits, payments, registration'], go: { sec: 'hub', hub: 'services', svc: 'citizen' } },
-    { i: 'briefcase', t: ['Аж ахуйн нэгж', 'Businesses'], d: ['Зөвшөөрөл, тендер, газар эзэмшил', 'Permits, tenders, land use'], go: { sec: 'hub', hub: 'services', svc: 'business' } },
-    { i: 'monitor-smartphone', t: ['Цахим системүүд', 'E-services'], d: ['Хотын бүх цахим үйлчилгээ нэг дор', 'All city e-services in one place'], go: { sec: 'hub', hub: 'services', svc: 'esys' } } ] },
-  { k: 'nav_news', sec: 'hub', items: [
+  { id: 'menu6', k: 'nav_about', sec: 'about', items: [
+    { i: 'info', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн товч танилцуулга, үндсэн баримт', 'The capital at a glance'], go: { sec: 'about' } },
+    { i: 'network', t: ['Удирдлагын бүтэц', 'How the city is governed'], d: ['ИТХ, Засаг дарга, Тамгын газар, дүүргүүд', 'Council, Governor, City Hall, districts'], go: { sec: 'about', hl: 'leadership' } },
+    { i: 'history', t: ['Засаг захиргааны нэрийн түүх', 'A century of city administration'], d: ['1924 оноос хойших нэрийн өөрчлөлт', 'Every name since 1924'], go: { sec: 'about', hl: 'adminhist' } } ] },
+  { id: 'menu2', k: 'nav_news', sec: 'hub', items: [
     { i: 'newspaper', t: ['Бүх мэдээ', 'All news'], d: ['Хотын захиргаа, дүүрэг, байгууллагын мэдээ', 'From City Hall, districts and agencies'], go: { sec: 'hub', hub: 'news', cat: 'all', nt: 'all' } },
     { i: 'clock-3', t: ['Цаг үеийн мэдээ', 'Current news'], d: ['Нийслэлийн удирдлага, хотын өдөр тутмын мэдээ', 'Daily news from City Hall'], go: { sec: 'hub', hub: 'news', nt: 'time' } },
     { i: 'building-2', t: ['Харьяа газрын мэдээ', 'Agency news'], d: ['Нийслэлийн харьяа газар, агентлагуудын мэдээ', 'News from city agencies and departments'], go: { sec: 'hub', hub: 'news', nt: 'place' } },
@@ -250,20 +250,21 @@ const MENU = [
     { i: 'megaphone', t: ['Зар', 'Notices'], d: ['Хуваарь, хаалт, ажлын байр, мэдэгдэл', 'Schedules, closures, jobs, announcements'], go: { sec: 'hub', hub: 'news', cat: 'zar' } },
     { i: 'calendar-days', t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ', 'Culture, sport and civic events'], go: { sec: 'events' } },
     { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Live, фото сурвалжилга, постер, подкаст', 'Live, photo reports, posters, podcasts'], go: { sec: 'media' } } ] },
-  { k: 'nav_build', sec: 'projects', items: [
+  { id: 'menu3', k: 'nav_build', sec: 'projects', items: [
     { i: 'hard-hat', t: ['24 мега төсөл', '24 flagship projects'], d: ['Төсөл бүрийн гүйцэтгэл, төсөв, хугацаа', 'Progress, budget and timeline for each'], go: { sec: 'projects' } },
     { i: 'map-pinned', t: ['Газрын зураг', 'Map'], d: ['Бүх төслийг газрын зураг дээр', 'Every project on the map'], go: { sec: 'projects', focus: 'map' } } ] },
-  { k: 'nav_data', sec: 'data', items: [
-    { i: 'activity', t: ['Бодит цагийн самбар', 'Live dashboard'], d: ['Агаар, түгжрэл, цаг агаар', 'Air, traffic and weather'], go: { sec: 'data' } },
-    { i: 'chart-column', t: ['Статистик', 'Statistics'], d: ['Хүн ам, төсөв, нийгмийн үзүүлэлт', 'Population, budget, social indicators'], go: { sec: 'data', hl: 'pop' } } ] },
-  { k: 'nav_open', sec: 'transparency', items: [
+  { id: 'menu1', k: 'nav_services', sec: 'situations', items: [
+    { i: 'route', t: ['Амьдралын нөхцөл', 'Life events'], d: ['Хүүхэд төрөх, гэрлэх, бизнес эхлүүлэх үед хэрэгтэй бүх алхам', 'Every step for a new baby, marriage or a new business'], go: { sec: 'situations' } },
+    { i: 'user-round', t: ['Иргэн', 'Residents'], d: ['Лавлагаа, тэтгэмж, төлбөр, бүртгэл', 'Certificates, benefits, payments, registration'], go: { sec: 'hub', hub: 'services', svc: 'citizen' } },
+    { i: 'briefcase', t: ['Аж ахуйн нэгж', 'Businesses'], d: ['Зөвшөөрөл, тендер, газар эзэмшил', 'Permits, tenders, land use'], go: { sec: 'hub', hub: 'services', svc: 'business' } },
+    { i: 'monitor-smartphone', t: ['Цахим системүүд', 'E-services'], d: ['Хотын бүх цахим үйлчилгээ нэг дор', 'All city e-services in one place'], go: { sec: 'hub', hub: 'services', svc: 'esys' } } ] },
+  { id: 'menu5', k: 'nav_open', sec: 'transparency', items: [
     { i: 'scroll-text', t: ['Тогтоол', 'Resolutions'], d: ['Нийслэлийн ИТХ-ын тогтоолууд', 'City Council resolutions'], go: { sec: 'transparency', tr: 'res' } },
     { i: 'stamp', t: ['Захирамж, шийдвэр', 'Orders and decisions'], d: ['Засаг даргын захирамж, шийдвэрүүд', "The Governor's orders"], go: { sec: 'transparency', tr: 'ord' } },
     { i: 'gavel', t: ['Тендер', 'Tenders'], d: ['Нээлттэй тендер, гэрээ, үр дүн', 'Open tenders, contracts, results'], go: { sec: 'transparency', tr: 'tender' } } ] },
-  { k: 'nav_about', sec: 'about', items: [
-    { i: 'info', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн товч танилцуулга, үндсэн баримт', 'The capital at a glance'], go: { sec: 'about' } },
-    { i: 'network', t: ['Удирдлагын бүтэц', 'How the city is governed'], d: ['ИТХ, Засаг дарга, Тамгын газар, дүүргүүд', 'Council, Governor, City Hall, districts'], go: { sec: 'about', hl: 'leadership' } },
-    { i: 'history', t: ['Засаг захиргааны нэрийн түүх', 'A century of city administration'], d: ['1924 оноос хойших нэрийн өөрчлөлт', 'Every name since 1924'], go: { sec: 'about', hl: 'adminhist' } } ] },
+  { id: 'menu4', k: 'nav_data', sec: 'data', items: [
+    { i: 'activity', t: ['Бодит цагийн самбар', 'Live dashboard'], d: ['Агаар, түгжрэл, цаг агаар', 'Air, traffic and weather'], go: { sec: 'data' } },
+    { i: 'chart-column', t: ['Статистик', 'Statistics'], d: ['Хүн ам, төсөв, нийгмийн үзүүлэлт', 'Population, budget, social indicators'], go: { sec: 'data', hl: 'pop' } } ] },
 ];
 function goAttrs(go) { return Object.entries(go).map(([k, v]) => `data-${k}="${esc(v)}"`).join(' '); }
 /* Цэсийн холбоос: сайтын хэсэг (go) эсвэл гадаад хаяг (href). Admin-ы «Үндсэн цэс»-ээс засагдана. */
@@ -389,14 +390,14 @@ function renderHeader() {
 }
 function megaHTML(i) {
   const m = MENU[i];
-  const feat = ([
-    () => { const s = SITS[0]; if (!s) return ''; return `<p class="text-[13px] text-muted">${t('s_sits')}</p><p class="mt-1 text-[17px] font-extrabold">${esc(L(s.t))}</p><p class="mt-1 text-[13.5px] text-muted">${t('stepsOnline', { n: s.steps.length, o: s.steps.filter((x) => x.m === 'on').length })}</p><button type="button" class="btn btn-sm btn-ink mt-4" data-act="go" data-sec="situations" data-sit="${esc(s.id)}">${t('sitPromoB')}</button>`; },
-    () => { const n = NEWS_BY[HERO_ID]; if (!n) return ''; return `<div class="scene rounded-xl aspect-[16/9]">${Scene(n.img)}</div><p class="mt-3 text-[14.5px] font-bold leading-snug line-clamp-3">${esc(L(n.t))}</p><button type="button" class="mt-2 text-[13px] font-bold text-ubblue" data-act="news" data-id="${HERO_ID}">${t('read')}</button>`; },
-    () => { const p = PROJECTS[0]; if (!p || !PCAT[p.c]) return ''; return `<div class="flex items-center gap-4">${ring(p.p, 64, 7, PCAT[p.c].c)}<div><p class="text-[13px] text-muted">${esc(L(PCAT[p.c].t))}</p><p class="font-extrabold leading-snug">${esc(L(p.n))}</p><p class="text-[22px] font-extrabold tnum">${p.p}%</p></div></div><button type="button" class="btn btn-sm btn-ink mt-4" data-act="go" data-sec="projects" data-pid="p1">${t('showOnMap')}</button>`; },
-    () => { const c = aqiCat(S.aqi); return `<p class="text-[13px] text-muted">${t('aqi')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1"><span data-live="aqi">${S.aqi}</span></p><p class="font-semibold mt-1" style="color:${c.c}">${t(c.k)}</p><p class="text-[13px] text-muted mt-2">${t('updated')} <span class="tnum" data-live="clock">${clock()}</span></p>`; },
-    () => `<p class="text-[13px] text-muted">${t('trStat2')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">37</p><p class="text-[13.5px] text-muted mt-2">${t('trStat1')}: <b class="text-ink tnum">1 248</b></p>`,
-    () => `<p class="text-[13px] text-muted">${t('founded')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">1639</p><p class="text-[13.5px] text-muted mt-2">${t('adminV')}</p>`,
-  ][i] || (() => ''))();
+  const feat = ({   // цэс бүрийн баруун талын онцлох хэсэг (түлхүүрээр)
+    nav_services: () => { const s = SITS[0]; if (!s) return ''; return `<p class="text-[13px] text-muted">${t('s_sits')}</p><p class="mt-1 text-[17px] font-extrabold">${esc(L(s.t))}</p><p class="mt-1 text-[13.5px] text-muted">${t('stepsOnline', { n: s.steps.length, o: s.steps.filter((x) => x.m === 'on').length })}</p><button type="button" class="btn btn-sm btn-ink mt-4" data-act="go" data-sec="situations" data-sit="${esc(s.id)}">${t('sitPromoB')}</button>`; },
+    nav_news: () => { const n = NEWS_BY[HERO_ID]; if (!n) return ''; return `<div class="scene rounded-xl aspect-[16/9]">${Scene(n.img)}</div><p class="mt-3 text-[14.5px] font-bold leading-snug line-clamp-3">${esc(L(n.t))}</p><button type="button" class="mt-2 text-[13px] font-bold text-ubblue" data-act="news" data-id="${HERO_ID}">${t('read')}</button>`; },
+    nav_build: () => { const p = PROJECTS[0]; if (!p || !PCAT[p.c]) return ''; return `<div class="flex items-center gap-4">${ring(p.p, 64, 7, PCAT[p.c].c)}<div><p class="text-[13px] text-muted">${esc(L(PCAT[p.c].t))}</p><p class="font-extrabold leading-snug">${esc(L(p.n))}</p><p class="text-[22px] font-extrabold tnum">${p.p}%</p></div></div><button type="button" class="btn btn-sm btn-ink mt-4" data-act="go" data-sec="projects" data-pid="p1">${t('showOnMap')}</button>`; },
+    nav_data: () => { const c = aqiCat(S.aqi); return `<p class="text-[13px] text-muted">${t('aqi')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1"><span data-live="aqi">${S.aqi}</span></p><p class="font-semibold mt-1" style="color:${c.c}">${t(c.k)}</p><p class="text-[13px] text-muted mt-2">${t('updated')} <span class="tnum" data-live="clock">${clock()}</span></p>`; },
+    nav_open: () => `<p class="text-[13px] text-muted">${t('trStat2')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">37</p><p class="text-[13.5px] text-muted mt-2">${t('trStat1')}: <b class="text-ink tnum">1 248</b></p>`,
+    nav_about: () => `<p class="text-[13px] text-muted">${t('founded')}</p><p class="text-[40px] leading-none font-extrabold tnum mt-1">1639</p><p class="text-[13.5px] text-muted mt-2">${t('adminV')}</p>`,
+  }[m.k] || (() => ''))();
   return `<div class="p-4 xl:p-5 grid grid-cols-12 gap-4 xl:gap-5">
     <div class="col-span-8 grid grid-cols-2 gap-1 content-start">${m.items.map((it, k) => `<button type="button" class="mega-item" style="--i:${k}" ${itemAct(it)}><span class="mega-ic">${ic(it.i)}</span><span class="min-w-0 flex-1"><b class="block text-[15px] leading-snug">${esc(L(it.t))}</b><span class="block text-[13px] text-muted leading-snug mt-0.5">${esc(L(it.d))}</span></span><span class="mega-go">${ic(it.href ? 'arrow-up-right' : 'arrow-right', 'w-4 h-4')}</span></button>`).join('')}</div>
     <div class="col-span-4 mega-feat" style="--i:${m.items.length}">${feat}</div></div>`;
@@ -478,8 +479,8 @@ function isDarkBg(el) {   // хамгийн ойрын тунгалаг бус �
 }
 window.addEventListener('scroll', () => { if (!dockRaf) dockRaf = requestAnimationFrame(() => { dockRaf = 0; dockProgress(); }); }, { passive: true });
 function setActiveNav(sec) {
-  const map = { hero: 1, hub: S.hub === 'services' ? 0 : 1, gov: 5, situations: 0, media: 1, projects: 2, data: 3, events: 1, transparency: 4, about: 5 };
-  const pg = S.route === 'page' && PAGES[S.page], idx = pg ? pg.m : map[sec];
+  const map = { hero: 'nav_news', hub: S.hub === 'services' ? 'nav_services' : 'nav_news', gov: 'nav_about', situations: 'nav_services', media: 'nav_news', projects: 'nav_build', data: 'nav_data', events: 'nav_news', transparency: 'nav_open', about: 'nav_about' };
+  const pg = S.route === 'page' && PAGES[S.page], key = pg ? pg.mk : map[sec], idx = MENU.findIndex((m) => m.k === key);
   $$('.nav-btn').forEach((b) => b.classList.toggle('is-active', +b.dataset.menu === idx && (!!pg || sec !== 'hero')));
   const nav = $('#navbar'); if (nav && megaOpen < 0 && nav._moveInd) nav._moveInd($('.nav-btn.is-active', nav));
   const hb = nav && $('.nav-home', nav); if (hb) hb.classList.toggle('is-active', S.route === 'home' && sec === 'hero');   // «Нүүр» цэс үргэлж байна; нүүрний эхэнд байхад тодорно
@@ -684,16 +685,17 @@ function setRoute(r) {
    Нүүр хуудас нь товч танилцуулга (landing). Цэс бүр өөрийн том хуудастай: толгой (#page-hero) + тухайн хэсгийн бүрэн агуулга.
    Нүүрний хэсгүүдийг дахин ашиглаж (secs), бусдыг нь нууна. hide: эхний хэсгийн гарчгийг нууна (толгойтой давхардахгүй). */
 const PAGES = {
-  services: { secs: ['hub', 'situations'], m: 0, c: '#D81E34', i: 'layout-grid', t: ['Үйлчилгээ', 'Services'], d: ['Иргэн, аж ахуйн нэгжид зориулсан бүх үйлчилгээ, амьдралын нөхцөл бүрт хэрэгтэй алхмууд нэг дор.', 'Every service for residents and businesses, with step-by-step guides for life events.'] },
-  news: { secs: ['hub'], m: 1, c: '#1D5BFF', i: 'newspaper', t: ['Мэдээ мэдээлэл', 'News'], d: ['Нийслэлийн Засаг дарга, дүүрэг, харьяа байгууллагуудын бүх мэдээ, зар мэдээлэл.', 'All news and notices from City Hall, districts and city agencies.'] },
-  events: { secs: ['events'], m: 1, c: '#E58A00', i: 'calendar-days', hide: 1, t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ: жагсаалт, хуанли, газрын зураг.', 'Culture, sport and civic events: list, calendar and map.'] },
-  media: { secs: ['media'], m: 1, c: '#7C4DFF', i: 'clapperboard', hide: 1, t: ['Медиа', 'Media'], d: ['Нийслэлийн Live дамжуулалт, фото сурвалжилга, постер, подкаст.', 'Live streams, photo reports, posters and podcasts from City Hall.'] },
-  projects: { secs: ['projects'], m: 2, c: '#F08C1A', i: 'hard-hat', hide: 1, tk: 'nav_build', t: ['Бүтээн байгуулалт', 'Development'], d: ['Нийслэлийн мега төслүүдийн гүйцэтгэл, төсөв, хугацааг газрын зураг дээрээс хянаарай.', 'Track the progress, budget and timeline of flagship projects on the map.'] },
-  data: { secs: ['data'], m: 3, c: '#0EA068', i: 'activity', hide: 1, dark: 'var(--c-navy)', t: ['Хотын өгөгдөл', 'City data'], d: ['Агаарын чанар, түгжрэл, цаг агаар, хүн ам, төсвийн бодит цагийн самбар.', 'A live dashboard of air quality, traffic, weather, population and budget.'] },
-  transparency: { secs: ['transparency'], m: 4, c: '#0E9AA7', i: 'scroll-text', hide: 1, t: ['Ил тод байдал', 'Transparency'], d: ['Нийслэлийн ИТХ-ын тогтоол, Засаг даргын захирамж, тендерийн мэдээлэл нээлттэй.', "City Council resolutions, the Governor's orders and tenders, in the open."] },
-  about: { secs: ['gov', 'about'], m: 5, c: '#D81E34', i: 'landmark', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн Засаг даргын ажлын хуваарь, хотын удирдлага, түүх, харьяа байгууллагууд.', "The Governor's schedule, city leadership, history and agencies."] },
+  services: { secs: ['hub', 'situations'], mk: 'nav_services', c: '#D81E34', i: 'layout-grid', t: ['Үйлчилгээ', 'Services'], d: ['Иргэн, аж ахуйн нэгжид зориулсан бүх үйлчилгээ, амьдралын нөхцөл бүрт хэрэгтэй алхмууд нэг дор.', 'Every service for residents and businesses, with step-by-step guides for life events.'] },
+  news: { secs: ['hub'], mk: 'nav_news', c: '#1D5BFF', i: 'newspaper', t: ['Мэдээ мэдээлэл', 'News'], d: ['Нийслэлийн Засаг дарга, дүүрэг, харьяа байгууллагуудын бүх мэдээ, зар мэдээлэл.', 'All news and notices from City Hall, districts and city agencies.'] },
+  events: { secs: ['events'], mk: 'nav_news', c: '#E58A00', i: 'calendar-days', hide: 1, t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ: жагсаалт, хуанли, газрын зураг.', 'Culture, sport and civic events: list, calendar and map.'] },
+  media: { secs: ['media'], mk: 'nav_news', c: '#7C4DFF', i: 'clapperboard', hide: 1, t: ['Медиа', 'Media'], d: ['Нийслэлийн Live дамжуулалт, фото сурвалжилга, постер, подкаст.', 'Live streams, photo reports, posters and podcasts from City Hall.'] },
+  projects: { secs: ['projects'], mk: 'nav_build', c: '#F08C1A', i: 'hard-hat', hide: 1, tk: 'nav_build', t: ['Бүтээн байгуулалт', 'Development'], d: ['Нийслэлийн мега төслүүдийн гүйцэтгэл, төсөв, хугацааг газрын зураг дээрээс хянаарай.', 'Track the progress, budget and timeline of flagship projects on the map.'] },
+  data: { secs: ['data'], mk: 'nav_data', c: '#0EA068', i: 'activity', hide: 1, dark: 'var(--c-navy)', t: ['Хотын өгөгдөл', 'City data'], d: ['Агаарын чанар, түгжрэл, цаг агаар, хүн ам, төсвийн бодит цагийн самбар.', 'A live dashboard of air quality, traffic, weather, population and budget.'] },
+  transparency: { secs: ['transparency'], mk: 'nav_open', c: '#0E9AA7', i: 'scroll-text', hide: 1, t: ['Ил тод байдал', 'Transparency'], d: ['Нийслэлийн ИТХ-ын тогтоол, Засаг даргын захирамж, тендерийн мэдээлэл нээлттэй.', "City Council resolutions, the Governor's orders and tenders, in the open."] },
+  about: { secs: ['gov', 'about'], mk: 'nav_about', c: '#D81E34', i: 'landmark', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн Засаг даргын ажлын хуваарь, хотын удирдлага, түүх, харьяа байгууллагууд.', "The Governor's schedule, city leadership, history and agencies."] },
 };
 const PAGE_ONLY = ['about'];   // нүүрэнд харагдахгүй, зөвхөн өөрийн хуудсанд (template.html-д hidden)
+const pgMenu = (P) => P && MENU.find((m) => m.k === P.mk);   // хуудасны цэс (байрлалаар биш түлхүүрээр)
 /* Хуудасны гарчиг: tk бол цэсний нэртэй ижил (жишээ нь «24 мега төсөл») */
 const pgT = (P) => (P.tk ? t(P.tk, { n: PROJECTS.length }) : L(P.t));
 /* Цэсийн «go» холбоос аль хуудас руу очих вэ (нүүрний hero бол null) */
@@ -763,7 +765,7 @@ function pageStats(k) {
   return st ? st().map(([v, l]) => [n(v), l]) : [];
 }
 function pageLinksHTML() {
-  const P = PAGES[S.page], m = P && MENU[P.m]; if (!m) return '';
+  const P = PAGES[S.page], m = pgMenu(P); if (!m) return '';
   // идэвхтэй холбоос: тодорхой төлөвтэй (cat/tr/svc) нь таарвал түүнийг, үгүй бол энэ хуудас руу очих эхний холбоос
   const spec = (g) => g.cat || g.nt || g.tr || g.svc;
   const hit = (g) => (!g.cat || g.cat === S.newsCat) && (!g.nt || g.nt === S.newsType) && (!g.tr || g.tr === S.tr) && (!g.svc || g.svc === S.svcTab);
@@ -800,7 +802,7 @@ function dataClockHTML() {
 function renderPageLinks() { if (S.route !== 'page') return; const el = $('#pg-links'); if (el) el.innerHTML = pageLinksHTML(); }
 function renderPageHero() {
   const P = PAGES[S.page], el = $('#page-hero'); if (!P || !el) return;
-  const m = MENU[P.m], top = m && pageOf({ sec: m.sec });
+  const m = pgMenu(P), top = m && pageOf({ sec: m.sec });
   const crumbs = [`<button type="button" data-act="home">${t('home')}</button>`];
   if (top && top !== S.page) crumbs.push(`<button type="button" data-act="page" data-v="${top}">${menuLabel(m)}</button>`);
   crumbs.push(`<span aria-current="page">${esc(pgT(P))}</span>`);
