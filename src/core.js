@@ -51,7 +51,7 @@ const S = {
   a11y: !!store.get('a11y', false),
   user: store.get('user', null),
   route: 'home',
-  hub: 'news', newsCat: 'all', svcTab: 'citizen', svcQ: '',
+  hub: 'news', newsCat: 'all', newsType: 'all', svcTab: 'citizen', svcQ: '',
   page: null, newsQ: '', newsSort: 'new', newsN: 12, mediaQ: '', mediaN: 12,
   sit: 'birth', sitDone: store.get('sitDone', { birth: [0] }),
   media: 'all',
@@ -243,7 +243,10 @@ const MENU = [
     { i: 'briefcase', t: ['Аж ахуйн нэгж', 'Businesses'], d: ['Зөвшөөрөл, тендер, газар эзэмшил', 'Permits, tenders, land use'], go: { sec: 'hub', hub: 'services', svc: 'business' } },
     { i: 'monitor-smartphone', t: ['Цахим системүүд', 'E-services'], d: ['Хотын бүх цахим үйлчилгээ нэг дор', 'All city e-services in one place'], go: { sec: 'hub', hub: 'services', svc: 'esys' } } ] },
   { k: 'nav_news', sec: 'hub', items: [
-    { i: 'newspaper', t: ['Бүх мэдээ', 'All news'], d: ['Хотын захиргаа, дүүрэг, байгууллагын мэдээ', 'From City Hall, districts and agencies'], go: { sec: 'hub', hub: 'news', cat: 'all' } },
+    { i: 'newspaper', t: ['Бүх мэдээ', 'All news'], d: ['Хотын захиргаа, дүүрэг, байгууллагын мэдээ', 'From City Hall, districts and agencies'], go: { sec: 'hub', hub: 'news', cat: 'all', nt: 'all' } },
+    { i: 'clock-3', t: ['Цаг үеийн мэдээ', 'Current news'], d: ['Нийслэлийн удирдлага, хотын өдөр тутмын мэдээ', 'Daily news from City Hall'], go: { sec: 'hub', hub: 'news', nt: 'time' } },
+    { i: 'building-2', t: ['Харьяа газрын мэдээ', 'Agency news'], d: ['Нийслэлийн харьяа газар, агентлагуудын мэдээ', 'News from city agencies and departments'], go: { sec: 'hub', hub: 'news', nt: 'place' } },
+    { i: 'book-open', t: ['Хэвлэлийн тойм', 'Press review'], d: ['Ярилцлага, нийтлэл, хэвлэлд гарсан тойм', 'Interviews and articles from the press'], go: { sec: 'hub', hub: 'news', nt: 'review' } },
     { i: 'megaphone', t: ['Зар', 'Notices'], d: ['Хуваарь, хаалт, ажлын байр, мэдэгдэл', 'Schedules, closures, jobs, announcements'], go: { sec: 'hub', hub: 'news', cat: 'zar' } },
     { i: 'calendar-days', t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ', 'Culture, sport and civic events'], go: { sec: 'events' } },
     { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Live, фото сурвалжилга, постер, подкаст', 'Live, photo reports, posters, podcasts'], go: { sec: 'media' } } ] },
@@ -690,10 +693,10 @@ const PAGES = {
   transparency: { secs: ['transparency'], m: 4, c: '#0E9AA7', i: 'scroll-text', hide: 1, t: ['Ил тод байдал', 'Transparency'], d: ['Нийслэлийн ИТХ-ын тогтоол, Засаг даргын захирамж, тендерийн мэдээлэл нээлттэй.', "City Council resolutions, the Governor's orders and tenders, in the open."] },
   about: { secs: ['gov', 'about'], m: 5, c: '#D81E34', i: 'landmark', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн Засаг даргын ажлын хуваарь, хотын удирдлага, түүх, харьяа байгууллагууд.', "The Governor's schedule, city leadership, history and agencies."] },
 };
+const PAGE_ONLY = ['about'];   // нүүрэнд харагдахгүй, зөвхөн өөрийн хуудсанд (template.html-д hidden)
 /* Хуудасны гарчиг: tk бол цэсний нэртэй ижил (жишээ нь «24 мега төсөл») */
 const pgT = (P) => (P.tk ? t(P.tk, { n: PROJECTS.length }) : L(P.t));
 /* Цэсийн «go» холбоос аль хуудас руу очих вэ (нүүрний hero бол null) */
-const PAGE_ONLY = ['about'];   // нүүрэнд харагдахгүй, зөвхөн өөрийн хуудсанд (template.html-д hidden)
 function pageOf(o) {
   if (!o || !o.sec || o.sec === 'hero') return null;
   if (o.sec === 'hub') return o.hub === 'services' ? 'services' : o.hub === 'events' ? 'events' : 'news';
@@ -711,14 +714,16 @@ function openPage(k, o = {}) {
   const nav = $('#navbar'); if (nav && nav._close) nav._close();
   const same = S.route === 'page' && S.page === k;
   if (k === 'services') S.hub = 'services'; else if (k === 'news') S.hub = 'news';
+  const nt = o.nt || (o.cat ? 'all' : null), cat = o.cat || (o.nt ? 'all' : null);   // цэсний мэдээний төрөл ба ангилал нэг нэгнээ дахин эхлүүлнэ
   if (same) {   // хуудсан дотроо: зөвхөн төлөвийг хөдөлгөөнтэй солино
-    if (o.cat && o.cat !== S.newsCat) setNewsCat(o.cat);
+    if ((cat && cat !== S.newsCat) || (nt && nt !== S.newsType)) { if (nt) S.newsType = nt; setNewsCat(cat || S.newsCat); }
     if (o.svc && o.svc !== S.svcTab) setSvcTab(o.svc);
     if (o.sit && o.sit !== S.sit) setSit(o.sit);
     if (o.tr && o.tr !== S.tr) setTr(o.tr);
     renderPageLinks();
   } else {
-    S.newsCat = o.cat || (k === 'news' ? 'all' : S.newsCat);
+    S.newsCat = cat || (k === 'news' ? 'all' : S.newsCat);
+    if (k === 'news') S.newsType = nt || 'all';
     if (o.svc) { S.svcTab = o.svc; S.svcQ = ''; }
     if (o.sit) S.sit = o.sit;
     if (o.tr) S.tr = o.tr;
@@ -760,8 +765,8 @@ function pageStats(k) {
 function pageLinksHTML() {
   const P = PAGES[S.page], m = P && MENU[P.m]; if (!m) return '';
   // идэвхтэй холбоос: тодорхой төлөвтэй (cat/tr/svc) нь таарвал түүнийг, үгүй бол энэ хуудас руу очих эхний холбоос
-  const spec = (g) => g.cat || g.tr || g.svc;
-  const hit = (g) => (!g.cat || g.cat === S.newsCat) && (!g.tr || g.tr === S.tr) && (!g.svc || g.svc === S.svcTab);
+  const spec = (g) => g.cat || g.nt || g.tr || g.svc;
+  const hit = (g) => (!g.cat || g.cat === S.newsCat) && (!g.nt || g.nt === S.newsType) && (!g.tr || g.tr === S.tr) && (!g.svc || g.svc === S.svcTab);
   const mine = m.items.map((it, k) => [it, k]).filter(([it]) => !it.href && pageOf(it.go) === S.page);
   const on = (mine.find(([it]) => spec(it.go) && hit(it.go)) || mine.find(([it]) => !spec(it.go)) || [])[1];
   return m.items.map((it, k) => `<button type="button" class="pg-link" style="--i:${k}" ${itemAct(it)} aria-current="${k === on}">${ic(it.i, 'w-4 h-4')}${esc(L(it.t))}</button>`).join('');

@@ -61,6 +61,9 @@ function quickHTML() {
 /* ================= Hub: news / services / events ================= */
 const HUBS = ['news', 'services', 'events'];
 const NEWS_CATS = ['all', 'biz', 'city', 'transport', 'edu', 'env', 'util', 'health', 'zar'];
+/* Мэдээний төрөл (ulaanbaatar.mn-ийнхтэй ижил, news.js). nt-гүй мэдээ = цаг үеийн мэдээ. */
+const NEWS_NT = { time: ['Цаг үеийн мэдээ', 'Current news'], place: ['Харьяа газрын мэдээ', 'Agency news'], review: ['Хэвлэлийн тойм', 'Press review'] };
+const ntOf = (n) => (NEWS_NT[n.nt] ? n.nt : 'time');
 function renderHub() {
   // Тусдаа хуудсанд (/news, /services) энэ хэсэг бүрэн жагсаалт болж хувирна
   if (S.route === 'page' && S.page === 'news') { $('#hub').innerHTML = newsAllHTML(); return; }
@@ -90,6 +93,7 @@ function newsAllHTML() {
 function newsGridAll(fromN = 0) {
   const q = S.newsQ.trim().toLowerCase();
   let list = NEWS.filter((n) => !n.draft);
+  if (S.newsType !== 'all') list = list.filter((n) => ntOf(n) === S.newsType);
   if (S.newsCat !== 'all') list = list.filter((n) => n.cat === S.newsCat || (S.newsCat === 'city' && n.cat === 'plan') || (S.newsCat === 'zar' && n.zar));
   if (q) list = list.filter((n) => (L(n.t) + ' ' + Lf(n.l)).toLowerCase().includes(q));
   list = list.slice().sort(S.newsSort === 'top' ? (a, b) => (b.views || 0) - (a.views || 0) : (a, b) => a.ago - b.ago);
@@ -97,7 +101,7 @@ function newsGridAll(fromN = 0) {
   const feat = !q && S.newsCat === 'all' && S.newsSort === 'new', shown = list.slice(0, S.newsN - (feat ? 1 : 0));   // өргөн карт 2 зай эзэлдэг тул тор тэгш дүүрнэ
   const cards = shown.map((n, i) => newsCard(n, feat && i === 0).replace('<button ', `<button data-na="${i >= fromN ? 1 : 0}" style="--i:${Math.max(0, i - fromN)}" `)).join('');
   const pct = Math.round((shown.length / list.length) * 100);
-  return `<p class="mb-4 text-[13.5px] text-muted">${q ? L([`«${esc(S.newsQ.trim())}»: ${list.length} илэрц`, `“${esc(S.newsQ.trim())}”: ${list.length} results`]) : L([`Нийт ${num(list.length)} мэдээ`, `${num(list.length)} stories`])}</p>
+  return `<p class="mb-4 text-[13.5px] text-muted">${S.newsType !== 'all' ? `<b class="text-ink">${esc(L(NEWS_NT[S.newsType]))}</b> · ` : ''}${q ? L([`«${esc(S.newsQ.trim())}»: ${list.length} илэрц`, `“${esc(S.newsQ.trim())}”: ${list.length} results`]) : L([`Нийт ${num(list.length)} мэдээ`, `${num(list.length)} stories`])}</p>
     <div class="na-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${cards}</div>
     <div class="mt-10 flex flex-col items-center gap-3"><span class="text-[13px] text-muted tnum">${L([`${num(list.length)} мэдээнээс ${num(shown.length)}-г үзлээ`, `Showing ${num(shown.length)} of ${num(list.length)}`])}</span><span class="na-prog"><i style="width:${pct}%"></i></span>
       ${list.length > shown.length ? `<button type="button" class="btn btn-ink mt-1" data-act="news-more">${ic('chevrons-down', 'w-[18px] h-[18px]')}${L(['Цааш үзэх', 'Load more'])}</button>` : ''}</div>`;

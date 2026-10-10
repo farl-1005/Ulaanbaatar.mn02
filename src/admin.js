@@ -39,6 +39,7 @@ const SCHEMA = {
     ['l', 'bitext', ['Товч агуулга', 'Summary'], { rows: 3 }],
     ['bt', 'bitext', ['Үндсэн текст (догол мөрийг хоосон мөрөөр тусгаарлана)', 'Body (separate paragraphs with a blank line)'], { rows: 6 }],
     ['cat', 'chips', ['Ангилал', 'Category'], { options: () => Object.keys(RUB).map((k) => [k, L(RUB[k].t), RUB[k].c]) }],
+    ['nt', 'chips', ['Мэдээний төрөл', 'News type'], { options: () => Object.keys(NEWS_NT).map((k) => [k, L(NEWS_NT[k])]) }],
     ['img', 'image', ['Зураг', 'Image']],
     ['d', 'datetime', ['Нийтэлсэн огноо', 'Published']],
     ['flags', 'flags', ['Байршил ба төлөв', 'Placement and status'], { options: [['br', ['Шуурхай мэдээнд харуулах', 'Show in the latest feed']], ['zar', ['Зар хэлбэрээр харуулах', 'Show as a notice']], ['draft', ['Ноорог (сайтад гарахгүй)', 'Draft (hidden from the site)']]] }],

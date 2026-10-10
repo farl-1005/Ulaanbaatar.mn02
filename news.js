@@ -1,12 +1,13 @@
-/* ulaanbaatar.mn-ийн API-аас бодит мэдээ татна (build үед).
+/* ulaanbaatar.mn-ийн API-аас бодит мэдээ татна (build үед): цаг үеийн мэдээ, харьяа газрын мэдээ, хэвлэлийн тойм.
    - API нь хөтчөөс шууд хандахыг (CORS) хаадаг тул Node.js талд татна.
    - Үр дүнг dist/.news/ хавтсанд кэшлэнэ: CACHE_MIN минутаас шинэ бол дахин татахгүй, сүлжээ тасарвал хуучин кэшээ ашиглана.
    - Нүүр зургийг (дунджаар 2.5MB) татаж 960px WebP болгон жижигрүүлнэ; нэг удаа хийсэн зургийг дахин татахгүй.
    - `npm run news` гэж ажиллуулбал кэшийг үл хайхран шууд шинэчилнэ. */
 const fs = require('fs'), path = require('path');
 
-const API = 'https://ulaanbaatar.mn:8443/api/article?type=TIME_HISTORY&pageSize=';
 const COUNT = 30, CACHE_MIN = 15, IMG_W = 960, IMG_MAX_BYTES = 25e6, TIMEOUT = 10000;
+/* ulaanbaatar.mn-ийн мэдээний төрлүүд → nt (src/sections.js NEWS_NT). Цаг үеийн мэдээ заавал; бусад нь унавал алгасна. */
+const NEWS_TYPES = [['TIME_HISTORY', 'time', COUNT], ['PLACE', 'place', 12], ['ISSUE_REVIEW', 'review', 12]];
 const CACHE = process.env.NEWS_CACHE_DIR || path.join(__dirname, 'dist', '.news'),   // production-д байнгын диск дээр (Dockerfile)
       IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json'), MEDIA_FILE = path.join(CACHE, 'media.json');
 const API_TYPE = 'https://ulaanbaatar.mn:8443/api/article?type=';
@@ -86,16 +87,21 @@ async function thumb(id, url) {
 }
 
 async function refresh(log) {
-  const j = await fetchJSON(API + COUNT);
-  const list = (j && j.data && j.data.list) || [];
-  if (!list.length) throw new Error('API хоосон хариу буцаалаа');
+  const list = [];
+  for (const [api, nt, n] of NEWS_TYPES) {
+    let j;
+    try { j = await fetchJSON(API_TYPE + api + '&pageSize=' + n); } catch (e) { if (nt === 'time') throw e; log(`  ⚠ ${api} мэдээ татагдсангүй (${e.message})`); continue; }
+    for (const a of (j && j.data && j.data.list) || []) list.push(Object.assign(a, { _nt: nt }));
+  }
+  if (!list.some((a) => a._nt === 'time')) throw new Error('API хоосон хариу буцаалаа');
   fs.mkdirSync(IMG_DIR, { recursive: true });
-  const items = list.filter((a) => a.enable !== false && a.urlId).map((a) => {
+  const seen = new Set();
+  const items = list.filter((a) => a.enable !== false && a.urlId && !seen.has(a.urlId) && seen.add(a.urlId)).map((a) => {
     const paras = paragraphs(a.content);
     const [lead, body] = splitLead(paras);
     const words = paras.join(' ').split(/\s+/).length;
     return {
-      id: 'n' + a.urlId, live: 1,
+      id: 'n' + a.urlId, live: 1, nt: a._nt,
       d: ubDate(a.startDate || a.createdDate), views: +a.views || 0, mins: Math.max(1, Math.round(words / 180)),
       cat: classify(a.title, paras.slice(0, 2).join(' ')),
       t: [String(a.title || '').trim(), ''], l: [lead, ''], b: body.map((p) => [p, '']),
