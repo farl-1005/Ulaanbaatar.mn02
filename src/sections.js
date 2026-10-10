@@ -64,6 +64,12 @@ const NEWS_CATS = ['all', 'biz', 'city', 'transport', 'edu', 'env', 'util', 'hea
 /* Мэдээний төрөл (ulaanbaatar.mn-ийнхтэй ижил, news.js). nt-гүй мэдээ = цаг үеийн мэдээ. */
 const NEWS_NT = { time: ['Цаг үеийн мэдээ', 'Current news'], place: ['Харьяа газрын мэдээ', 'Agency news'], review: ['Хэвлэлийн тойм', 'Press review'] };
 const ntOf = (n) => (NEWS_NT[n.nt] ? n.nt : 'time');
+/* ---- Нүүр хуудас: хэсэг бүрийн товч хувилбар. Бүтэн агуулга нь цэсний хуудсанд (/events, /data ...) ---- */
+const onHome = () => S.route !== 'page';
+function homeHead(title, desc, act, label) {
+  return `<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7"><div class="min-w-0"><h2 class="h-section">${title}</h2>${desc ? `<p class="mt-2 text-muted max-w-[62ch]">${desc}</p>` : ''}</div><button type="button" class="btn btn-ghost self-start sm:self-auto shrink-0" ${act}>${label || L(['Бүгдийг үзэх', 'See all'])}${ic('arrow-right', 'w-[18px] h-[18px]')}</button></div>`;
+}
+const homeWrap = (inner, card) => `${card ? '<div class="bg-card border-y border-line">' : ''}<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">${inner}</div>${card ? '</div>' : ''}`;
 function renderHub() {
   // Тусдаа хуудсанд (/news, /services) энэ хэсэг бүрэн жагсаалт болж хувирна
   if (S.route === 'page' && S.page === 'news') { $('#hub').innerHTML = newsAllHTML(); return; }
@@ -118,7 +124,9 @@ function newsGrid() {
   let list = NEWS.filter((n) => n.id !== HERO_ID);
   if (S.newsCat !== 'all') list = list.filter((n) => n.cat === S.newsCat || (S.newsCat === 'city' && n.cat === 'plan'));
   list = list.slice().sort((a, b) => a.ago - b.ago);
-  if (S.newsCat === 'all') list = [NEWS_BY[FEATURED_ID]].filter(Boolean).concat(list.filter((n) => n.id !== FEATURED_ID)).slice(0, 8);
+  // нүүрэнд 2 мөр: онцлох (2 багана) + 4, ангиллаар шүүхэд 6
+  if (S.newsCat === 'all') list = [NEWS_BY[FEATURED_ID]].filter(Boolean).concat(list.filter((n) => n.id !== FEATURED_ID)).slice(0, 5);
+  else list = list.slice(0, 6);
   if (!list.length) return `<p class="text-muted py-10 text-center">${t('noResults')}</p>`;
   return `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">${list.map((n, i) => newsCard(n, i === 0 && S.newsCat === 'all')).join('')}</div>`;
 }
@@ -204,6 +212,11 @@ function sitPanel(prev) {
     <ol class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">${s.steps.map((x, i) => stepCard(x, i, d.includes(i), i === nextI)).join('')}</ol></div>`;
 }
 function renderSits() {
+  if (onHome()) {
+    $('#situations').innerHTML = homeWrap(homeHead(t('sitTitle'), t('sitDesc'), 'data-act="go" data-sec="situations"')
+      + `<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">${SITS.map((s) => `<button type="button" class="lift card p-4 text-left flex flex-col gap-3 h-full" data-act="go" data-sec="situations" data-sit="${esc(s.id)}"><span class="w-11 h-11 rounded-xl bg-ubred/10 text-ubred grid place-items-center">${ic(s.i, 'w-[22px] h-[22px]')}</span><b class="text-[15px] leading-snug">${esc(L(s.t))}</b><span class="mt-auto text-[12.5px] text-muted">${t('stepsOnline', { n: s.steps.length, o: s.steps.filter((x) => x.m === 'on').length })}</span></button>`).join('')}</div>`, true);
+    return;
+  }
   $('#situations').innerHTML = `<div class="bg-card border-y border-line"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20"><div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
     <div class="lg:col-span-4 min-w-0"><h2 class="h-section">${t('sitTitle')}</h2><p class="mt-3 text-muted leading-relaxed">${t('sitDesc')}</p>
       <div class="mt-6 flex lg:flex-col gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0 pb-1" id="sit-list">${sitList()}</div></div>
@@ -219,7 +232,8 @@ function paintSit(prev, popIdx) {
 function setSit(id) {
   if (!SITS.find((s) => s.id === id)) return;
   const order = SITS.map((s) => s.id), dir = order.indexOf(id) >= order.indexOf(S.sit) ? 1 : -1;
-  S.sit = id; $('#sit-list').innerHTML = sitList();
+  S.sit = id; if (!$('#sit-list')) return;   // нүүрний товч хувилбарт жагсаалт байхгүй
+  $('#sit-list').innerHTML = sitList();
   swap($('#sit-panel'), sitPanel(), dir);
 }
 function toggleStep(i, forceDone) {
@@ -607,6 +621,13 @@ function aqiCardInner(drawn) {
       <div class="mt-5 pl-5">${aqiChart()}</div>`;
 }
 function renderData() {
+  if (onHome()) {   // 4 гол тоо; дарахад /data хуудасны тухайн карт руу
+    const c = aqiCat(S.aqi), wi = wxInfo(S.wx.code, S.wx.day), pop = POP.reduce((a, p) => a + p[2], 0);
+    const tile = (hl, icn, label, val, sub, color) => `<button type="button" class="card lift p-5 text-left flex flex-col gap-2 h-full" data-act="go" data-sec="data" data-hl="${hl}"><span class="flex items-center gap-2 text-[13px] text-muted font-semibold">${ic(icn, 'w-4 h-4')}${label}</span><span class="text-[34px] font-extrabold tnum leading-none tracking-tight">${val}</span><span class="text-[13px] font-semibold" ${color ? `style="color:${color}"` : 'class="text-muted"'}>${sub}</span></button>`;
+    $('#data').innerHTML = `<div class="on-navy" id="data-home">${homeWrap(homeHead(t('dataTitle'), t('dataDesc'), 'data-act="page" data-v="data"')
+      + `<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">${tile('aqi', 'wind', t('aqi'), `<span data-live="aqi">${S.aqi}</span>`, t(c.k), c.c)}${tile('weather', wi.i, t('weather'), `${wxT(S.wx.temp)}°`, esc(wi.t))}${tile('traffic', 'car-front', t('congestion'), `${S.traffic}<span class="text-[18px] text-muted">/10</span>`, t('busy'), 'rgb(var(--c-amber-ink))')}${tile('pop', 'users-round', t('population'), `${(pop / 1e6).toFixed(2).replace('.', EN() ? '.' : ',')}<span class="text-[18px] text-muted"> ${L(['сая', 'm'])}</span>`, t('popNote'))}</div>`)}</div>`;
+    return;
+  }
   const c = aqiCat(S.aqi), tot = POP.reduce((a, p) => a + p[2], 0), max = POP[0][2];
   const plan = BUDGET_Q.reduce((a, q) => a + q[0], 0), act = BUDGET_Q.reduce((a, q) => a + q[1], 0), bpct = Math.round((act / plan) * 100), bmx = Math.max(...BUDGET_Q.map((q) => q[0]));
   const ang = -90 + (S.traffic / 10) * 180;
@@ -705,6 +726,12 @@ function selectEv(id, pan) {
   if (MAPS.ev) MAPS.ev.select(id, pan);
 }
 function renderEvents() {
+  if (onHome()) {   // ойрын 4 арга хэмжээ
+    const list = EVENTS.map((e) => Object.assign({}, e, { d: evDate(e.w) })).sort(evSort).slice(0, 4);
+    $('#events').innerHTML = homeWrap(homeHead(t('evTitle'), t('evDesc'), 'data-act="page" data-v="events"', t('allEvents'))
+      + `<div class="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-x-auto sm:overflow-visible snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">${list.map((e) => `<div class="w-[80%] shrink-0 snap-start sm:w-auto">${evCard(e)}</div>`).join('')}</div>`, true);   // утсанд хажуу тийш гүйлгэнэ
+    return;
+  }
   $('#events').innerHTML = `<div class="bg-card border-y border-line"><div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5"><div class="sec-ttl"><h2 class="h-section">${t('evTitle')}</h2><p class="mt-2 text-muted">${t('evDesc')}</p></div>${tabs('evview', [['list', t('v_list'), 'list'], ['cal', t('v_cal'), 'calendar-days'], ['map', t('v_map'), 'map']], S.evView, { label: t('evTitle'), cls: 'self-start lg:self-auto' })}</div>
     <div class="mt-6 flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0" id="ev-filters">${evFilters()}</div>
@@ -725,6 +752,7 @@ function setEvF(v) {
   swap($('#ev-panel'), evPanel(), 0, afterEvPanel);
 }
 function repaintEvents() {
+  if (!$('#ev-panel')) { if (onHome()) renderEvents(); return; }   // нүүрний товч хувилбар
   if (S.evView === 'list') $('#ev-panel').innerHTML = evPanel();
   else if (S.evView === 'cal') $('#ev-panel').innerHTML = calHTML();
   if (S.hub === 'events' && $('#hub-panel')) $('#hub-panel').innerHTML = evTeaser();
@@ -792,6 +820,14 @@ function renderTr() {
   ];
   const now = ubNow(), tabsDef = [['res', t('tr_res'), 'scroll-text'], ['ord', t('tr_ord'), 'stamp'], ['tender', t('tr_tender'), 'gavel']];
   const sec = $('#transparency');
+  if (onHome()) {   // 4 тоо + бүх төрлөөс хамгийн сүүлийн 4 баримт
+    const fmt = (v, dec) => (dec ? v.toFixed(dec).replace('.', EN() ? '.' : ',') : num(v));
+    const docs = Object.keys(TR_KIND).flatMap((k) => (DOCS[k] || []).map((d, i) => ({ d, k, i }))).sort((a, b) => a.d.ago - b.d.ago).slice(0, 4);
+    sec.innerHTML = homeWrap(homeHead(t('trTitle'), t('trDesc'), 'data-act="page" data-v="transparency"')
+      + `<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">${stats.map(([icn, v, dec, suf, l, c]) => `<div class="card p-5 relative overflow-hidden"><span class="absolute inset-x-0 top-0 h-[3px]" style="background:rgb(${c})"></span><span class="w-10 h-10 rounded-xl grid place-items-center" style="background:rgb(${c} / .1);color:rgb(${c})">${ic(icn, 'w-5 h-5')}</span><p class="mt-4 text-[28px] font-extrabold tnum leading-none tracking-tight">${fmt(v, dec)}<span class="text-[17px] font-bold">${esc(suf)}</span></p><p class="text-[13px] text-muted mt-2 leading-snug">${l}</p></div>`).join('')}</div>`
+      + `<ul class="mt-4 card overflow-hidden divide-y divide-line">${docs.map(({ d, k, i }) => `<li><button type="button" class="group w-full text-left px-4 sm:px-6 py-3.5 flex items-center gap-4 hover:bg-soft/70 transition-colors" data-act="doc" data-type="${k}" data-i="${i}"><span class="w-10 h-10 rounded-xl grid place-items-center shrink-0" style="background:rgb(${TR_KIND[k].c} / .1);color:rgb(${TR_KIND[k].c})">${ic(TR_KIND[k].i, 'w-5 h-5')}</span><span class="min-w-0 flex-1"><span class="block text-[12.5px] text-muted tnum">${esc(d.no)} · ${fDate(addDays(today(), -d.ago))}</span><span class="block mt-0.5 text-[15px] font-semibold leading-snug truncate group-hover:text-ubblue transition-colors">${esc(L(d.t))}</span></span>${ic('arrow-right', 'w-4 h-4 text-muted shrink-0')}</button></li>`).join('')}</ul>`);
+    return;
+  }
   sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div class="sec-ttl"><span class="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[.12em] text-greenink"><span class="live" style="--dot:rgb(var(--c-green))"></span>${L(['Нээлттэй өгөгдөл', 'Open data'])}</span>
@@ -950,7 +986,7 @@ function renderGov() {
         <div class="px-4 sm:px-6 py-3.5 border-t border-line flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-muted">${legend}<span class="sm:ml-auto inline-flex items-center gap-1.5">${ic('info', 'w-3.5 h-3.5')}${L(['Хуваарь өөрчлөгдөж болно', 'Subject to change'])}</span></div>
       </div>
     </div>
-    ${news.length ? `<div class="gov-rv mt-12" style="--i:3"><div class="flex items-end justify-between gap-4 mb-4"><h3 class="text-[20px] font-extrabold tracking-tight">${t('govNews')}</h3><button type="button" class="text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button></div>
+    ${news.length && !onHome() ? `<div class="gov-rv mt-12" style="--i:3"><div class="flex items-end justify-between gap-4 mb-4"><h3 class="text-[20px] font-extrabold tracking-tight">${t('govNews')}</h3><button type="button" class="text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button></div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${news.map((n) => newsCard(n)).join('')}</div></div>` : ''}
   </div>`;
   GV.sig = govSig();

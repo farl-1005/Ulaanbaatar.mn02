@@ -989,11 +989,13 @@ async function loadAir() {
 function paintAir() {
   const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
   const ac = $('[data-card="aqi"]'); if (ac) { ac.innerHTML = aqiCardInner(true); bindAqiHover(); }
+  if ($('#data-home')) renderData();   // нүүрний товч хувилбар
   setLive('aqi', S.aqi);
 }
 function paintWeather() {
   const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
   const wc = $('[data-card="weather"]'); if (wc) wc.innerHTML = weatherCardInner();
+  if ($('#data-home')) renderData();
 }
 function startLive() {
   setInterval(() => {
@@ -1020,15 +1022,15 @@ function renderAll() {
   renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); paintToTop(); if (S.route === 'page') renderPageHero(); renderRail(); renderBottomBar(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
+  if (S.route === '404') render404();   // хэл солиход
   initTabs(); setActiveNav(currentSec);
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
-  if (S.route === '404') render404();   // хэл солиход
   $('#skip-link').textContent = L(['Үндсэн агуулга руу шилжих', 'Skip to main content']);
   document.documentElement.lang = EN() ? 'en' : 'mn';
   if (S.route === 'page' && PAGES[S.page]) document.title = pgT(PAGES[S.page]) + ' · ulaanbaatar.mn';
+  else if (S.route === '404') document.title = L(['Хуудас олдсонгүй', 'Page not found']) + ' · ulaanbaatar.mn';
   else if (S.route !== 'news') document.title = siteTitle();
 }
-  else if (S.route === '404') document.title = L(['Хуудас олдсонгүй', 'Page not found']) + ' · ulaanbaatar.mn';
 function siteTitle() { return EN() ? 'ulaanbaatar.mn · City portal (concept)' : 'ulaanbaatar.mn · Нийслэлийн портал (концепц)'; }
 function setLang(l) {
   if (l === S.lang) return;

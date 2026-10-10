@@ -676,7 +676,7 @@ function setRoute(r) {
     pageView(false);
     if (PRETTY && location.pathname !== '/') { try { history.pushState(null, '', '/'); } catch (e) { /* ignore */ } }   // /news/<id>, /news ...-ээс нүүр рүү: "Буцах" дарахад буцаж очно
     else if (/^#(my|admin|news\/|\/)/.test(location.hash)) setHash('');
-    if (was === 'admin') renderAll(); else { if (was === 'page') { renderHub(); renderMedia(); } initTabs($('#view-home')); }   // хуудсанд өөр хэлбэртэй байсан хэсгүүдийг нүүрнийх нь болгоно
+    if (was === 'admin') renderAll(); else { if (was === 'page') { renderHub(); renderGov(); renderSits(); renderMedia(); renderData(); renderEvents(); renderTr(); } initTabs($('#view-home')); }   // хуудсанд өөр хэлбэртэй байсан хэсгүүдийг нүүрнийх нь болгоно
     if ((was === 'news' || was === 'page') && S.homeY != null) window.scrollTo(0, S.homeY);   // нүүрний байрлалаа сэргээнэ
   }
   if (r !== 'news') renderSeason(false);   // улирлын эффект зөвхөн мэдээ унших хуудсанд (if/else гинжийн ГАДНА)
