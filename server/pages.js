@@ -131,6 +131,7 @@ function page(o, m, body) {
   const desc = m.desc || (tpl.match(/<meta name="description" content="([^"]*)">/) || [])[1] || '';
   const tags = [
     '<meta name="ubmn-routes" content="path">',
+    m.notFound ? '<meta name="ubmn-404" content="1">' : '',   // app.js 404 хуудсаа харуулна
     m.noindex ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${esc(url)}">`,
     '<meta property="og:site_name" content="ulaanbaatar.mn">',
     '<meta property="og:locale" content="mn_MN">',
@@ -151,7 +152,15 @@ function page(o, m, body) {
     .replace(/<meta name="description" content="[^"]*">/, () => `<meta name="description" content="${esc(desc)}">`)
     .replace('</head>', () => tags + '\n</head>');
   if (body) html = html.replace('<div id="view-home">', '<div id="view-home" hidden>').replace('<div id="view-news" hidden></div>', () => `<div id="view-news">${body}</div>`);
+  if (m.notFound) html = html.replace('<div id="view-home">', '<div id="view-home" hidden>').replace('<div id="view-404" hidden></div>', () => `<div id="view-404"><div class="max-w-site mx-auto px-4 py-20 text-center"><p class="text-[72px] font-extrabold text-ubred leading-none">404</p><h1 class="mt-3 text-[28px] font-extrabold">Хуудас олдсонгүй</h1><p class="mt-3 text-muted">Таны хайсан хуудас устсан, нэр нь өөрчлөгдсөн эсвэл хаяг буруу байна.</p><p class="mt-6"><a href="/">Нүүр хуудас</a></p></div></div>`);
   return html;
+}
+const notFoundMeta = (p) => ({ path: p, title: 'Хуудас олдсонгүй · ulaanbaatar.mn', image: ogUrl('site', null), noindex: true, notFound: true });
+/* Олдохгүй хаяг: апп-ын 404 хуудас, 404 статустай. Статик файлын сервер (build.js, server/index.js) өргөтгөлгүй хаягт дуудна. */
+function notFound(req, res, opts = {}) {
+  const p = String(req.url || '/').split('?')[0], out = page(origin(req), notFoundMeta(p));
+  if (!out) { send(req, res, 404, 'text/plain; charset=utf-8', 'Not found'); return; }
+  send(req, res, 404, 'text/html; charset=utf-8', opts.bodyEnd ? out.replace('</body>', () => opts.bodyEnd + '</body>') : out);
 }
 function newsPage(o, n, all) {
   const r = all.rub[n.cat] || { t: ['Мэдээ'] }, cat = mn(r.t);
@@ -221,7 +230,7 @@ async function handle(req, res, p, opts = {}) {
       const id = r[1], all = allNews();
       if (!all) return building();
       const n = ID_RE.test(id) && all.news.find((x) => x.id === id);
-      const out = n ? newsPage(o, n, all) : page(o, { path: '/', image: ogUrl('site', null), noindex: true });
+      const out = n ? newsPage(o, n, all) : page(o, notFoundMeta(p));
       return out ? html(n ? 200 : 404, out) : building();
     }
 
@@ -241,4 +250,4 @@ async function handle(req, res, p, opts = {}) {
   }
 }
 
-module.exports = { handles, handle };
+module.exports = { handles, handle, notFound };

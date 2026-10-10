@@ -90,6 +90,7 @@ if (require.main !== module) {
     const f = path.join(SITE, p);
     if (!f.startsWith(SITE)) { res.writeHead(403); res.end(); return; }
     fs.readFile(f, (err, data) => {
+      if (err && fs.existsSync(SITE) && !path.extname(p)) { pages.notFound(req, res, { bodyEnd: DEV }); return; }   // өргөтгөлгүй хаяг: 404 хуудас
       if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end(fs.existsSync(SITE) ? 'Not found' : 'Бүтээж байна... хэдэн секундын дараа refresh хийнэ үү.'); return; }
       if (f.endsWith('.html')) data = Buffer.from(data.toString('utf8').replace('</body>', DEV + '</body>'));
       res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' }); res.end(data);

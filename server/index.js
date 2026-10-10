@@ -23,6 +23,7 @@ const server = http.createServer((req, res) => {
   fs.readFile(f, (err, data) => {
     if (err) {
       const building = !fs.existsSync(path.join(SITE, 'index.html'));
+      if (!building && !path.extname(p)) { pages.notFound(req, res); return; }   // өргөтгөлгүй хаяг: апп-ын 404 хуудас
       res.writeHead(building ? 503 : 404, { 'Content-Type': 'text/plain; charset=utf-8', 'Retry-After': '5' });
       res.end(building ? 'Сайтыг бүтээж байна... хэдэн секундын дараа дахин ачаална уу.' : 'Not found'); return;
     }

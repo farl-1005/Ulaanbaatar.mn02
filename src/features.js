@@ -46,8 +46,23 @@ window.addEventListener('popstate', () => {
   if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
   else if (pk) { if (S.route !== 'page' || S.page !== pk) { S.page = pk; if (pk === 'services') S.hub = 'services'; else if (pk === 'news') S.hub = 'news'; setRoute('page'); } }
   else if (/^#admin(\/|$)/.test(location.hash)) { admFromHash(location.hash); if (S.route !== 'admin') setRoute('admin'); else renderAdmin(); }
-  else if (S.route === 'news' || S.route === 'page') setRoute('home');
+  else if (PRETTY && !/^\/(index\.html)?$/.test(location.pathname)) { if (S.route !== '404') setRoute('404'); }
+  else if (S.route === 'news' || S.route === 'page' || S.route === '404') setRoute('home');
 });
+/* ---- 404 «Хуудас олдсонгүй»: сервер <meta name="ubmn-404"> гэж тэмдэглэсэн, эсвэл мэдээ олдоогүй үед ---- */
+function render404() {
+  const links = MENU.map((m) => [pageOf({ sec: m.sec }), m]).filter(([k]) => k);
+  $('#view-404').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-20 view-in"><div class="max-w-[640px] mx-auto text-center">
+    <div class="scene mx-auto w-full max-w-[520px] aspect-[16/7] rounded-[22px] overflow-hidden">${Scene('skyline:dusk:44')}</div>
+    <p class="mt-8 text-[72px] sm:text-[96px] leading-none font-extrabold tnum tracking-[-0.04em] text-ubred">404</p>
+    <h1 class="mt-3 text-[26px] sm:text-[32px] font-extrabold tracking-tight">${L(['Хуудас олдсонгүй', 'Page not found'])}</h1>
+    <p class="mt-3 text-muted leading-relaxed">${L(['Таны хайсан хуудас устсан, нэр нь өөрчлөгдсөн эсвэл хаяг буруу бичигдсэн байж магадгүй.', 'The page may have been removed or renamed, or the address may be mistyped.'])}</p>
+    <p class="mt-2 text-[13px] text-muted break-all tnum">${esc(decodeURI(location.pathname))}</p>
+    <div class="mt-7 flex flex-wrap justify-center gap-2.5"><button type="button" class="btn btn-ink" data-act="home">${ic('house', 'w-[18px] h-[18px]')}${t('home')}</button><button type="button" class="btn btn-ghost" data-act="search">${ic('search', 'w-[18px] h-[18px]')}${L(['Сайтаас хайх', 'Search the site'])}</button></div>
+    <div class="mt-10 pt-8 border-t border-line"><p class="text-[13px] font-semibold text-muted">${L(['Эсвэл эндээс эхлээрэй', 'Or start here'])}</p>
+      <div class="mt-4 flex flex-wrap justify-center gap-2">${links.map(([k, m]) => `<button type="button" class="chip" data-act="page" data-v="${k}">${menuLabel(m)}</button>`).join('')}</div></div>
+  </div></div>`;
+}
 function newsMins(n) {
   if (n.mins) return n.mins;
   const words = [n.l].concat(n.b || []).map((x) => L(x) || '').join(' ').split(/\s+/).length;
@@ -1007,11 +1022,13 @@ function renderAll() {
   if (S.route === 'news') renderNewsPage();
   initTabs(); setActiveNav(currentSec);
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
+  if (S.route === '404') render404();   // хэл солиход
   $('#skip-link').textContent = L(['Үндсэн агуулга руу шилжих', 'Skip to main content']);
   document.documentElement.lang = EN() ? 'en' : 'mn';
   if (S.route === 'page' && PAGES[S.page]) document.title = pgT(PAGES[S.page]) + ' · ulaanbaatar.mn';
   else if (S.route !== 'news') document.title = siteTitle();
 }
+  else if (S.route === '404') document.title = L(['Хуудас олдсонгүй', 'Page not found']) + ' · ulaanbaatar.mn';
 function siteTitle() { return EN() ? 'ulaanbaatar.mn · City portal (concept)' : 'ulaanbaatar.mn · Нийслэлийн портал (концепц)'; }
 function setLang(l) {
   if (l === S.lang) return;
@@ -1045,7 +1062,8 @@ function init() {
   document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (Date.now() - WX_AT > 600e3) loadWeather(); if (Date.now() - AIR_AT > 600e3) loadAir(); });
   const h = decodeURIComponent((location.hash || '').slice(1)), nid = urlNewsId();
   const sk = $('#skip-link'); if (sk) sk.addEventListener('click', (e) => { e.preventDefault(); $('#main').focus(); });   // <base href="/"> үед #main нүүр рүү үсрэхгүй
-  if (nid) {
+  if (document.querySelector('meta[name="ubmn-404"]')) setRoute('404');   // сервер: ийм хуудас/мэдээ алга
+  else if (nid) {
     if (PRETTY && h.startsWith('news/')) try { history.replaceState(null, '', newsHref(nid)); } catch (e) { /* ignore */ }   // хуучин #news/<id> холбоос
     if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/cms.js)
   }

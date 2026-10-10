@@ -121,7 +121,7 @@ function runApply() {
   if (S.pendingNews) {   // /news/<id> хаягаар орж ирсэн, admin-аас нэмсэн мэдээ
     const id = S.pendingNews; S.pendingNews = null;
     if (NEWS_BY[id]) { S.newsId = id; setRoute('news'); }
-    else { if (PRETTY) try { history.replaceState(null, '', '/'); } catch (e) { /* ignore */ } setRoute('home'); }
+    else setRoute('404');
   }
 }
 

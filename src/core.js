@@ -656,11 +656,12 @@ function setRoute(r) {
   if (r === 'my' && !S.user) { openLogin(() => setRoute('my')); return; }
   const was = S.route; S.route = r;
   document.body.classList.toggle('admin-mode', r === 'admin');
-  $('#view-home').hidden = r !== 'home' && r !== 'page'; $('#view-my').hidden = r !== 'my'; $('#view-admin').hidden = r !== 'admin'; $('#view-news').hidden = r !== 'news';
+  $('#view-home').hidden = r !== 'home' && r !== 'page'; $('#view-my').hidden = r !== 'my'; $('#view-admin').hidden = r !== 'admin'; $('#view-news').hidden = r !== 'news'; $('#view-404').hidden = r !== '404';
   if (r !== 'news' && r !== 'page') document.title = siteTitle();
   if (r === 'my') { renderMy(); window.scrollTo(0, 0); setHash('my'); }
   else if (r === 'admin') { renderAdmin(); window.scrollTo(0, 0); setHash(admHash()); }
   else if (r === 'news') { renderNewsPage(); window.scrollTo(0, 0); }
+  else if (r === '404') { render404(); document.title = L(['Хуудас олдсонгүй', 'Page not found']) + ' · ulaanbaatar.mn'; window.scrollTo(0, 0); }
   else if (r === 'page') {   // тусдаа хуудас: толгой + тухайн хэсгүүд (шинэ төлөвөөр дахин зурна)
     const P = PAGES[S.page];
     pageView(true); renderPageHero();
