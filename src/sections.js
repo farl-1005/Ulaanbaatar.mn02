@@ -948,8 +948,8 @@ function govMixHTML() {
 }
 function govNews() {
   const re = /Засаг дарг|Захирагч|Пүрэвдагва|Governor|Mayor/i, out = GOV.map((id) => NEWS_BY[id]).filter(Boolean);
-  NEWS.forEach((n) => { if (out.length < 4 && !n.zar && !n.draft && !out.includes(n) && re.test(L(n.t) + ' ' + Lf(n.l))) out.push(n); });
-  return out.slice(0, 4);
+  NEWS.forEach((n) => { if (out.length < 8 && !n.zar && !n.draft && !out.includes(n) && re.test(L(n.t) + ' ' + Lf(n.l))) out.push(n); });
+  return out.slice(0, 8);   // 4 баганаар 2 мөр
 }
 function govMonth() {
   const days = govDays(), a = days[0], b = days[6];
@@ -974,9 +974,7 @@ function renderGov() {
         </div>
         <div id="gov-next-w" class="mt-6">${govNextHTML()}</div>
         ${govMixHTML()}
-        <p class="mt-5 flex items-start gap-2.5 text-[13.5px] text-white/80 leading-snug">${ic('users-round', 'w-[18px] h-[18px] mt-px text-white/60')}<span>${t('govReception')}</span></p>
-        <div class="mt-5 grid gap-2.5"><button type="button" class="gov-btn gov-btn-w" data-act="gov-book">${ic('calendar-check', 'w-[18px] h-[18px]')}${t('govBook')}</button><button type="button" class="gov-btn gov-btn-g" data-act="vote" data-tab="idea" data-gov="1">${ic('pen-line', 'w-[18px] h-[18px]')}${t('govLetter')}</button></div>
-      </aside>
+        <p class="mt-5 flex items-start gap-2.5 text-[13.5px] text-white/80 leading-snug">${ic('users-round', 'w-[18px] h-[18px] mt-px text-white/60')}<span>${t('govReception')}</span></p>      </aside>
       <div class="gov-cal card gov-rv lg:col-span-8" style="--i:2">
         <div class="flex items-center justify-between gap-3 px-4 sm:px-6 pt-5">
           <div class="min-w-0"><p class="text-[12px] font-bold uppercase tracking-[.1em] text-muted">${L(['Хуваарь', 'Schedule'])}</p><p class="mt-0.5 text-[16px] sm:text-[17px] font-extrabold tnum truncate" id="gov-range">${esc(govMonth())}</p></div>
@@ -987,7 +985,7 @@ function renderGov() {
         <div class="px-4 sm:px-6 py-3.5 border-t border-line flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-muted">${legend}<span class="sm:ml-auto inline-flex items-center gap-1.5">${ic('info', 'w-3.5 h-3.5')}${L(['Хуваарь өөрчлөгдөж болно', 'Subject to change'])}</span></div>
       </div>
     </div>
-    ${news.length && !onHome() ? `<div class="gov-rv mt-12" style="--i:3"><div class="flex items-end justify-between gap-4 mb-4"><h3 class="text-[20px] font-extrabold tracking-tight">${t('govNews')}</h3><button type="button" class="text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button></div>
+    ${news.length ? `<div class="gov-rv mt-12" style="--i:3"><div class="flex items-end justify-between gap-4 mb-4"><h3 class="text-[20px] font-extrabold tracking-tight">${t('govNews')}</h3><button type="button" class="text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button></div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${news.map((n) => newsCard(n)).join('')}</div></div>` : ''}
   </div>`;
   GV.sig = govSig();
