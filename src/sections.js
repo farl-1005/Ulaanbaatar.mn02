@@ -72,16 +72,17 @@ function homeHead(title, desc, act, label) {
 const homeWrap = (inner, card) => `${card ? '<div class="bg-card border-y border-line">' : ''}<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">${inner}</div>${card ? '</div>' : ''}`;
 function renderHub() {
   // Тусдаа хуудсанд (/news, /services) энэ хэсэг бүрэн жагсаалт болж хувирна
-  if (S.route === 'page' && S.page === 'news') { $('#hub').innerHTML = newsAllHTML(); return; }
+  if (S.route === 'page' && S.page === 'news') { $('#hub').innerHTML = newsAllHTML(); seasonBind(); return; }
   if (S.route === 'page' && S.page === 'services') { $('#hub').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 lg:pt-10 pb-14 lg:pb-20"><div id="hub-panel">${svcPanel()}</div></div>`; return; }
   $('#hub').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pb-14 lg:pb-20"><div class="border-t border-line pt-10 lg:pt-14">
     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-7"><div><h2 class="h-section">${t('hubTitle')}</h2><p class="mt-2 text-muted max-w-[60ch]">${t('hubDesc')}</p></div>
     ${tabs('hub', [['news', t('tab_news'), 'newspaper'], ['services', t('tab_services'), 'layout-grid'], ['events', t('tab_events'), 'calendar-days']], S.hub, { lg: 1, label: t('hubTitle'), cls: 'self-start lg:self-auto' })}</div>
     <div id="hub-panel">${hubPanel()}</div></div></div>`;
+  seasonBind();
 }
 function hubPanel() {
   const more = (k, label) => `<div class="mt-6"><button type="button" class="btn btn-ghost" data-act="page" data-v="${k}">${label}${ic('arrow-right', 'w-[18px] h-[18px]')}</button></div>`;
-  if (S.hub === 'news') return newsPanel() + more('news', `${t('allNews')} (${num(NEWS.filter((n) => !n.draft).length)})`);
+  if (S.hub === 'news') return seasonWrap(newsPanel() + more('news', `${t('allNews')} (${num(NEWS.filter((n) => !n.draft).length)})`));   // улирлын мод, тоосонцор (features.js)
   if (S.hub === 'services') return svcPanel() + (S.route === 'page' ? '' : more('services', L(['Бүх үйлчилгээ', 'All services'])));
   return evTeaser();
 }
@@ -94,7 +95,7 @@ function newsAllHTML() {
       ${tabs('nsort', [['new', L(['Шинэ нь эхэндээ', 'Newest']), 'clock-3'], ['top', L(['Их уншсан', 'Most read']), 'flame']], S.newsSort, { label: L(['Эрэмбэ', 'Sort']), cls: 'self-start sm:self-auto' })}
     </div>
     <div class="flex gap-2 overflow-x-auto no-scrollbar mt-4 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="news-chips">${chips('news-cat', NEWS_CATS.map((c) => [c, c === 'all' ? t('f_all') : L(RUB[c].t), c === 'all' ? '' : RUB[c].c]), S.newsCat)}</div>
-    <div id="news-grid" class="mt-6">${newsGridAll()}</div></div>`;
+    <div class="mt-6">${seasonWrap(`<div id="news-grid">${newsGridAll()}</div>`)}</div></div>`;
 }
 function newsGridAll(fromN = 0) {
   const q = S.newsQ.trim().toLowerCase();
@@ -165,7 +166,7 @@ function setHub(v) {
   if (v === S.hub) return;
   const dir = HUBS.indexOf(v) > HUBS.indexOf(S.hub) ? 1 : -1;
   S.hub = v; selectTab('hub', v);
-  swap($('#hub-panel'), hubPanel(), dir, (el) => initTabs(el));
+  swap($('#hub-panel'), hubPanel(), dir, (el) => { initTabs(el); seasonBind(); });
   setActiveNav(currentSec);
 }
 function setSvcTab(v) {

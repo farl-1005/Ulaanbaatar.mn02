@@ -855,6 +855,27 @@ html.a11y .pm-field, html.a11y .sky { display: none; }
 @media (prefers-reduced-motion: reduce) { #season { display: none; } }
 html.a11y #season { display: none; }
 
+/* ---- Мэдээний жагсаалтын улирлын хэсэг (features.js seasonWrap): картуудын ард тоосонцор, доод талд модтой ландшафт ---- */
+.ssn-wrap { position: relative; }
+.ssn-body { position: relative; z-index: 1; }
+.ssn-fx { position: absolute; top: -32px; bottom: 0; left: calc(50% - 50vw); right: calc(50% - 50vw); overflow: hidden; pointer-events: none; z-index: 0; }   /* дэлгэцийн бүтэн өргөнөөр */
+.ssn-fx .sf { position: absolute; top: -40px; left: var(--x); will-change: transform; animation: ssnFall calc(var(--t) * var(--k, 1)) linear calc(var(--dl) * var(--k, 1)) infinite; }
+.ssn-fx .sw { display: block; animation: sfSway var(--st) ease-in-out var(--dl) infinite alternate; }
+.ssn-fx .lf { display: block; width: var(--s); height: var(--s); animation: sfSpin var(--r) ease-in-out var(--dl) infinite alternate; }
+.ssn-fx .lf svg { display: block; width: 100%; height: 100%; }
+@keyframes ssnFall { to { transform: translate3d(0, var(--fall, 1100px), 0); } }
+/* Тэнгэрийн хаяа: дэлгэцийн бүтэн өргөнөөр, мэдээний хэсгийн доод ирмэг дээр (газар нь дараагийн хэсэгтэй залгана) */
+.ssn-land { position: relative; z-index: 1; display: block; width: 100vw; margin-left: calc(50% - 50vw); height: 176px; margin-top: 4px; -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent); mask-image: linear-gradient(to bottom, #000 80%, transparent); }   /* доод ирмэг дараагийн хэсэгт уусна */
+#hub > div:has(.ssn-wrap) { padding-bottom: 0; }
+.ssn-tree { transform-box: fill-box; transform-origin: 50% 100%; animation: ssnSway var(--sd, 6s) ease-in-out var(--sdl, 0s) infinite alternate; }
+.ssn-far { animation-duration: calc(var(--sd, 6s) * 1.6); }
+@keyframes ssnSway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+@media (max-width: 639px) { .ssn-land { height: 112px; margin-top: 8px; } .ssn-fx .sf:nth-child(n+10) { display: none; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .ssn-land { filter: brightness(.78) saturate(.9); } }
+:root[data-theme="dark"] .ssn-land { filter: brightness(.78) saturate(.9); }
+@media (prefers-reduced-motion: reduce) { .ssn-fx { display: none; } .ssn-tree { animation: none; } }
+html.a11y .ssn-fx { display: none; } html.a11y .ssn-tree { animation: none; }
+
 
 /* ================= Засаг дарга: профайл, 7 хоногийн хуваарь ================= */
 .gov-rv { opacity: 0; transform: translateY(18px); }
