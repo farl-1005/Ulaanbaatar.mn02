@@ -622,11 +622,11 @@ function aqiCardInner(drawn) {
       <div class="mt-5 pl-5">${aqiChart()}</div>`;
 }
 function renderData() {
-  if (onHome()) {   // 4 гол тоо; дарахад /data хуудасны тухайн карт руу
-    const c = aqiCat(S.aqi), wi = wxInfo(S.wx.code, S.wx.day), pop = POP.reduce((a, p) => a + p[2], 0);
-    const tile = (hl, icn, label, val, sub, color) => `<button type="button" class="card lift p-5 text-left flex flex-col gap-2 h-full" data-act="go" data-sec="data" data-hl="${hl}"><span class="flex items-center gap-2 text-[13px] text-muted font-semibold">${ic(icn, 'w-4 h-4')}${label}</span><span class="text-[34px] font-extrabold tnum leading-none tracking-tight">${val}</span><span class="text-[13px] font-semibold" ${color ? `style="color:${color}"` : 'class="text-muted"'}>${sub}</span></button>`;
-    $('#data').innerHTML = `<div class="on-navy" id="data-home">${homeWrap(homeHead(t('dataTitle'), t('dataDesc'), 'data-act="page" data-v="data"')
-      + `<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">${tile('aqi', 'wind', t('aqi'), `<span data-live="aqi">${S.aqi}</span>`, t(c.k), c.c)}${tile('weather', wi.i, t('weather'), `${wxT(S.wx.temp)}°`, esc(wi.t))}${tile('traffic', 'car-front', t('congestion'), `${S.traffic}<span class="text-[18px] text-muted">/10</span>`, t('busy'), 'rgb(var(--c-amber-ink))')}${tile('pop', 'users-round', t('population'), `${(pop / 1e6).toFixed(2).replace('.', EN() ? '.' : ',')}<span class="text-[18px] text-muted"> ${L(['сая', 'm'])}</span>`, t('popNote'))}</div>`)}</div>`;
+  if (onHome()) {   // нүүрэнд: агаарын чанар + цаг агаарын бүтэн карт (бусад нь /data хуудсанд)
+    const drawn = $('#data').classList.contains('drawn');
+    $('#data').innerHTML = `<div class="on-navy">${homeWrap(homeHead(t('dataTitle'), t('dataDesc'), 'data-act="page" data-v="data"')
+      + `<div class="grid grid-cols-1 md:grid-cols-12 gap-4 lg:gap-5" id="data-grid"><div class="card fx-card p-5 sm:p-6 md:col-span-7" data-card="aqi">${aqiCardInner(drawn)}</div><div class="card fx-card p-5 sm:p-6 md:col-span-5 flex flex-col" data-card="weather">${weatherCardInner()}</div></div>`)}</div>`;
+    dataFx(0);
     return;
   }
   const c = aqiCat(S.aqi), tot = POP.reduce((a, p) => a + p[2], 0), max = POP[0][2];
@@ -650,11 +650,15 @@ function renderData() {
       <div class="mt-4 flex items-center gap-5"><span class="relative grid place-items-center">${ring(bpct, 96, 10, 'rgb(var(--c-blue))')}<b class="absolute text-[22px] font-extrabold tnum">${bpct}%</b></span><div class="text-[13px] space-y-1.5"><p class="flex items-center gap-2"><i class="w-2.5 h-2.5 rounded-[2px] bg-line"></i>${t('plan')}</p><p class="flex items-center gap-2"><i class="w-2.5 h-2.5 rounded-[2px] bg-ubblue"></i>${t('actual')}</p></div></div>
       <div class="mt-5 h-[110px] flex items-end gap-4">${BUDGET_Q.map((q, i) => `<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"><div class="w-full flex items-end gap-1 h-full"><span class="bar-grow flex-1 rounded-t-[6px] bg-line" style="height:${(q[0] / bmx) * 100}%"></span><span class="bar-grow flex-1 rounded-t-[6px] bg-ubblue" style="height:${(q[1] / bmx) * 100}%;transition-delay:${0.1 + i * 0.08}s"></span></div><span class="text-[11.5px] text-muted font-semibold">${['I', 'II', 'III', 'IV'][i]}</span></div>`).join('')}</div></div>
   </div></div></div></div>`;
-  const grid = $('#data-grid'), sec = $('#data');
+  dataFx(tot);
+}
+/* Хотын өгөгдлийн картууд дэлгэцэнд орж ирэхэд: зүү, тоолуур, эргэлдэх цифр; дэлгэцээс гарвал тоосонцор зогсоно; AQI графикийн hover */
+function dataFx(tot) {
+  const grid = $('#data-grid'), sec = $('#data'); if (!grid) return;
   const reveal = () => {
     sec.classList.add('drawn');
     const n = $('.needle', grid); if (n) n.style.transform = `rotate(${n.dataset.ang}deg)`;
-    if (!sec.dataset.counted) { sec.dataset.counted = '1'; countUp($('[data-count]', grid), tot); }
+    const cnt = $('[data-count]', grid); if (cnt && !sec.dataset.counted) { sec.dataset.counted = '1'; countUp(cnt, tot); }
     $$('.rd-s[data-to]', grid).forEach((s) => { s.style.setProperty('--d', s.dataset.to); s.removeAttribute('data-to'); });   // цифрүүд 0-ээс эргэлдэнэ
   };
   if (sec.classList.contains('drawn')) reveal(); else observeOnce(grid, reveal, 0.15);

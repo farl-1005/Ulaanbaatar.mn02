@@ -1053,13 +1053,11 @@ async function loadAir() {
 function paintAir() {
   const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
   const ac = $('[data-card="aqi"]'); if (ac) { ac.innerHTML = aqiCardInner(true); bindAqiHover(); }
-  if ($('#data-home')) renderData();   // нүүрний товч хувилбар
   setLive('aqi', S.aqi);
 }
 function paintWeather() {
   const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
   const wc = $('[data-card="weather"]'); if (wc) wc.innerHTML = weatherCardInner();
-  if ($('#data-home')) renderData();
 }
 function startLive() {
   setInterval(() => {
