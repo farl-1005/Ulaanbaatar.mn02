@@ -195,6 +195,13 @@ const ORGS = [
   { i: 'shield', t: ['Цагдаагийн газар', 'City Police'] },
   { i: 'hand-heart', t: ['Нийгмийн халамжийн газар', 'Social Welfare Department'] },
 ];
+/* Бодит харьяа байгууллагууд (build үед ulaanbaatar.mn/government-оос, news.js getLiveOrgs): ангилал, нэр, вэб сайт, лого */
+const ORG_CATS = [];
+(function () {
+  if (typeof LIVE_ORGS === 'undefined' || !LIVE_ORGS.orgs || !LIVE_ORGS.orgs.length) return;
+  ORG_CATS.push(...LIVE_ORGS.cats.map((c) => ({ id: c.id, t: [c.t, ''] })));
+  ORGS.splice(0, ORGS.length, ...LIVE_ORGS.orgs.map((o) => ({ id: 'org' + o.id, cat: o.cat, t: [o.t, ''], url: o.url, logo: o.logo, i: 'building-2' })));
+})();
 
 /* ================= Data series ================= */
 const AQI_PROFILE = [118, 112, 104, 96, 90, 86, 84, 88, 82, 70, 58, 49, 44, 42, 45, 52, 61, 72, 88, 104, 121, 129, 126, 122];
