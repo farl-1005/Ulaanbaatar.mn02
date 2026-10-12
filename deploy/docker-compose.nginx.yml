@@ -1,0 +1,16 @@
+# Сервер дээр nginx аль хэдийн ажиллаж байгаа үед (бусад сайттай хамтын сервер):
+# зөвхөн апп-ыг 127.0.0.1:APP_PORT дээр асаана, HTTPS-ийг тухайн nginx (certbot) хариуцна. Caddy ашиглахгүй.
+# deploy/setup-nginx.sh үүнийг .env-д (COMPOSE_FILE) тохируулдаг тул update.sh, backup.sh өөрчлөлтгүй ажиллана.
+services:
+  app:
+    build: ..
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      TRUST_PROXY: "1"
+    ports:
+      - "127.0.0.1:${APP_PORT:-3010}:3000"   # гаднаас шууд хандах боломжгүй, зөвхөн nginx-ээр
+    volumes:
+      - ubdata:/data
+volumes:
+  ubdata:
