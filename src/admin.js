@@ -108,7 +108,7 @@ const SCHEMA = {
     ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['d', 'bi', ['Тайлбар', 'Description']], ['i', 'icon', ['Тэмдэг', 'Icon']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
   orgs: { icon: 'building-2', one: ['байгууллага', 'agency'], idp: 'o', title: (x) => L(x.t), fields: [
-    ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['logo', 'logo', ['Лого', 'Logo']], ['url', 'url', ['Вэб сайт', 'Website']], ['i', 'icon', ['Тэмдэг (лого оруулаагүй үед харагдана)', 'Icon (shown when there is no logo)']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
+    ['t', 'bi', ['Нэр', 'Name'], { req: 1 }], ['cat', 'chips', ['Ангилал', 'Category'], { options: () => ORG_CATS.map((c) => [c.id, L(c.t)]), def: (ORG_CATS[0] || {}).id }], ['logo', 'logo', ['Лого', 'Logo']], ['url', 'url', ['Вэб сайт', 'Website']], ['i', 'icon', ['Тэмдэг (лого оруулаагүй үед харагдана)', 'Icon (shown when there is no logo)']], ['ord', 'number', ['Дараалал (бага тоо нь эхэнд)', 'Order (lower comes first)']],
   ] },
   history: { icon: 'history', one: ['түүхэн нэр', 'historical name'], idp: 'h', title: (x) => `${x.y || ''} · ${L(x.t || ['', ''])}`, fields: [
     ['y', 'number', ['Он', 'Year'], { req: 1 }], ['t', 'bi', ['Нэр', 'Name'], { req: 1 }],

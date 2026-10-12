@@ -40,7 +40,7 @@ function renderHero() {
         <p class="mt-4 text-[16.5px] leading-relaxed text-muted max-w-[62ch]">${esc(Lf(m.l))}</p>
         <div class="mt-6 flex flex-wrap gap-3"><button type="button" class="btn btn-ink" data-act="news" data-id="${m.id}">${ic('book-open', 'w-[18px] h-[18px]')}${t('read')}</button><button type="button" class="btn btn-ghost" data-act="vote" data-tab="idea">${ic('message-square-plus', 'w-[18px] h-[18px]')}${t('cta_vote')}</button></div>
       </div>
-      <div class="hero-fade mt-8 pt-5 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-5" style="--d:.7s">${rel.map((r) => `<button type="button" class="group text-left flex sm:block gap-3 zoom-on" data-act="news" data-id="${r.id}"><div class="scene zoom rounded-xl w-24 h-[72px] sm:w-full sm:h-auto sm:aspect-[16/9] shrink-0">${Scene(r.img)}</div><span class="block sm:mt-3 text-[14.5px] font-semibold leading-snug group-hover:text-ubred transition-colors line-clamp-3">${esc(L(r.t))}</span></button>`).join('')}</div>
+      <div class="hero-fade mt-8 pt-6 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-4" style="--d:.7s">${rel.map((r) => `<button type="button" class="group lift card text-left overflow-hidden flex sm:flex-col zoom-on" data-act="news" data-id="${r.id}"><div class="scene zoom w-28 sm:w-full shrink-0 aspect-[4/3] sm:aspect-[16/10]">${Scene(r.img)}</div><div class="p-3 sm:p-4 flex flex-col flex-1 min-w-0">${rubTag(r)}<span class="mt-1.5 text-[14.5px] font-bold leading-snug line-clamp-3 group-hover:text-ubred transition-colors">${esc(L(r.t))}</span><span class="mt-auto pt-3 flex items-center gap-3 text-[12px] text-muted">${ago(r.ago)}<span class="inline-flex items-center gap-1 tnum">${ic('eye', 'w-3.5 h-3.5')}${num(r.views || 0)}</span></span></div></button>`).join('')}</div>
     </article>
     <aside class="lg:col-span-3 lg:order-1 min-w-0 hero-fade" style="--d:.25s" aria-label="${esc(t('breaking'))}">
       <div class="brk-head mb-2 px-1"><h2 class="text-[19px] font-extrabold tracking-tight flex items-center gap-2.5">${fireIcon()}${t('breaking')}</h2><p class="text-[12.5px] text-muted mt-0.5 pl-[32px]">${t('liveUpd')}</p></div>
@@ -950,10 +950,12 @@ function govMixHTML() {
     <span class="gov-mix-bar">${cnt.map(([k, n], i) => `<i style="flex:${n} 1 0;background:${GOV_TYPES[k].c};--i:${i}"></i>`).join('')}</span>
     <span class="mt-3 flex flex-wrap gap-x-3.5 gap-y-1.5">${cnt.map(([k, n]) => `<span class="inline-flex items-center gap-1.5 text-[12.5px] text-white/75"><i class="w-2 h-2 rounded-full" style="background:${GOV_TYPES[k].c}"></i>${esc(L(GOV_TYPES[k].t))} <b class="text-white tnum">${n}</b></span>`).join('')}</span></div>`;
 }
-function govNews() {
+/* Засаг даргатай холбоотой мэдээ (4 баганаар 2 мөр = 8). Хүрэлцэхгүй бол хамгийн сүүлийн мэдээгээр нөхнө. */
+function govNews(n = 4) {
   const re = /Засаг дарг|Захирагч|Пүрэвдагва|Governor|Mayor/i, out = GOV.map((id) => NEWS_BY[id]).filter(Boolean);
-  NEWS.forEach((n) => { if (out.length < 8 && !n.zar && !n.draft && !out.includes(n) && re.test(L(n.t) + ' ' + Lf(n.l))) out.push(n); });
-  return out.slice(0, 8);   // 4 баганаар 2 мөр
+  NEWS.forEach((x) => { if (out.length < n && !x.zar && !x.draft && !out.includes(x) && re.test(L(x.t) + ' ' + Lf(x.l))) out.push(x); });
+  NEWS.slice().sort((a, b) => a.ago - b.ago).forEach((x) => { if (out.length < n && !x.zar && !x.draft && !out.includes(x)) out.push(x); });
+  return out.slice(0, n);
 }
 function govMonth() {
   const days = govDays(), a = days[0], b = days[6];
@@ -963,7 +965,7 @@ function govMonth() {
 function renderGov() {
   const sec = $('#gov'); if (!sec) return;
   govPick();
-  const news = govNews(), legend = Object.keys(GOV_TYPES).map((k) => `<span class="inline-flex items-center gap-1.5"><span style="color:${GOV_TYPES[k].c}">${ic(GOV_TYPES[k].i, 'w-3.5 h-3.5')}</span>${esc(L(GOV_TYPES[k].t))}</span>`).join('');
+  const news = govNews(8), legend = Object.keys(GOV_TYPES).map((k) => `<span class="inline-flex items-center gap-1.5"><span style="color:${GOV_TYPES[k].c}">${ic(GOV_TYPES[k].i, 'w-3.5 h-3.5')}</span>${esc(L(GOV_TYPES[k].t))}</span>`).join('');
   sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="gov-rv flex flex-col md:flex-row md:items-end justify-between gap-4" style="--i:0">
       <div><span class="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[.12em] text-ubred">${ic('landmark', 'w-4 h-4')}${t('govSec')}</span>
@@ -978,7 +980,8 @@ function renderGov() {
         </div>
         <div id="gov-next-w" class="mt-6">${govNextHTML()}</div>
         ${govMixHTML()}
-        <p class="mt-5 flex items-start gap-2.5 text-[13.5px] text-white/80 leading-snug">${ic('users-round', 'w-[18px] h-[18px] mt-px text-white/60')}<span>${t('govReception')}</span></p>      </aside>
+        <p class="mt-5 flex items-start gap-2.5 text-[13.5px] text-white/80 leading-snug">${ic('users-round', 'w-[18px] h-[18px] mt-px text-white/60')}<span>${t('govReception')}</span></p>
+      </aside>
       <div class="gov-cal card gov-rv lg:col-span-8" style="--i:2">
         <div class="flex items-center justify-between gap-3 px-4 sm:px-6 pt-5">
           <div class="min-w-0"><p class="text-[12px] font-bold uppercase tracking-[.1em] text-muted">${L(['Хуваарь', 'Schedule'])}</p><p class="mt-0.5 text-[16px] sm:text-[17px] font-extrabold tnum truncate" id="gov-range">${esc(govMonth())}</p></div>
@@ -1063,11 +1066,11 @@ function govIcs(id) {
 /* ================= About ================= */
 /* Харьяа байгууллага: admin-аас лого оруулсан бол лого (цагаан дэвсгэр дээр), үгүй бол тэмдэг */
 function orgMark(o, cls = 'w-11 h-11') {
-  const src = mediaSrc(o.logo);
+  const src = mediaSrc(o.logo) || (/^(assets\/news\/org-[\w-]+\.webp|https:\/\/ulaanbaatar\.mn\/files\/[^"'<>\s]+)$/.test(o.logo || '') ? o.logo : '');
   return src ? `<span class="org-logo org-logo-fit"><img src="${src}" alt="" loading="lazy" decoding="async"></span>` : `<span class="${cls} rounded-xl bg-soft grid place-items-center text-ubred shrink-0">${ic(o.i || 'building-2', 'w-5 h-5')}</span>`;
 }
 function orgTile(o) {
-  const inner = `${orgMark(o)}<span class="text-[14px] font-semibold leading-snug">${esc(L(o.t))}</span>`;
+  const inner = `${orgMark(o)}<span class="text-[14px] font-semibold leading-snug line-clamp-2">${esc(L(o.t))}</span>`;
   return /^https?:\/\//.test(o.url || '') ? `<a href="${esc(o.url)}" target="_blank" rel="noopener" class="org-tile group">${inner}${ic('arrow-up-right', 'org-go w-4 h-4')}</a>` : `<div class="org-tile">${inner}</div>`;
 }
 function renderAbout() {
@@ -1077,7 +1080,20 @@ function renderAbout() {
       <div class="mt-7 grid grid-cols-2 gap-3">${facts.map(([l, v]) => `<div class="card p-4"><p class="text-[13px] text-muted">${l}</p><p class="mt-1 text-[20px] font-extrabold tnum leading-tight">${v}</p></div>`).join('')}</div></div>
     <div class="lg:col-span-7 rounded-[8px]" data-card="leadership"><h3 class="text-[19px] font-extrabold">${t('leadership')}</h3><ol class="mt-5">${STRUCT.map((s, i) => `<li class="relative flex gap-4 ${i < STRUCT.length - 1 ? 'pb-6' : ''}">${i < STRUCT.length - 1 ? '<span class="absolute left-[21px] top-12 bottom-1 w-px bg-line"></span>' : ''}<span class="relative w-11 h-11 rounded-2xl ${i === 2 ? 'bg-ubred text-white' : 'bg-card border border-line text-ubred'} grid place-items-center shrink-0">${ic(s.i, 'w-5 h-5')}</span><div class="pt-1"><b class="block text-[15.5px] leading-snug">${esc(L(s.t))}</b><span class="block text-[13.5px] text-muted mt-0.5">${esc(L(s.d))}</span></div></li>`).join('')}</ol></div></div>
     <div class="mt-12 rounded-[8px]" data-card="adminhist"><h3 class="text-[19px] font-extrabold">${t('adminHist')}</h3><p class="mt-1 text-[13px] text-muted">${t('adminHistD')}</p><ol class="mt-6 flex overflow-x-auto no-scrollbar snap-x pb-2 -mx-4 px-4 lg:mx-0 lg:px-0">${ADMIN_NAMES.map(([y, mn, en], i) => { const last = i === ADMIN_NAMES.length - 1; return `<li class="snap-start shrink-0 w-[172px] sm:w-[188px] relative pr-5">${last ? '' : '<span class="absolute left-2 right-0 top-[7px] h-px bg-line"></span>'}<span class="relative block w-3.5 h-3.5 rounded-full ${last ? 'bg-ubred' : 'bg-card border-2 border-ubred'}"></span><b class="block mt-3 text-[21px] font-extrabold tnum tracking-tight">${y}</b><span class="block mt-1 text-[13.5px] leading-snug ${last ? 'text-ink font-semibold' : 'text-muted'}">${esc(EN() ? en : mn)}</span></li>`; }).join('')}</ol></div>
-    <div class="mt-12 rounded-[8px]" data-card="orgs"><h3 class="text-[19px] font-extrabold">${t('orgs')}</h3><ul class="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${ORGS.map((o) => `<li>${orgTile(o)}</li>`).join('')}</ul></div></div>`;
+    <div class="mt-12 rounded-[8px]" data-card="orgs"><div class="flex flex-wrap items-end justify-between gap-3"><h3 class="text-[19px] font-extrabold">${t('orgs')}</h3>${ORG_CATS.length ? `<a href="https://ulaanbaatar.mn/government" target="_blank" rel="noopener" class="text-[13px] text-muted hover:text-ink inline-flex items-center gap-1">${L(['Эх сурвалж: ulaanbaatar.mn', 'Source: ulaanbaatar.mn'])}${ic('arrow-up-right', 'w-3.5 h-3.5')}</a>` : ''}</div>
+      ${ORG_CATS.length ? `<div class="mt-4 flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 lg:mx-0 lg:px-0" id="org-chips">${chips('org-cat', [['all', `${t('f_all')} · ${ORGS.length}`]].concat(ORG_CATS.map((c) => [c.id, `${L(c.t)} · ${ORGS.filter((o) => o.cat === c.id).length}`])), S.orgCat)}</div>` : ''}
+      <div id="org-grid" class="mt-5">${orgGrid()}</div></div></div>`;
+}
+/* Харьяа байгууллагууд: ангиллаар шүүнэ; «Бүгд» үед эхний 12-ыг харуулж «Бүгдийг үзэх»-ээр дэлгэнэ */
+function orgGrid() {
+  const list = S.orgCat === 'all' ? ORGS : ORGS.filter((o) => o.cat === S.orgCat), cut = S.orgCat === 'all' && !S.orgAll && list.length > 12;
+  return `<ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">${(cut ? list.slice(0, 12) : list).map((o, k) => `<li class="org-li" style="--i:${k % 12}">${orgTile(o)}</li>`).join('')}</ul>
+    ${cut ? `<div class="mt-4 text-center"><button type="button" class="btn btn-ghost" data-act="org-all">${L(['Бүгдийг үзэх', 'Show all'])} (${list.length})${ic('chevron-down', 'w-[18px] h-[18px]')}</button></div>` : ''}`;
+}
+function setOrgCat(v) {
+  S.orgCat = v; S.orgAll = false;
+  $$('[data-act="org-cat"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  const g = $('#org-grid'); if (g) swap(g, orgGrid(), 0);
 }
 
 /* ================= Босоо баннер =================

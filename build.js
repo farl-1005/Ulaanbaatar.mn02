@@ -12,7 +12,7 @@ catch (e) { console.error('✗ Шаардлагатай сангууд сууг�
 
 const ROOT = __dirname, SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
 const FILES = ['data.js', 'data2.js', 'scene.js', 'core.js', 'sections.js', 'skyline.js', 'cms.js', 'admin.js', 'features.js'];
-const { getLiveNews, getLiveMedia, IMG_DIR } = require('./news');
+const { getLiveNews, getLiveMedia, getLiveOrgs, IMG_DIR } = require('./news');
 const pascal = (n) => n.split('-').filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 /** Бүтээнэ. Амжилттай бол null, алдаатай бол алдааны текст буцаана. */
@@ -22,6 +22,8 @@ async function build() {
   console.log('  📰 ' + live.note);
   const media = await getLiveMedia();
   console.log('  🎬 ' + media.note);
+  const orgs = await getLiveOrgs();
+  console.log('  🏛  ' + orgs.note);
   const js = FILES.map((f) => `/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n');
   const html = fs.readFileSync(path.join(SRC, 'template.html'), 'utf8');
   const ICONS = {}, missing = [];
@@ -32,7 +34,8 @@ async function build() {
   // Бодит мэдээ: dist/site нь жижигрүүлсэн зургийг (assets/news/*.webp), нэг файлт хувилбар нь эх зургийг ашиглана.
   const liveFor = (local) => JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
   const mediaFor = (local) => JSON.stringify(media.items.map(({ imgFile, imgSrc, ...m }) => Object.assign(m, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
-  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\n${js}\n})();`;
+  const orgsFor = (local) => JSON.stringify({ cats: orgs.cats, orgs: orgs.orgs.map(({ logoFile, logoSrc, ...o }) => Object.assign(o, { logo: logoFile ? (local ? 'assets/news/' + logoFile : logoSrc) : '' })) });
+  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\nconst LIVE_ORGS=${orgsFor(local)};\n${js}\n})();`;
   const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
   // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data.js-ийг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
@@ -46,6 +49,7 @@ async function build() {
   };
   fs.mkdirSync(path.join(SITE, 'assets', 'news'), { recursive: true });
   for (const n of live.items.concat(media.items)) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
+  for (const o of orgs.orgs) if (o.logoFile) fs.copyFileSync(path.join(IMG_DIR, o.logoFile), path.join(SITE, 'assets', 'news', o.logoFile));
   fs.mkdirSync(path.join(SITE, 'assets'), { recursive: true });
   try { execSync('npx tailwindcss -c tailwind.config.js -i src/input.css -o dist/.tailwind.css --minify', { cwd: ROOT, stdio: 'pipe' }); }
   catch (e) { return 'CSS алдаа: ' + ((e.stderr && e.stderr.toString()) || e.message); }

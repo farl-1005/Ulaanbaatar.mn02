@@ -20,6 +20,15 @@ curl -fsSL https://raw.githubusercontent.com/farl-1005/Ulaanbaatar.mn02/main/dep
 - Admin: `/#admin`. Нууц үг: `sudo cat /opt/ulaanbaatar-mn/.env`
 - Анх асахад мэдээ, зургийг татаж бүтээхэд 1–2 минут болно. Дараа нь 15 минут тутам мэдээ автоматаар шинэчлэгдэнэ.
 
+## 2б. Сервер дээр nginx аль хэдийн ажиллаж байвал (бусад сайттай хамтын сервер)
+Дээрх скрипт 80/443 портыг Caddy-д авдаг тул **nginx-тэй серверт бүү ажиллуул**. Оронд нь:
+```bash
+curl -fsSL https://raw.githubusercontent.com/farl-1005/Ulaanbaatar.mn02/main/deploy/setup-nginx.sh | sudo bash -s -- ub.example.mn
+```
+Скрипт: апп-ыг Docker-т зөвхөн `127.0.0.1:3010` дээр асаана → тухайн домэйнд л nginx-ийн тохиргоо нэмнэ (`nginx -t` алдаатай бол буцаана) → certbot-оор HTTPS авна.
+Бусад сайт, галт хана, 80/443 портод хүрэхгүй. 3010 эзлэгдсэн бол гуравдахь аргументаар өөр порт: `... ub.example.mn 3020`.
+Дараагийн бүх команд (update.sh, backup.sh, `docker compose ...`) өөрчлөлтгүй ажиллана (`.env`-ийн `COMPOSE_FILE`).
+
 ## 3. Өдөр тутмын ажиллагаа
 | Үйлдэл | Команд (сервер дээр) |
 |---|---|

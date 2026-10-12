@@ -1283,3 +1283,8 @@ html.a11y .mcard { opacity: 1; animation: none !important; }
 @keyframes mvZoom { from { opacity: 0; transform: scale(.96); } }
 @keyframes mvFade { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .mv-play i, .mv-vinyl, .mv-eq i, .mv-info > *, .mv-ri, .mv-frame, .mv-poster, .mv-disc, .mv-photo { animation: none !important; } .mv-img { transition: none; } }
+
+
+/* Харьяа байгууллагууд: ангилал солих/дэлгэхэд дараалан гарч ирнэ */
+#org-grid .org-li { animation: naIn .5s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 30ms); }
+@media (prefers-reduced-motion: reduce) { #org-grid .org-li { animation: none; } }

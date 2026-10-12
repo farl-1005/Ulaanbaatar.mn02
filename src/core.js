@@ -52,7 +52,7 @@ const S = {
   user: store.get('user', null),
   route: 'home',
   hub: 'news', newsCat: 'all', newsType: 'all', svcTab: 'citizen', svcQ: '',
-  page: null, newsQ: '', newsSort: 'new', newsN: 12, mediaQ: '', mediaN: 12,
+  page: null, newsQ: '', newsSort: 'new', newsN: 12, mediaQ: '', mediaN: 12, orgCat: 'all', orgAll: false,
   sit: 'birth', sitDone: store.get('sitDone', { birth: [0] }),
   media: 'all',
   projSt: 'all', projSel: null,

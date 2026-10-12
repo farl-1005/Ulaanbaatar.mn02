@@ -841,6 +841,8 @@ document.addEventListener('click', (e) => {
   const a = el.dataset.act, d = el.dataset;
   switch (a) {
     case 'page': openPage(d.v, d.cat ? { cat: d.cat } : {}); break;
+    case 'org-cat': setOrgCat(d.v); break;
+    case 'org-all': { S.orgAll = true; const g = $('#org-grid'); if (g) swap(g, orgGrid(), 0); break; }
     case 'media-more': { const from = S.mediaN; S.mediaN += MEDIA_STEP; const g = $('#media-grid'); if (g) g.innerHTML = mediaCards(from); break; }
     case 'news-more': { const from = S.newsN; S.newsN += NEWS_STEP; const g = $('#news-grid'); if (g) g.innerHTML = newsGridAll(from); break; }
     case 'home': S.homeY = 0; if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
