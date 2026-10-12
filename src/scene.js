@@ -62,8 +62,8 @@ const Scene = (() => {
     bus(r, id, P) {
       return sun(id, P, 600, 100, 30) + ridge(r, 250, 70, 60, P.far) + buildings(r, id, P, 360, 40, 150)
         + `<rect y="360" width="${W}" height="140" fill="#2A2F3B"/><rect y="356" width="${W}" height="8" fill="#A4ADBE"/><path d="M0 440 H${W}" stroke="#EEF1F6" stroke-width="4" stroke-dasharray="34 26" opacity=".7"/>`
-        + bus(110 + r() * 60, 425, 300, '#D81E34') + bus(500 + r() * 40, 492, 250, '#1D5BFF')
-        + `<rect x="${740}" y="300" width="5" height="70" fill="#5B6478"/><rect x="722" y="290" width="40" height="22" rx="4" fill="#1D5BFF"/>`;
+        + bus(110 + r() * 60, 425, 300, '#D81E34') + bus(500 + r() * 40, 492, 250, '#145095')
+        + `<rect x="${740}" y="300" width="5" height="70" fill="#5B6478"/><rect x="722" y="290" width="40" height="22" rx="4" fill="#145095"/>`;
     },
     air(r, id, P) {
       let s = sun(id, P, 560, 120, 32) + ridge(r, 280, 90, 70, P.far) + buildings(r, id, P, 380, 50, 190) + ridge(r, 440, 64, 46, P.near);
@@ -90,7 +90,7 @@ const Scene = (() => {
         + `<rect x="${cx - w / 2}" y="${top}" width="${w}" height="${h}" fill="${P.bld2}"/><path d="M${cx - w / 2 - 14} ${top} L${cx} ${top - 62} L${cx + w / 2 + 14} ${top} Z" fill="${P.bld}"/>`;
       for (let i = 0; i < 9; i++) s += `<rect x="${f(cx - w / 2 + 24 + i * ((w - 48) / 8) - 7)}" y="${top + 14}" width="14" height="${h - 14}" fill="${P.win}" opacity=".9"/>`;
       s += `<rect x="${cx - w / 2 - 20}" y="${top + h}" width="${w + 40}" height="10" fill="${P.bld}"/><rect x="${cx - w / 2 - 36}" y="${top + h + 10}" width="${w + 72}" height="10" fill="${P.bld}" opacity=".8"/>` + ground(top + h + 20, P.ground);
-      [130, 670].forEach((x, k) => { s += `<rect x="${x}" y="230" width="4" height="${top + h - 210}" fill="${P.bld}"/><path d="M${x + 4} 232 h44 l-8 12 l8 12 h-44 Z" fill="${k ? '#1D5BFF' : P.acc === '#0B1D45' ? '#D81E34' : P.acc}"/>`; });
+      [130, 670].forEach((x, k) => { s += `<rect x="${x}" y="230" width="4" height="${top + h - 210}" fill="${P.bld}"/><path d="M${x + 4} 232 h44 l-8 12 l8 12 h-44 Z" fill="${k ? '#145095' : P.acc === '#0B1D45' ? '#D81E34' : P.acc}"/>`; });
       for (let i = -6; i <= 6; i++) s += `<path d="M${cx + i * 18} ${top + h + 20} L${cx + i * 120} ${H}" stroke="${P.win}" stroke-width="1" opacity=".18"/>`;
       return s;
     },
@@ -118,7 +118,7 @@ const Scene = (() => {
         + `<rect y="300" width="${W}" height="200" fill="${P.ground}"/><path d="M372 300 L432 300 L${W + 60} ${H} L-60 ${H} Z" fill="#2B303C"/>`;
       for (let i = 0; i < 9; i++) { const t0 = i / 9, t1 = (i + .45) / 9; s += `<path d="M${f(400 + 0 * t0)} ${f(300 + 200 * t0 * t0)} L${f(400)} ${f(300 + 200 * t1 * t1)}" stroke="#F2F4F8" stroke-width="${f(1 + 6 * t1)}" opacity=".85"/>`; }
       const glow = P.lit;
-      for (let i = 0; i < 7; i++) { const t = .25 + r() * .7, side = r() < .5 ? -1 : 1, x = 400 + side * (40 + 380 * t * t) * (.25 + r() * .35), y = 300 + 200 * t * t, w = 10 + 60 * t * t; s += `<rect x="${f(x - w / 2)}" y="${f(y - w * .45)}" width="${f(w)}" height="${f(w * .45)}" rx="${f(w * .12)}" fill="${['#D81E34', '#F4F6FA', '#1D5BFF', '#FFC524'][i % 4]}"/>${glow ? `<circle cx="${f(x - w * .3)}" cy="${f(y - w * .12)}" r="${f(w * .09 + 1)}" fill="#FFE7A8"/><circle cx="${f(x + w * .3)}" cy="${f(y - w * .12)}" r="${f(w * .09 + 1)}" fill="#FFE7A8"/>` : ''}`; }
+      for (let i = 0; i < 7; i++) { const t = .25 + r() * .7, side = r() < .5 ? -1 : 1, x = 400 + side * (40 + 380 * t * t) * (.25 + r() * .35), y = 300 + 200 * t * t, w = 10 + 60 * t * t; s += `<rect x="${f(x - w / 2)}" y="${f(y - w * .45)}" width="${f(w)}" height="${f(w * .45)}" rx="${f(w * .12)}" fill="${['#D81E34', '#F4F6FA', '#145095', '#FFC524'][i % 4]}"/>${glow ? `<circle cx="${f(x - w * .3)}" cy="${f(y - w * .12)}" r="${f(w * .09 + 1)}" fill="#FFE7A8"/><circle cx="${f(x + w * .3)}" cy="${f(y - w * .12)}" r="${f(w * .09 + 1)}" fill="#FFE7A8"/>` : ''}`; }
       s += `<rect x="690" y="210" width="8" height="200" fill="#3C4253"/><rect x="676" y="190" width="36" height="86" rx="8" fill="#1B1F2A"/><circle cx="694" cy="210" r="9" fill="#D81E34" opacity=".35"/><circle cx="694" cy="233" r="9" fill="#FFC524" opacity=".35"/><circle cx="694" cy="256" r="9" fill="#18C37E"/>`;
       return s;
     },
@@ -137,9 +137,9 @@ const Scene = (() => {
     },
     tech(r, id, P) {
       let s = (P.stars ? stars(r, 40) : '') + ridge(r, 300, 60, 70, P.far);
-      for (let i = -10; i <= 10; i++) s += `<path d="M${400 + i * 22} 330 L${400 + i * 120} ${H}" stroke="#4E7BE0" stroke-width="1" opacity=".35"/>`;
-      for (let k = 0; k < 7; k++) { const y = 330 + 170 * Math.pow(k / 6, 2); s += `<path d="M0 ${f(y)} H${W}" stroke="#4E7BE0" stroke-width="1" opacity=".3"/>`; }
-      let x = 40; while (x < W - 40) { const w = 30 + r() * 40, h = 60 + r() * 170; s += `<rect x="${f(x)}" y="${f(330 - h)}" width="${f(w)}" height="${f(h)}" fill="none" stroke="#7FA6FF" stroke-width="1.6" opacity=".7"/>`; x += w + 8; }
+      for (let i = -10; i <= 10; i++) s += `<path d="M${400 + i * 22} 330 L${400 + i * 120} ${H}" stroke="#3A75B8" stroke-width="1" opacity=".35"/>`;
+      for (let k = 0; k < 7; k++) { const y = 330 + 170 * Math.pow(k / 6, 2); s += `<path d="M0 ${f(y)} H${W}" stroke="#3A75B8" stroke-width="1" opacity=".3"/>`; }
+      let x = 40; while (x < W - 40) { const w = 30 + r() * 40, h = 60 + r() * 170; s += `<rect x="${f(x)}" y="${f(330 - h)}" width="${f(w)}" height="${f(h)}" fill="none" stroke="#7FA6D8" stroke-width="1.6" opacity=".7"/>`; x += w + 8; }
       const nodes = []; for (let i = 0; i < 9; i++) nodes.push([60 + r() * 680, 50 + r() * 200]);
       nodes.forEach((a, i) => { const b = nodes[(i + 3) % nodes.length]; s += `<path d="M${f(a[0])} ${f(a[1])} L${f(b[0])} ${f(b[1])}" stroke="#FFC524" stroke-width="1.2" opacity=".45"/>`; });
       nodes.forEach(([a, b]) => { s += `<circle cx="${f(a)}" cy="${f(b)}" r="12" fill="#FFC524" opacity=".15"/><circle cx="${f(a)}" cy="${f(b)}" r="4" fill="#FFC524"/>`; });
@@ -156,12 +156,12 @@ const Scene = (() => {
       let s = sun(id, P, 640, 90, 28) + ridge(r, 260, 60, 70, P.far) + `<rect y="200" width="${W}" height="90" fill="${P.bld}"/><rect y="210" width="${W}" height="72" fill="url(#w${id})" opacity=".35"/>` + ground(290, '#2F7D5A')
         + `<ellipse cx="400" cy="420" rx="520" ry="150" fill="#C9473F"/><ellipse cx="400" cy="420" rx="430" ry="104" fill="#3E9468"/>`;
       for (let k = 1; k < 5; k++) s += `<ellipse cx="400" cy="420" rx="${430 + k * 18}" ry="${104 + k * 9}" fill="none" stroke="#fff" stroke-width="1.5" opacity=".7"/>`;
-      s += `<rect x="560" y="250" width="8" height="160" fill="#fff"/><rect x="740" y="250" width="8" height="160" fill="#fff"/><rect x="560" y="246" width="188" height="26" fill="${P.acc === '#FFC524' ? '#D81E34' : '#1D5BFF'}"/>`;
+      s += `<rect x="560" y="250" width="8" height="160" fill="#fff"/><rect x="740" y="250" width="8" height="160" fill="#fff"/><rect x="560" y="246" width="188" height="26" fill="${P.acc === '#FFC524' ? '#D81E34' : '#145095'}"/>`;
       return s;
     },
     market(r, id, P) {
       let s = sun(id, P, 660, 90, 28) + ridge(r, 280, 80, 70, P.far) + buildings(r, id, P, 340, 30, 100) + ground(340, '#D9CDB8');
-      const cols = ['#D81E34', '#1D5BFF', '#FFC524', '#10A36A'];
+      const cols = ['#D81E34', '#145095', '#FFC524', '#10A36A'];
       for (let i = 0; i < 5; i++) { const x = 20 + i * 158, c = cols[i % 4]; s += `<rect x="${x + 10}" y="300" width="128" height="110" fill="#F7F2E8"/>`; for (let k = 0; k < 8; k++) s += `<path d="M${x + k * 18} 300 h18 v28 q-9 10 -18 0 Z" fill="${k % 2 ? '#fff' : c}"/>`; s += `<rect x="${x + 16}" y="380" width="116" height="30" fill="#8B6A48"/>`; for (let k = 0; k < 7; k++) s += `<circle cx="${x + 26 + k * 16}" cy="372" r="8" fill="${['#F08C1A', '#D81E34', '#9BC53D', '#FFC524'][k % 4]}"/>`; }
       for (let i = 0; i < 9; i++) { const x = r() * W, y = 470 + r() * 20; s += `<circle cx="${f(x)}" cy="${f(y - 44)}" r="9" fill="#2A2238"/><rect x="${f(x - 10)}" y="${f(y - 36)}" width="20" height="50" rx="8" fill="${['#3B4A7A', '#7A2E3E', '#2E6A57'][i % 3]}"/>`; }
       return s;
@@ -170,7 +170,7 @@ const Scene = (() => {
       let s = `<rect width="${W}" height="${H}" fill="#F4EFE7"/><rect y="400" width="${W}" height="100" fill="#C9B79C"/><rect y="396" width="${W}" height="6" fill="#B09B7D"/>`;
       [[70, 120, 200, 240], [320, 90, 180, 290], [550, 130, 190, 220]].forEach(([x, y, w, h], k) => {
         s += `<rect x="${x - 10}" y="${y - 10}" width="${w + 20}" height="${h + 20}" fill="#2B2B33"/><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${['#FBE7D3', '#E4ECF8', '#FDF1C9'][k]}"/>`;
-        for (let j = 0; j < 4; j++) { const t = r(); const cx = x + 20 + r() * (w - 40), cy = y + 20 + r() * (h - 40), c = ['#D81E34', '#1D5BFF', '#FFC524', '#0B1D45', '#10A36A'][Math.floor(r() * 5)]; s += t < .4 ? `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(16 + r() * 34)}" fill="${c}" opacity=".9"/>` : t < .75 ? `<rect x="${f(cx - 30)}" y="${f(cy - 20)}" width="${f(30 + r() * 50)}" height="${f(20 + r() * 40)}" fill="${c}" opacity=".9"/>` : `<path d="M${f(cx)} ${f(cy - 34)} L${f(cx + 34)} ${f(cy + 26)} L${f(cx - 34)} ${f(cy + 26)} Z" fill="${c}" opacity=".9"/>`; }
+        for (let j = 0; j < 4; j++) { const t = r(); const cx = x + 20 + r() * (w - 40), cy = y + 20 + r() * (h - 40), c = ['#D81E34', '#145095', '#FFC524', '#0B1D45', '#10A36A'][Math.floor(r() * 5)]; s += t < .4 ? `<circle cx="${f(cx)}" cy="${f(cy)}" r="${f(16 + r() * 34)}" fill="${c}" opacity=".9"/>` : t < .75 ? `<rect x="${f(cx - 30)}" y="${f(cy - 20)}" width="${f(30 + r() * 50)}" height="${f(20 + r() * 40)}" fill="${c}" opacity=".9"/>` : `<path d="M${f(cx)} ${f(cy - 34)} L${f(cx + 34)} ${f(cy + 26)} L${f(cx - 34)} ${f(cy + 26)} Z" fill="${c}" opacity=".9"/>`; }
       });
       return s + `<rect x="300" y="430" width="200" height="16" rx="6" fill="#5B4636"/><rect x="316" y="446" width="10" height="34" fill="#5B4636"/><rect x="474" y="446" width="10" height="34" fill="#5B4636"/>`;
     },

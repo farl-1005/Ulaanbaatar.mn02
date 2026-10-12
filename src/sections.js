@@ -248,7 +248,7 @@ function toggleStep(i, forceDone) {
 }
 function confetti(host) {
   if (!host || reduced) return;
-  const cols = ['#D81E34', '#1D5BFF', '#FFC524', '#10A36A'];
+  const cols = ['#D81E34', '#145095', '#FFC524', '#10A36A'];
   for (let k = 0; k < 40; k++) { const c = document.createElement('i'); c.className = 'confetti'; c.style.left = 8 + Math.random() * 84 + '%'; c.style.background = cols[k % 4]; c.style.setProperty('--dx', Math.random() * 180 - 90 + 'px'); c.style.setProperty('--rot', Math.random() * 720 - 360 + 'deg'); c.style.animationDelay = Math.random() * 0.3 + 's'; host.appendChild(c); setTimeout(() => c.remove(), 2200); }
 }
 
@@ -607,7 +607,7 @@ function skyFX() {
 function weatherCardInner() {
   const w = S.wx, wi = wxInfo(w.code, w.day);
   const days = w.daily ? w.daily.slice(1, 6).map(([d, mx, mn, cd]) => [new Date(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)), mx, mn, wxInfo(cd, 1)]) : FORECAST.map((f, i) => [addDays(today(), i + 1), f[0], f[1], { i: f[2], t: '' }]);
-  return `${skyFX()}<div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('weather')}</h3><p class="text-[13px] text-muted">${fDate(today(), true)}</p></div>${liveBadge('#0EA5E9')}</div>
+  return `${skyFX()}<div class="flex items-start justify-between gap-3"><div><h3 class="font-bold text-[17px]">${t('weather')}</h3><p class="text-[13px] text-muted">${fDate(today(), true)}</p></div>${liveBadge('#145095')}</div>
       <div class="mt-4 flex items-center gap-5"><span class="wx-ic w-20 h-20 rounded-3xl bg-ubblue/10 text-ubblue grid place-items-center">${ic(wi.i, 'w-11 h-11', 1.6)}</span><div><p class="text-[56px] leading-none font-extrabold tnum tracking-tight">${wxT(w.temp)}°</p><p class="font-semibold text-muted mt-1">${esc(wi.t)}, ${t('feels').toLowerCase()} ${wxT(w.feels)}°</p></div></div>
       <div class="mt-5 grid grid-cols-2 gap-2 text-[13.5px]"><div class="rounded-xl bg-soft p-3 flex items-center gap-2" title="${esc(wxDir(w.dir))}">${ic('wind', 'w-[18px] h-[18px] text-muted')}<span class="text-muted">${t('wind')}</span><b class="ml-auto tnum">${Math.round(w.wind)} ${L(['м/с', 'm/s'])}</b></div><div class="rounded-xl bg-soft p-3 flex items-center gap-2">${ic('droplet', 'w-[18px] h-[18px] text-muted')}<span class="text-muted">${t('humidity')}</span><b class="ml-auto tnum">${Math.round(w.hum)}%</b></div></div>
       <div class="mt-auto pt-5 grid grid-cols-5 gap-1 text-center">${days.map(([dd, mx, mn, inf]) => `<div class="rounded-xl py-2" title="${esc(inf.t)}"><p class="text-[12px] font-semibold text-muted">${EN() ? EN_WD[dd.getDay()] : MN_WDS[dd.getDay()]}</p>${ic(inf.i, 'w-6 h-6 mx-auto my-1.5 text-ink/80', 1.7)}<p class="text-[13px] font-bold tnum">${wxT(mx)}°</p><p class="text-[12px] text-muted tnum">${wxT(mn)}°</p></div>`).join('')}</div>

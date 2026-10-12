@@ -301,7 +301,7 @@ function openBooking(o) {
     <p class="text-[13.5px] text-muted flex items-center gap-2">${ic('map-pin', 'w-4 h-4')}${esc(L(o.place || ['Сүхбаатар дүүргийн иргэний үйлчилгээний төв', 'Sükhbaatar District service centre']))}</p>
     <p class="mt-5 font-bold">${t('pickSlot')}</p>
     <div class="mt-3 grid grid-cols-5 gap-2">${days.map((x, i) => `<button type="button" class="rounded-xl border py-2 text-center transition-colors ${i === di ? 'bg-ink text-card border-transparent' : 'border-line hover:bg-soft'}" data-act="bk-day" data-i="${i}" aria-pressed="${i === di}"><span class="block text-[12px] font-semibold opacity-70">${EN() ? EN_WD[x.getDay()] : MN_WDS[x.getDay()]}</span><b class="block text-[17px] tnum">${x.getDate()}</b></button>`).join('')}</div>
-    <div class="mt-3 grid grid-cols-3 gap-2">${slots.map((s, j) => { const tk = taken(di, j); return `<button type="button" ${tk ? 'disabled' : ''} class="h-11 rounded-xl border text-[14px] font-semibold tnum transition-colors ${tk ? 'border-line text-muted/50 line-through cursor-not-allowed' : j === si ? 'bg-ubblue text-white border-transparent' : 'border-line hover:bg-soft'}" data-act="bk-slot" data-j="${j}" aria-pressed="${j === si}">${s}</button>`; }).join('')}</div>
+    <div class="mt-3 grid grid-cols-3 gap-2">${slots.map((s, j) => { const tk = taken(di, j); return `<button type="button" ${tk ? 'disabled' : ''} class="h-11 rounded-xl border text-[14px] font-semibold tnum transition-colors ${tk ? 'border-line text-muted/50 line-through cursor-not-allowed' : j === si ? 'bg-ubbluebg text-white border-transparent' : 'border-line hover:bg-soft'}" data-act="bk-slot" data-j="${j}" aria-pressed="${j === si}">${s}</button>`; }).join('')}</div>
     <button type="button" class="btn btn-blue w-full mt-6" data-act="bk-ok" ${si == null ? 'disabled' : ''}>${ic('calendar-check', 'w-[18px] h-[18px]')}${t('confirmBook')}</button></div>` });
   MS = {
     bkDay: (i) => { di = i; si = null; paintModal(true); },
@@ -449,7 +449,7 @@ function openVote(tab, opts = {}) {
   };
   const bindText = (root) => { const ta = $('#v-text', root); if (ta) ta.addEventListener('input', () => { text = ta.value; const e = $('#v-err'); if (e) e.textContent = ''; }); };
   const drawn = (el) => requestAnimationFrame(() => requestAnimationFrame(() => el && el.classList.add('drawn')));
-  openModal({ size: 'md', label: t('vTitle'), render: () => `${modalHead(t('vTitle'), '', 'vote', 'bg-ubblue text-white')}<div class="px-5 sm:px-7 py-6">${tabs('vote', [['poll', t('vPoll'), 'chart-bar-big'], ['idea', t('vIdea'), 'message-square-plus']], cur, { cls: 'w-full [&>button]:flex-1 [&>button]:justify-center' })}<div id="v-body" class="mt-6">${body()}</div></div>`,
+  openModal({ size: 'md', label: t('vTitle'), render: () => `${modalHead(t('vTitle'), '', 'vote', 'bg-ubbluebg text-white')}<div class="px-5 sm:px-7 py-6">${tabs('vote', [['poll', t('vPoll'), 'chart-bar-big'], ['idea', t('vIdea'), 'message-square-plus']], cur, { cls: 'w-full [&>button]:flex-1 [&>button]:justify-center' })}<div id="v-body" class="mt-6">${body()}</div></div>`,
     after: (sh) => { bindText(sh); drawn($('#v-body', sh)); } });
   MS = {
     vTab: (v) => { if (v === cur) return; if (v === 'poll') { window.open(VOTE_URL, '_blank', 'noopener'); return; } const dir = v === 'idea' ? 1 : -1; cur = v; selectTab('vote', v); swap($('#v-body'), body(), dir, (el) => { bindText(el); el.classList.add('drawn'); }); },
@@ -479,7 +479,7 @@ function videoEmbed(u) {
 }
 /* ---- Медиа үзэгч (ulaanbaatar.mn): зүүн талд бараан «тайз», баруун талд мэдээлэл + «Бусад ...». Төрөл бүр өөрийн өнгөтэй ---- */
 const MV_TYPE = {
-  live: { c: '#E5253B', i: 'radio', k: 'm_live' }, photo: { c: '#3B7BFF', i: 'images', k: 'm_photo' },
+  live: { c: '#E5253B', i: 'radio', k: 'm_live' }, photo: { c: '#145095', i: 'images', k: 'm_photo' },
   poster: { c: '#F2A516', i: 'image', k: 'm_poster' }, podcast: { c: '#8B5CFF', i: 'headphones', k: 'm_podcast' },
 };
 function mvDate(m) {
@@ -625,7 +625,7 @@ function openTender(d, date) {
   const steps = [[t('tl_pub'), fDate(date)], [t('tl_bids'), fDate(addDays(today(), d.st === 'open' ? d.left : -Math.max(1, d.ago - 21)))], [t('tl_eval'), ''], [t('tl_contract'), '']];
   openModal({ size: 'md', label: L(d.t), render: () => `${modalHead(L(d.t), esc(d.no), 'gavel', 'bg-soft text-ubblue')}<div class="px-5 sm:px-7 py-6">
     <div class="grid grid-cols-2 gap-3 text-[13.5px]"><div class="rounded-xl bg-soft p-3"><p class="text-muted">${t('budget')}</p><b class="tnum">${mln(d.bud)}</b></div><div class="rounded-xl bg-soft p-3"><p class="text-muted mb-1">${L(['Төлөв', 'Status'])}</p>${tenderBadge(d)}</div></div>
-    <ol class="mt-6">${steps.map((s, i) => `<li class="flex gap-3 relative ${i < 3 ? 'pb-5' : ''}">${i < 3 ? `<span class="absolute left-[11px] top-7 bottom-0 w-0.5 ${i < cur ? 'bg-ubgreen' : 'bg-line'}"></span>` : ''}<span class="relative w-6 h-6 rounded-full grid place-items-center shrink-0 ${i < cur ? 'bg-ubgreen text-white' : i === cur ? 'bg-ubblue text-white' : 'bg-line'}">${i < cur ? ic('check', 'w-3.5 h-3.5', 3) : ''}</span><span><b class="block text-[14.5px]">${s[0]}</b>${s[1] ? `<span class="text-[13px] text-muted">${s[1]}</span>` : ''}</span></li>`).join('')}</ol>
+    <ol class="mt-6">${steps.map((s, i) => `<li class="flex gap-3 relative ${i < 3 ? 'pb-5' : ''}">${i < 3 ? `<span class="absolute left-[11px] top-7 bottom-0 w-0.5 ${i < cur ? 'bg-ubgreen' : 'bg-line'}"></span>` : ''}<span class="relative w-6 h-6 rounded-full grid place-items-center shrink-0 ${i < cur ? 'bg-ubgreen text-white' : i === cur ? 'bg-ubbluebg text-white' : 'bg-line'}">${i < cur ? ic('check', 'w-3.5 h-3.5', 3) : ''}</span><span><b class="block text-[14.5px]">${s[0]}</b>${s[1] ? `<span class="text-[13px] text-muted">${s[1]}</span>` : ''}</span></li>`).join('')}</ol>
     ${d.st === 'open' ? `<button type="button" class="btn btn-blue w-full mt-2" data-act="bid">${ic('file-signature', 'w-[18px] h-[18px]')}${t('bidBtn')}</button>` : ''}</div>` });
 }
 function openEvent(id) {
@@ -713,7 +713,7 @@ function parseActs(m) {
 }
 const botAvatar = () => `<span class="w-8 h-8 rounded-lg bg-navy text-white grid place-items-center shrink-0">${ic('sparkles', 'w-4 h-4')}</span>`;
 function msgHTML(m, i) {
-  if (m.role === 'user') return `<div class="flex justify-end"><div class="max-w-[85%] rounded-2xl rounded-tr-[4px] bg-ubblue text-white px-3.5 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words">${esc(m.text)}</div></div>`;
+  if (m.role === 'user') return `<div class="flex justify-end"><div class="max-w-[85%] rounded-2xl rounded-tr-[4px] bg-ubbluebg text-white px-3.5 py-2.5 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words">${esc(m.text)}</div></div>`;
   const body = m.text ? md(m.streaming ? stripTags(m.text) : m.text) : m.streaming ? `<span class="inline-flex items-center gap-2 text-muted text-[13.5px]"><span class="typing"><span></span><span></span><span></span></span>${t('thinking')}</span>` : '';
   return `<div class="flex gap-2.5" data-msg="${i}">${botAvatar()}<div class="max-w-[85%] min-w-0"><div class="rounded-2xl rounded-tl-[4px] bg-card border border-line px-3.5 py-2.5 text-[14.5px] leading-relaxed break-words ${body ? '' : 'hidden'}" data-body>${body}</div>${m.err ? `<p class="mt-1.5 text-[12.5px] text-ubred">${esc(m.err)}</p>` : ''}${m.acts && m.acts.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${m.acts.map((a) => `<button type="button" class="chip !h-8 !text-[13px] !px-3 !text-ubblue" data-act="chat-do" data-v="${esc(a)}">${ic(actIcon(a), 'w-4 h-4')}${esc(actLabel(a))}</button>`).join('')}</div>` : ''}</div></div>`;
 }
@@ -744,7 +744,7 @@ function burst(el) {
   if (reduced || !el) return;
   const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   const ring2 = document.createElement('i'); ring2.className = 'burst-ring'; ring2.style.left = cx + 'px'; ring2.style.top = cy + 'px'; document.body.appendChild(ring2); setTimeout(() => ring2.remove(), 700);
-  const cols = ['#D81E34', '#1D5BFF', '#FFC524', '#10A36A'];
+  const cols = ['#D81E34', '#145095', '#FFC524', '#10A36A'];
   for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, dd = 44 + Math.random() * 34, p = document.createElement('i'); p.className = 'burst'; p.style.left = cx + 'px'; p.style.top = cy + 'px'; p.style.setProperty('--bc', cols[k % 4]); p.style.setProperty('--dx', Math.cos(a) * dd + 'px'); p.style.setProperty('--dy', Math.sin(a) * dd + 'px'); document.body.appendChild(p); setTimeout(() => p.remove(), 820); }
 }
 function toggleChat(open) {
@@ -1048,6 +1048,15 @@ let AIR_AT = 0;
 async function loadAir() {
   let a = null;
   try { const r = await fetch('/api/air'); if (r.ok) a = await r.json(); } catch (e) { /* сервергүй */ }
+  if (!a || typeof a.aqi !== 'number') {   // сервер Open-Meteo руу хандаж чадахгүй (эсвэл сервергүй) бол хөтчөөс шууд
+    try {
+      const j = await (await fetch('https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.9184&longitude=106.9177&current=us_aqi,us_aqi_pm2_5,us_aqi_pm10,us_aqi_nitrogen_dioxide,us_aqi_ozone,pm2_5,pm10,nitrogen_dioxide&hourly=us_aqi&past_days=1&forecast_days=1&timezone=Asia%2FUlaanbaatar')).json();
+      const c = j.current, h = j.hourly, now = Date.now(), ts = (s) => Date.parse(s + ':00+08:00');
+      const sub = { p2: c.us_aqi_pm2_5, p1: c.us_aqi_pm10, n2: c.us_aqi_nitrogen_dioxide, o3: c.us_aqi_ozone };
+      a = { aqi: Math.round(c.us_aqi), ts: ts(c.time), src: 'openmeteo', main: Object.keys(sub).filter((k) => typeof sub[k] === 'number').sort((x, y) => sub[y] - sub[x])[0] || '',
+        pol: { pm25: c.pm2_5, pm10: c.pm10, no2: c.nitrogen_dioxide }, series: h.time.map((tm, i) => [ts(tm), h.us_aqi[i]]).filter(([t0, v]) => t0 <= now && t0 >= now - 25 * 3600e3 && typeof v === 'number') };
+    } catch (e) { return; }
+  }
   if (!a || typeof a.aqi !== 'number') return;
   AIR_AT = Date.now(); S.aqi = a.aqi; S.air = { live: 1, ts: a.ts, main: a.main || '', src: a.src || '', seriesSrc: a.seriesSrc || a.src || '', pol: a.pol || null, series: Array.isArray(a.series) ? a.series : [] };
   paintAir();

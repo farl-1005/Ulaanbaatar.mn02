@@ -12,6 +12,7 @@ module.exports = {
         navy: 'rgb(var(--c-navy) / <alpha-value>)',
         ubred: 'rgb(var(--c-red) / <alpha-value>)',
         ubblue: 'rgb(var(--c-blue) / <alpha-value>)',
+        ubbluebg: 'rgb(20 80 149 / <alpha-value>)',   // #145095: цагаан бичигтэй цэнхэр дэвсгэр (бараан горимд ч өөрчлөгдөхгүй)
         ubyellow: 'rgb(var(--c-yellow) / <alpha-value>)',
         ubgreen: 'rgb(var(--c-green) / <alpha-value>)',
         ubamber: 'rgb(var(--c-amber) / <alpha-value>)',

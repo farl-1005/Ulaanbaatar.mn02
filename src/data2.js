@@ -80,7 +80,7 @@ const DISTRICTS = [
 
 /* ================= Projects ================= */
 const PCAT = {
-  transport: { c: '#1D5BFF', i: 'route', t: ['Тээвэр', 'Transport'] },
+  transport: { c: '#145095', i: 'route', t: ['Тээвэр', 'Transport'] },
   housing: { c: '#D81E34', i: 'building-2', t: ['Орон сууц', 'Housing'] },
   infra: { c: '#E8840F', i: 'zap', t: ['Дэд бүтэц', 'Infrastructure'] },
   social: { c: '#0E9F6E', i: 'graduation-cap', t: ['Нийгэм', 'Social'] },
@@ -115,8 +115,8 @@ const PROJECTS = [
 
 /* ================= Events ================= */
 const ECAT = {
-  music: { c: '#C026D3', t: ['Хөгжим', 'Music'] }, sport: { c: '#0EA5E9', t: ['Спорт', 'Sport'] }, art: { c: '#F08C1A', t: ['Урлаг', 'Art'] },
-  kids: { c: '#10A36A', t: ['Хүүхэд', 'Kids'] }, tech: { c: '#1D5BFF', t: ['Технологи', 'Tech'] }, theatre: { c: '#D81E34', t: ['Театр', 'Theatre'] },
+  music: { c: '#C026D3', t: ['Хөгжим', 'Music'] }, sport: { c: '#145095', t: ['Спорт', 'Sport'] }, art: { c: '#F08C1A', t: ['Урлаг', 'Art'] },
+  kids: { c: '#10A36A', t: ['Хүүхэд', 'Kids'] }, tech: { c: '#145095', t: ['Технологи', 'Tech'] }, theatre: { c: '#D81E34', t: ['Театр', 'Theatre'] },
   green: { c: '#0E9AA7', t: ['Байгаль', 'Nature'] }, food: { c: '#B45309', t: ['Хоол', 'Food'] }, civic: { c: '#7C4DFF', t: ['Иргэний оролцоо', 'Civic'] },
 };
 const EVENTS = [
@@ -238,7 +238,7 @@ const TOPICS = [['plan', 'Улаанбаатар 2040', 'Ulaanbaatar 2040'], ['r
 /* ================= Засаг даргын ажлын хуваарь (sections.js renderGov, admin «Засаг даргын хуваарь») =================
    Жишээ хуваарь: өнөөдрөөс хамааран огноо нь тооцогдоно. Admin-аас бодит хуваариар солино. */
 const GOV_TYPES = {
-  meeting: { c: '#1D5BFF', i: 'handshake', t: ['Уулзалт', 'Meeting'] },
+  meeting: { c: '#145095', i: 'handshake', t: ['Уулзалт', 'Meeting'] },
   session: { c: '#7C4DFF', i: 'landmark', t: ['Хуралдаан', 'Session'] },
   visit: { c: '#0EA068', i: 'map-pinned', t: ['Ажлын айлчлал', 'Site visit'] },
   reception: { c: '#D81E34', i: 'users-round', t: ['Иргэдийн хүлээн авалт', 'Citizen reception'] },
@@ -256,7 +256,7 @@ const GOV_SCHED = [
   { id: 'g8', date: isoOff(4), from: '09:30', to: '11:00', type: 'visit', t: ['Өвөлжилтийн бэлтгэлийг шалгах', 'Winter readiness inspection'], place: ['Дулааны III цахилгаан станц', 'Thermal Power Plant No. 3'], d: ['Түлш, нөөц, засварын ажлын бэлэн байдлыг шалгах.', 'Checking fuel, reserves and repairs.'] },
 ];
 /* ================= Босоо баннер: өргөн дэлгэцийн баруун хоосон зайд (sections.js renderRail, admin «Босоо баннер») ================= */
-const RAIL_THEMES = { red: ['#D81E34', '#7A0D20'], navy: ['#1A3576', '#070F26'], blue: ['#1D5BFF', '#0A2A8C'], green: ['#0EA068', '#04573A'], gold: ['#E9A213', '#8F5200'] };
+const RAIL_THEMES = { red: ['#D81E34', '#7A0D20'], navy: ['#1A3576', '#070F26'], blue: ['#145095', '#0A2E57'], green: ['#0EA068', '#04573A'], gold: ['#E9A213', '#8F5200'] };
 const RAIL_THEME_L = { red: ['Улаан', 'Red'], navy: ['Хар хөх', 'Navy'], blue: ['Цэнхэр', 'Blue'], green: ['Ногоон', 'Green'], gold: ['Алтан', 'Gold'] };
 const BANNERS = [
   { id: 'b1', ord: 10, theme: 'red', img: 'skyline:dawn:21', tag: ['2026 он', '2026'], t: ['Бизнес эрхлэгчдийг дэмжих жил', 'Year of Supporting Entrepreneurs'],

@@ -10,7 +10,8 @@ const COUNT = 30, CACHE_MIN = 15, IMG_W = 960, IMG_MAX_BYTES = 25e6, TIMEOUT = 1
 const NEWS_TYPES = [['TIME_HISTORY', 'time', COUNT], ['PLACE', 'place', 12], ['ISSUE_REVIEW', 'review', 12]];
 const CACHE = process.env.NEWS_CACHE_DIR || path.join(__dirname, 'dist', '.news'),   // production-д байнгын диск дээр (Dockerfile)
       IMG_DIR = path.join(CACHE, 'img'), JSON_FILE = path.join(CACHE, 'news.json'), MEDIA_FILE = path.join(CACHE, 'media.json');
-const API_TYPE = 'https://ulaanbaatar.mn:8443/api/article?type=';
+/* ulaanbaatar.mn-ийн API-г ердийн 443 портоор: 8443-ыг зарим сервер/галт хана гадагш хаадаг (ub.smartsolution.mn) */
+const API_TYPE = 'https://ulaanbaatar.mn/api/article?type=';
 
 /* ---- HTML → цэвэр текстийн догол мөрүүд (клиент талд esc() хийгдэнэ) ---- */
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', laquo: '«', raquo: '»', ndash: '–', mdash: '—', hellip: '…', middot: '·', bull: '•', deg: '°', times: '×' };
@@ -172,7 +173,7 @@ async function getLiveMedia({ force = false, log = console.log } = {}) {
 
 /* ---- Харьяа байгууллагууд (ulaanbaatar.mn/government): ангилал, нэр, вэб сайт, лого ----
    Лого бүрийг ил тод дэвсгэртэйгээр 200px WebP болгоно. Ховор өөрчлөгддөг тул 24 цаг кэшлэнэ. */
-const ORG_FILE = path.join(CACHE, 'orgs.json'), API_BASE = 'https://ulaanbaatar.mn:8443/api/';
+const ORG_FILE = path.join(CACHE, 'orgs.json'), API_BASE = 'https://ulaanbaatar.mn/api/';
 const ORG_ABBR = new Set(['ОНӨААТҮГ', 'НӨҮГ', 'УТҮГ', 'ОНӨТҮГ', 'ХК', 'ХХК', 'ЗАА', 'ТӨҮГ', 'НЗДТГ']);
 const ORG_PROPER = ['улаанбаатар', 'монгол', 'нийслэл', 'багануур', 'багахангай', 'баянгол', 'баянзүрх', 'налайх', 'сонгинохайрхан', 'сүхбаатар', 'хан-уул', 'чингэлтэй', 'асгат', 'буян'];
 /* «НИЙСЛЭЛИЙН ОНЦГОЙ БАЙДЛЫН ГАЗАР» → «Нийслэлийн онцгой байдлын газар» (товчлол, газар нэрийг хадгална). Аль хэдийн жижиг үсэгтэй нэрт хүрэхгүй. */

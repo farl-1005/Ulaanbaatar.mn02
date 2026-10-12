@@ -308,9 +308,9 @@ const ALERTS = [
 
 /* ================= Rubrics ================= */
 const RUB = {
-  city: { c: '#1D5BFF', t: ['Хотын захиргаа', 'City hall'] },
+  city: { c: '#145095', t: ['Хотын захиргаа', 'City hall'] },
   plan: { c: '#7C4DFF', t: ['Хот төлөвлөлт', 'Planning'] },
-  transport: { c: '#0EA5E9', t: ['Тээвэр', 'Transport'] },
+  transport: { c: '#145095', t: ['Тээвэр', 'Transport'] },
   env: { c: '#10A36A', t: ['Байгаль орчин', 'Environment'] },
   build: { c: '#F08C1A', t: ['Бүтээн байгуулалт', 'Development'] },
   edu: { c: '#0D9488', t: ['Боловсрол', 'Education'] },
