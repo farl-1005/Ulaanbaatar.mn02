@@ -40,7 +40,7 @@ function renderHero() {
         <p class="mt-4 text-[16.5px] leading-relaxed text-muted max-w-[62ch]">${esc(Lf(m.l))}</p>
         <div class="mt-6 flex flex-wrap gap-3"><button type="button" class="btn btn-ink" data-act="news" data-id="${m.id}">${ic('book-open', 'w-[18px] h-[18px]')}${t('read')}</button><button type="button" class="btn btn-ghost" data-act="vote" data-tab="idea">${ic('message-square-plus', 'w-[18px] h-[18px]')}${t('cta_vote')}</button></div>
       </div>
-      <div class="hero-fade mt-8 pt-5 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-5" style="--d:.7s">${rel.map((r) => `<button type="button" class="group text-left flex sm:block gap-3 zoom-on" data-act="news" data-id="${r.id}"><div class="scene zoom rounded-xl w-24 h-[72px] sm:w-full sm:h-auto sm:aspect-[16/9] shrink-0">${Scene(r.img)}</div><span class="block sm:mt-3 text-[14.5px] font-semibold leading-snug group-hover:text-ubred transition-colors line-clamp-3">${esc(L(r.t))}</span></button>`).join('')}</div>
+      <div class="hero-fade mt-8 pt-6 border-t border-line grid grid-cols-1 sm:grid-cols-3 gap-4" style="--d:.7s">${rel.map((r) => `<button type="button" class="group lift card text-left overflow-hidden flex sm:flex-col zoom-on" data-act="news" data-id="${r.id}"><div class="scene zoom w-28 sm:w-full shrink-0 aspect-[4/3] sm:aspect-[16/10]">${Scene(r.img)}</div><div class="p-3 sm:p-4 flex flex-col flex-1 min-w-0">${rubTag(r)}<span class="mt-1.5 text-[14.5px] font-bold leading-snug line-clamp-3 group-hover:text-ubred transition-colors">${esc(L(r.t))}</span><span class="mt-auto pt-3 flex items-center gap-3 text-[12px] text-muted">${ago(r.ago)}<span class="inline-flex items-center gap-1 tnum">${ic('eye', 'w-3.5 h-3.5')}${num(r.views || 0)}</span></span></div></button>`).join('')}</div>
     </article>
     <aside class="lg:col-span-3 lg:order-1 min-w-0 hero-fade" style="--d:.25s" aria-label="${esc(t('breaking'))}">
       <div class="brk-head mb-2 px-1"><h2 class="text-[19px] font-extrabold tracking-tight flex items-center gap-2.5">${fireIcon()}${t('breaking')}</h2><p class="text-[12.5px] text-muted mt-0.5 pl-[32px]">${t('liveUpd')}</p></div>
@@ -905,10 +905,12 @@ function govMixHTML() {
     <span class="gov-mix-bar">${cnt.map(([k, n], i) => `<i style="flex:${n} 1 0;background:${GOV_TYPES[k].c};--i:${i}"></i>`).join('')}</span>
     <span class="mt-3 flex flex-wrap gap-x-3.5 gap-y-1.5">${cnt.map(([k, n]) => `<span class="inline-flex items-center gap-1.5 text-[12.5px] text-white/75"><i class="w-2 h-2 rounded-full" style="background:${GOV_TYPES[k].c}"></i>${esc(L(GOV_TYPES[k].t))} <b class="text-white tnum">${n}</b></span>`).join('')}</span></div>`;
 }
-function govNews() {
+/* Засаг даргатай холбоотой мэдээ: эхний 4 нь доорх эгнээнд, дараагийн 3 нь профайл картанд. Хүрэлцэхгүй бол хамгийн сүүлийн мэдээгээр нөхнө. */
+function govNews(n = 4) {
   const re = /Засаг дарг|Захирагч|Пүрэвдагва|Governor|Mayor/i, out = GOV.map((id) => NEWS_BY[id]).filter(Boolean);
-  NEWS.forEach((n) => { if (out.length < 4 && !n.zar && !n.draft && !out.includes(n) && re.test(L(n.t) + ' ' + Lf(n.l))) out.push(n); });
-  return out.slice(0, 4);
+  NEWS.forEach((x) => { if (out.length < n && !x.zar && !x.draft && !out.includes(x) && re.test(L(x.t) + ' ' + Lf(x.l))) out.push(x); });
+  NEWS.slice().sort((a, b) => a.ago - b.ago).forEach((x) => { if (out.length < n && !x.zar && !x.draft && !out.includes(x)) out.push(x); });
+  return out.slice(0, n);
 }
 function govMonth() {
   const days = govDays(), a = days[0], b = days[6];
@@ -918,7 +920,7 @@ function govMonth() {
 function renderGov() {
   const sec = $('#gov'); if (!sec) return;
   govPick();
-  const news = govNews(), legend = Object.keys(GOV_TYPES).map((k) => `<span class="inline-flex items-center gap-1.5"><span style="color:${GOV_TYPES[k].c}">${ic(GOV_TYPES[k].i, 'w-3.5 h-3.5')}</span>${esc(L(GOV_TYPES[k].t))}</span>`).join('');
+  const all = govNews(7), news = all.slice(0, 4), side = all.slice(4, 7), legend = Object.keys(GOV_TYPES).map((k) => `<span class="inline-flex items-center gap-1.5"><span style="color:${GOV_TYPES[k].c}">${ic(GOV_TYPES[k].i, 'w-3.5 h-3.5')}</span>${esc(L(GOV_TYPES[k].t))}</span>`).join('');
   sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="gov-rv flex flex-col md:flex-row md:items-end justify-between gap-4" style="--i:0">
       <div><span class="inline-flex items-center gap-2 text-[12px] font-bold uppercase tracking-[.12em] text-ubred">${ic('landmark', 'w-4 h-4')}${t('govSec')}</span>
@@ -934,7 +936,6 @@ function renderGov() {
         <div id="gov-next-w" class="mt-6">${govNextHTML()}</div>
         ${govMixHTML()}
         <p class="mt-5 flex items-start gap-2.5 text-[13.5px] text-white/80 leading-snug">${ic('users-round', 'w-[18px] h-[18px] mt-px text-white/60')}<span>${t('govReception')}</span></p>
-        <div class="mt-5 grid gap-2.5"><button type="button" class="gov-btn gov-btn-w" data-act="gov-book">${ic('calendar-check', 'w-[18px] h-[18px]')}${t('govBook')}</button><button type="button" class="gov-btn gov-btn-g" data-act="vote" data-tab="idea" data-gov="1">${ic('pen-line', 'w-[18px] h-[18px]')}${t('govLetter')}</button></div>
       </aside>
       <div class="gov-cal card gov-rv lg:col-span-8" style="--i:2">
         <div class="flex items-center justify-between gap-3 px-4 sm:px-6 pt-5">
@@ -947,7 +948,8 @@ function renderGov() {
       </div>
     </div>
     ${news.length ? `<div class="gov-rv mt-12" style="--i:3"><div class="flex items-end justify-between gap-4 mb-4"><h3 class="text-[20px] font-extrabold tracking-tight">${t('govNews')}</h3><button type="button" class="text-[14px] font-bold text-ubblue inline-flex items-center gap-1" data-act="go" data-sec="hub" data-hub="news">${t('allNews')}${ic('chevron-right', 'w-4 h-4')}</button></div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${news.map((n) => newsCard(n)).join('')}</div></div>` : ''}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">${news.map((n) => newsCard(n)).join('')}</div>
+      ${side.length ? `<div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">${side.map((n) => `<button type="button" class="gov-mi group" data-act="news" data-id="${n.id}"><span class="scene gov-mi-th">${Scene(n.img)}</span><span class="min-w-0">${rubTag(n)}<b>${esc(L(n.t))}</b><span class="gov-mi-t">${ago(n.ago)}</span></span></button>`).join('')}</div>` : ''}</div>` : ''}
   </div>`;
   GV.sig = govSig();
   govWatch(sec);
