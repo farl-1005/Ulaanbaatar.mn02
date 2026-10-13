@@ -112,6 +112,41 @@ const PROJECTS = [
   { id: 'p23', c: 'green', p: 100, x: 548, y: 280, bud: 26, due: 2025, n: ['Бага тойруугийн явган хүний гудамж', 'Small Ring pedestrian street'] },
   { id: 'p24', c: 'green', p: 61, x: 722, y: 560, bud: 30, due: 2027, n: ['Богд хан уулын ногоон бүс', 'Bogd Khan mountain green belt'] },
 ];
+/* Бодит 24 мега төсөл (build үед ulaanbaatar.mn/mega-project-оос, news.js getLiveMega): ангилал = төсөл, мэдээ = явцын мэдээлэл.
+   Нэр, ангилал, схем газрын зураг дээрх ойролцоо байрлалыг энд тохируулна (admin-аас засаж болно). Гүйцэтгэлийн хувь зөвхөн мэдээнд тодорхой бичигдсэн бол. */
+const MEGA_META = {
+  SELBE_HOUSING: ['housing', 500, 90, 'Сэлбэ хот', 'Selbe City'],
+  RING_ROAD: ['transport', 610, 215, 'Тойрог зам', 'Ring Road'],
+  TUUL_WATER_COMPLEX: ['green', 150, 535, 'Туул усан цогцолбор', 'Tuul Water Complex'],
+  BRT_BUS: ['transport', 430, 300, 'Тусгай замын автобус (BRT)', 'Bus Rapid Transit (BRT)'],
+  MULTILEVEL_INTERSECTION: ['transport', 645, 360, 'Олон түвшний уулзвар', 'Multi-level interchanges'],
+  KHUNNU_CITY: ['housing', 70, 575, 'Хүннү хот', 'Khunnu City'],
+  EMEELT_ECO_PARK: ['infra', 40, 300, 'Эмээлт эко аж үйлдвэрийн парк', 'Emeelt eco-industrial park'],
+  TPP_5: ['infra', 205, 395, 'Дулааны 5-р цахилгаан станц', 'Thermal Power Plant No. 5'],
+  UB_TRAM: ['transport', 725, 320, 'Улаанбаатар трам', 'Ulaanbaatar Tram'],
+  BAYANKHOSHUU_HOUSING: ['housing', 235, 150, 'Баянхошуу хот', 'Bayankhoshuu City'],
+  WASTE_TO_ENERGY: ['infra', 95, 175, 'Хог шатааж эрчим хүч үйлдвэрлэх', 'Waste-to-energy plant'],
+  WATER_FLOOD_PROTECTION: ['green', 380, 565, 'Хөрсний ус, үерийн хамгаалалт', 'Groundwater and flood protection'],
+  CABLE_TRANSPORT: ['transport', 305, 440, 'Дүүжин замын тээвэр', 'Cable car'],
+  COAL_PLANT: ['infra', 235, 505, 'Лаг шатаах үйлдвэр', 'Sludge incineration plant'],
+  TUUL_HIGHWAY: ['transport', 480, 520, 'Туулын хурдны зам', 'Tuul Expressway'],
+  UB_METRO: ['transport', 520, 340, 'Улаанбаатар метро', 'Ulaanbaatar Metro'],
+  WALL_MATERIAL_HOUSING: ['housing', 420, 415, 'Ханын материал хот', 'Khanyn Material City'],
+  BARUUN_DALAI_PALACE: ['infra', 960, 110, 'Баруун далай орд', 'Baruun Dalai project'],
+  DISTRIBUTED_ENERGY: ['infra', 565, 65, 'Тархмал эх үүсвэр', 'Distributed heat sources'],
+  BAGAKHANGAI_KHUNNU_RAILWAY: ['transport', 135, 600, 'Багахангай – Хүннү хот төмөр зам', 'Bagakhangai – Khunnu City railway'],
+  LRT: ['transport', 825, 395, 'Хөнгөн төмөр зам (LRT)', 'Light rail (LRT)'],
+  INTERNATIONAL_HOTEL: ['social', 545, 270, 'Олон улсын зочид буудал', 'International hotel'],
+  NEW_TSENGELDEKHIAN: ['social', 745, 440, 'Шинэ цэнгэлдэх хүрээлэн', 'New stadium'],
+  FLYOVER_BRIDGE: ['transport', 690, 255, 'Өөдөө тэмүүлэх гүүр', 'Ascending bridge'],
+};
+(function () {
+  if (typeof LIVE_MEGA === 'undefined' || !LIVE_MEGA.length) return;
+  PROJECTS.splice(0, PROJECTS.length, ...LIVE_MEGA.map((m, k) => {
+    const meta = MEGA_META[m.key] || ['infra', 380 + (k % 6) * 60, 160 + Math.floor(k / 6) * 70, m.name, ''];
+    return { id: 'mp-' + m.key.toLowerCase(), key: m.key, live: 1, c: meta[0], x: meta[1], y: meta[2], n: [meta[3], meta[4]], p: m.pct ? m.pct.v : null, pct: m.pct, ups: m.ups, bud: 0, due: null };
+  }));
+})();
 
 /* ================= Events ================= */
 const ECAT = {

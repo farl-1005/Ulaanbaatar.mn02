@@ -1288,3 +1288,47 @@ html.a11y .mcard { opacity: 1; animation: none !important; }
 /* Харьяа байгууллагууд: ангилал солих/дэлгэхэд дараалан гарч ирнэ */
 #org-grid .org-li { animation: naIn .5s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 30ms); }
 @media (prefers-reduced-motion: reduce) { #org-grid .org-li { animation: none; } }
+
+
+/* ================= Мега төслийн дэлгэрэнгүй (ulaanbaatar.mn-ийн явцын мэдээ) ================= */
+.mp-hero { position: relative; isolation: isolate; min-height: 240px; display: flex; align-items: flex-end; overflow: hidden; background: #0B1D45; }
+@media (min-width: 640px) { .mp-hero { min-height: 300px; border-radius: 8px 8px 0 0; } }
+.mp-hero-img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; animation: mpZoom 14s ease-out both; }
+@keyframes mpZoom { from { transform: scale(1.08); } }
+.mp-hero-shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgb(5 10 25 / .92), rgb(5 10 25 / .35) 55%, rgb(5 10 25 / .1)); }
+.mp-x { position: absolute; right: 14px; top: 14px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 8px; color: #fff; background: rgb(0 0 0 / .45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.mp-hero-in { padding: 22px 24px; color: #fff; animation: pgIn .7s cubic-bezier(.22, 1, .36, 1) .05s backwards; }
+@media (min-width: 640px) { .mp-hero-in { padding: 26px 30px; } }
+.mp-chip { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 10px; border-radius: 8px; font-size: 12.5px; font-weight: 800; background: var(--mc); color: #fff; box-shadow: 0 8px 20px -8px var(--mc); }
+.mp-t { margin-top: 12px; font-size: 26px; line-height: 1.12; font-weight: 800; letter-spacing: -.02em; }
+@media (min-width: 640px) { .mp-t { font-size: 32px; } }
+.mp-meta { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: rgb(255 255 255 / .75); }
+.mp-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.mp-pct { margin: 18px 24px 0; padding: 16px; border-radius: 8px; background: rgb(var(--c-soft)); border: 1px solid rgb(var(--c-line)); }
+@media (min-width: 640px) { .mp-pct { margin: 20px 30px 0; } }
+.mp-bar { display: block; margin-top: 10px; height: 8px; border-radius: 8px; background: rgb(var(--c-line)); overflow: hidden; }
+.mp-bar i { display: block; height: 100%; border-radius: inherit; background: var(--mc); animation: mpGrow 1.1s cubic-bezier(.22, 1, .36, 1) .2s backwards; transform-origin: left; }
+@keyframes mpGrow { from { transform: scaleX(0); } }
+.mp-list-w { padding: 20px 24px 26px; }
+@media (min-width: 640px) { .mp-list-w { padding: 22px 30px 30px; } }
+.mp-h { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgb(var(--c-muted)); }
+.mp-list { position: relative; margin-top: 10px; }
+.mp-list::before { content: ""; position: absolute; left: 6px; top: 18px; bottom: 18px; width: 2px; background: rgb(var(--c-line)); }
+.mp-u { position: relative; animation: naIn .5s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 35ms); }
+.mp-u-h { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 8px 10px 26px; border-radius: 8px; text-align: left; transition: background .2s; }
+.mp-u-h:hover { background: rgb(var(--c-soft)); }
+.mp-dot { position: absolute; left: 1px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 99px; background: rgb(var(--c-card)); border: 2.5px solid rgb(var(--c-line)); transition: border-color .2s, background .2s; }
+.mp-u:first-child .mp-dot, .mp-u.is-open .mp-dot { border-color: var(--mc); }
+.mp-u.is-open .mp-dot { background: var(--mc); }
+.mp-u-th { width: 64px; height: 46px; flex: none; border-radius: 8px; object-fit: cover; background: rgb(var(--c-soft)); }
+.mp-chev { transition: transform .3s cubic-bezier(.2, .8, .2, 1); }
+.mp-u.is-open .mp-chev { transform: rotate(180deg); }
+.mp-u-b { margin: 2px 0 8px 26px; padding: 14px 16px; border-radius: 8px; background: rgb(var(--c-soft)); font-size: 14.5px; line-height: 1.65; color: rgb(var(--c-ink) / .85); animation: naIn .45s cubic-bezier(.22, 1, .36, 1); }
+.mp-u-b p + p { margin-top: .7em; }
+.mp-u-img { width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .mp-hero-img, .mp-hero-in, .mp-bar i, .mp-u, .mp-u-b { animation: none !important; } }
+
+/* «24 мега төсөл» хуудасны карт: гүйцэтгэлийн шошго, дараалан гарч ирэх */
+.mpc-pct { position: absolute; left: 12px; top: 12px; z-index: 1; height: 28px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 8px; font-size: 13px; font-weight: 800; color: #fff; background: var(--mc); box-shadow: 0 8px 18px -8px var(--mc); }
+#mp-cards .mpc { animation: naIn .6s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 40ms); }
+@media (prefers-reduced-motion: reduce) { #mp-cards .mpc { animation: none; } }

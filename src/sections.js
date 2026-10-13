@@ -479,32 +479,88 @@ class MapView {
 
 /* ================= Projects ================= */
 const pStatus = (p) => (p.p >= 100 ? 'done' : p.p < 20 ? 'planned' : 'progress');
-function projFiltered() { return PROJECTS.filter((p) => S.projSt === 'all' || pStatus(p) === S.projSt); }
+/* Бодит мега төсөл (ulaanbaatar.mn): ангиллаар шүүнэ; жишээ төсөл: төлвөөр */
+const projLive = () => PROJECTS.some((p) => p.live);
+function projFiltered() { return PROJECTS.filter((p) => S.projSt === 'all' || (PCAT[S.projSt] ? p.c === S.projSt : pStatus(p) === S.projSt)); }
 function pctRing(p, size, stroke, color, fs) { return `<span class="relative grid place-items-center shrink-0">${ring(p, size, stroke, color)}<b class="absolute tnum" style="font-size:${fs}px">${p}%</b></span>`; }
+/* Гүйцэтгэл мэдэгдэж байвал цагираг, үгүй бол ангиллын тэмдэг */
+function projBadge(p, size, stroke, fs) { const c = PCAT[p.c] || PCAT.transport; return p.p != null ? pctRing(p.p, size, stroke, c.c, fs) : `<span class="grid place-items-center shrink-0 rounded-full" style="width:${size}px;height:${size}px;background:${c.c}14;color:${c.c};box-shadow:inset 0 0 0 ${stroke / 2}px ${c.c}33">${ic(c.i, size > 50 ? 'w-6 h-6' : 'w-5 h-5')}</span>`; }
+const mpDate = (d) => { const m = String(d || '').match(/(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[1]}.${m[2]}.${m[3]}` : ''; };
+const mpImg = (u, w) => (u ? (typeof mediaImg === 'function' ? mediaImg(u, w) : u) : '');
 function projList() {
   const list = projFiltered();
   if (!list.length) return `<li class="p-6 text-center text-muted">${t('noResults')}</li>`;
   return list.map((p) => { const c = PCAT[p.c], z = inDistrict(p.x, p.y), sel = p.id === S.projSel;
-    return `<li><button type="button" class="w-full text-left p-2.5 rounded-xl flex items-center gap-3 transition-colors ${sel ? 'bg-soft ring-1 ring-line' : 'hover:bg-soft'}" data-act="proj" data-id="${p.id}" aria-pressed="${sel}">${pctRing(p.p, 44, 4.5, c.c, 11)}<span class="min-w-0 flex-1"><b class="block text-[14.5px] leading-snug truncate">${esc(L(p.n))}</b><span class="block text-[12.5px] text-muted truncate">${esc(L(z.n))}, ${esc(L(c.t))}</span></span>${ic('chevron-right', 'w-4 h-4 text-muted')}</button></li>`; }).join('');
+    const sub = p.live && p.ups && p.ups.length ? `${esc(L(c.t))} · ${p.ups.length} ${L(['мэдээ', 'updates'])} · ${mpDate(p.ups[0].d)}` : `${esc(L(z.n))}, ${esc(L(c.t))}`;
+    return `<li><button type="button" class="w-full text-left p-2.5 rounded-xl flex items-center gap-3 transition-colors ${sel ? 'bg-soft ring-1 ring-line' : 'hover:bg-soft'}" data-act="proj" data-id="${p.id}" aria-pressed="${sel}">${projBadge(p, 44, 4.5, 11)}<span class="min-w-0 flex-1"><b class="block text-[14.5px] leading-snug truncate">${esc(L(p.n))}</b><span class="block text-[12.5px] text-muted truncate">${sub}</span></span>${ic('chevron-right', 'w-4 h-4 text-muted')}</button></li>`; }).join('');
 }
 function projPopup(id) {
   const p = PROJECTS.find((x) => x.id === id), c = PCAT[p.c], z = inDistrict(p.x, p.y), st = pStatus(p);
+  if (p.live) {   // бодит төсөл: гүйцэтгэл (мэдээнд бичигдсэн бол), сүүлийн мэдээ, «Дэлгэрэнгүй»
+    const u = (p.ups || [])[0];
+    return `<div class="card shadow-2xl p-4 text-ink"><div class="flex items-start gap-3">${projBadge(p, 56, 6, 13)}<div class="min-w-0 flex-1"><p class="text-[12px] font-bold" style="color:${c.c}">${esc(L(c.t))}</p><p class="font-extrabold leading-snug text-[15px]">${esc(L(p.n))}</p><p class="text-[12.5px] text-muted mt-0.5">${(p.ups || []).length} ${L(['мэдээ', 'updates'])}${u ? ' · ' + L(['сүүлд', 'latest']) + ' ' + mpDate(u.d) : ''}</p></div><button type="button" class="icon-btn !w-8 !h-8 hover:bg-soft -mr-1 -mt-1" data-act="proj-close" aria-label="${esc(t('close'))}">${ic('x', 'w-4 h-4')}</button></div>
+      ${u ? `<button type="button" class="mt-3 w-full flex gap-3 items-center text-left rounded-lg bg-soft p-2 hover:bg-line/60 transition-colors" data-act="proj-open" data-id="${p.id}">${u.img ? `<img src="${esc(mpImg(u.img, 240))}" alt="" loading="lazy" class="w-16 h-12 rounded-md object-cover shrink-0">` : ''}<span class="text-[12.5px] font-semibold leading-snug line-clamp-2">${esc(u.t)}</span></button>` : ''}
+      <button type="button" class="btn btn-sm btn-ink w-full mt-3" data-act="proj-open" data-id="${p.id}">${L(['Дэлгэрэнгүй', 'Details'])}${ic('arrow-right', 'w-4 h-4')}</button></div>`;
+  }
   return `<div class="card shadow-2xl p-4 text-ink"><div class="flex items-start gap-3">${pctRing(p.p, 56, 6, c.c, 13)}<div class="min-w-0 flex-1"><p class="text-[12px] font-bold" style="color:${c.c}">${esc(L(c.t))}</p><p class="font-extrabold leading-snug text-[15px]">${esc(L(p.n))}</p><p class="text-[12.5px] text-muted mt-0.5">${esc(L(z.n))} ${L(['дүүрэг', 'District'])}</p></div><button type="button" class="icon-btn !w-8 !h-8 hover:bg-soft -mr-1 -mt-1" data-act="proj-close" aria-label="${esc(t('close'))}">${ic('x', 'w-4 h-4')}</button></div>
     <div class="mt-3 grid grid-cols-3 gap-2 text-[12px]"><div class="rounded-lg bg-soft p-2"><p class="text-muted">${t('budget')}</p><b class="tnum text-[12.5px]">${bn(p.bud)}</b></div><div class="rounded-lg bg-soft p-2"><p class="text-muted">${t('dueYear')}</p><b class="tnum text-[12.5px]">${esc(p.due)}</b></div><div class="rounded-lg bg-soft p-2"><p class="text-muted">${L(['Төлөв', 'Status'])}</p><b class="text-[12.5px]">${t(st === 'done' ? 'st_done' : st === 'planned' ? 'st_planned' : 'st_progress')}</b></div></div></div>`;
 }
 function renderProjects() {
-  const avg = Math.round(PROJECTS.reduce((a, p) => a + p.p, 0) / PROJECTS.length), done = PROJECTS.filter((p) => p.p >= 100).length;
+  const known = PROJECTS.filter((p) => p.p != null), avg = known.length ? Math.round(known.reduce((a, p) => a + p.p, 0) / known.length) : 0, done = known.filter((p) => p.p >= 100).length;
+  const live = projLive(), nUps = PROJECTS.reduce((a, p) => a + (p.ups || []).length, 0), lastUp = PROJECTS.reduce((m, p) => (p.ups && p.ups[0] && p.ups[0].d > m ? p.ups[0].d : m), '');
   const stat = (v, l) => `<div><p class="text-[30px] font-extrabold tnum leading-none tracking-tight">${v}</p><p class="text-[13px] text-muted mt-1.5">${l}</p></div>`;
   $('#projects').innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
     <div class="pg-dup flex flex-col lg:flex-row lg:items-end justify-between gap-6"><div class="sec-ttl"><h2 class="h-section">${t('projTitle')}</h2><p class="mt-2 text-muted max-w-[62ch]">${t('projDesc')}</p></div>
-    <div class="flex flex-wrap gap-x-9 gap-y-3">${stat(PROJECTS.length, L(['мега төсөл', 'flagship projects']))}${stat(avg + '%', t('avgProgress'))}${stat(done, L(['ашиглалтад орсон', 'completed']))}</div></div>
-    <div class="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
+    <div class="flex flex-wrap gap-x-9 gap-y-3">${stat(PROJECTS.length, L(['мега төсөл', 'flagship projects']))}${live ? stat(nUps, L(['явцын мэдээ', 'progress updates'])) + stat(mpDate(lastUp), L(['сүүлд шинэчлэгдсэн', 'last updated'])) : stat(avg + '%', t('avgProgress')) + stat(done, L(['ашиглалтад орсон', 'completed']))}</div></div>
+    ${live && S.route === 'page' && S.page === 'projects' ? `<div class="mt-8 flex flex-wrap items-end justify-between gap-3"><h3 class="text-[20px] font-extrabold tracking-tight">${L(['Төслүүд', 'Projects'])}</h3><span class="text-[13px] text-muted" id="mpc-count">${projFiltered().length} ${L(['төсөл', 'projects'])}</span></div>
+      <div class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0">${chips('proj-st', [['all', `${t('f_all')} · ${PROJECTS.length}`]].concat(Object.keys(PCAT).filter((k) => PROJECTS.some((p) => p.c === k)).map((k) => [k, `${L(PCAT[k].t)} · ${PROJECTS.filter((p) => p.c === k).length}`, PCAT[k].c])), S.projSt)}</div>
+      <div id="mp-cards" class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">${projCards()}</div>
+      <div class="mt-12 flex flex-wrap items-end justify-between gap-3"><h3 class="text-[20px] font-extrabold tracking-tight">${L(['Газрын зураг дээр', 'On the map'])}</h3></div>` : ''}
+    <div class="${live && S.route === 'page' && S.page === 'projects' ? 'mt-4' : 'mt-8'} grid grid-cols-1 lg:grid-cols-12 gap-5">
       <div class="lg:col-span-8 relative min-w-0"><div id="proj-map" class="rounded-[8px] overflow-hidden border border-line h-[440px] sm:h-[520px] lg:h-[600px]"></div>
         <div class="absolute left-3 top-3 card !rounded-xl px-3 py-2 flex flex-wrap gap-x-3 gap-y-1 text-[12px] font-semibold max-w-[calc(100%-80px)] shadow-lg pointer-events-none z-[7]">${Object.values(PCAT).map((c) => `<span class="inline-flex items-center gap-1.5"><i class="w-2.5 h-2.5 rounded-full" style="background:${c.c}"></i>${esc(L(c.t))}</span>`).join('')}</div></div>
-      <div class="lg:col-span-4 min-w-0 card flex flex-col lg:h-[600px] min-h-0 overflow-hidden"><div class="p-3 border-b border-line flex gap-2 overflow-x-auto no-scrollbar" id="proj-chips">${chips('proj-st', [['all', t('f_all')], ['progress', t('st_progress')], ['done', t('st_done')], ['planned', t('st_planned')]], S.projSt)}</div><ul id="proj-list" class="relative flex-1 overflow-auto thin-scroll p-2 max-h-[420px] lg:max-h-none">${projList()}</ul></div>
+      <div class="lg:col-span-4 min-w-0 card flex flex-col lg:h-[600px] min-h-0 overflow-hidden"><div class="p-3 border-b border-line flex gap-2 overflow-x-auto no-scrollbar" id="proj-chips">${chips('proj-st', live ? [['all', `${t('f_all')} · ${PROJECTS.length}`]].concat(Object.keys(PCAT).filter((k) => PROJECTS.some((p) => p.c === k)).map((k) => [k, `${L(PCAT[k].t)} · ${PROJECTS.filter((p) => p.c === k).length}`, PCAT[k].c])) : [['all', t('f_all')], ['progress', t('st_progress')], ['done', t('st_done')], ['planned', t('st_planned')]], S.projSt)}</div><ul id="proj-list" class="relative flex-1 overflow-auto thin-scroll p-2 max-h-[420px] lg:max-h-none">${projList()}</ul></div>
     </div></div>`;
   if (MAPS.proj) MAPS.proj.destroy();
-  MAPS.proj = new MapView($('#proj-map'), { points: () => projFiltered().map((p) => ({ id: p.id, x: p.x, y: p.y, c: PCAT[p.c].c, i: PCAT[p.c].i, tag: p.p + '%', v: p.p, label: L(p.n) })), sel: S.projSel, onSelect: (id) => selectProject(id, false), popup: projPopup });
+  MAPS.proj = new MapView($('#proj-map'), { points: () => projFiltered().map((p) => ({ id: p.id, x: p.x, y: p.y, c: PCAT[p.c].c, i: PCAT[p.c].i, tag: p.p != null ? p.p + '%' : '', v: p.p || 0, label: L(p.n) })), sel: S.projSel, onSelect: (id) => selectProject(id, false), popup: projPopup });
+}
+/* «24 мега төсөл» хуудасны карт: мэдээний карттай ижил хэлбэр (сүүлийн зураг, ангилал, нэр, сүүлийн мэдээ, гүйцэтгэл) */
+function projCards() {
+  const list = projFiltered();
+  if (!list.length) return `<p class="sm:col-span-2 lg:col-span-4 card p-10 text-center text-muted">${t('noResults')}</p>`;
+  return list.map((p, k) => {
+    const c = PCAT[p.c] || PCAT.transport, u = (p.ups || [])[0], img = (p.ups || []).find((x) => x.img);
+    return `<button type="button" class="mpc group lift card text-left overflow-hidden flex flex-col zoom-on" style="--i:${Math.min(k, 12)}" data-act="proj-open" data-id="${p.id}">
+      <div class="scene zoom aspect-[16/10] relative">${img ? `<img src="${esc(mpImg(img.img, 1280))}" alt="" loading="lazy" decoding="async">` : Scene('build:day:' + (p.x % 97))}
+        ${p.p != null ? `<span class="mpc-pct tnum" style="--mc:${c.c}">${p.p}%</span>` : ''}</div>
+      <div class="p-5 flex flex-col flex-1"><span class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-muted"><i class="w-2 h-2 rounded-full" style="background:${c.c}"></i>${esc(L(c.t))}</span>
+        <span class="mt-2.5 text-[17px] font-bold leading-snug group-hover:text-ubred transition-colors">${esc(L(p.n))}</span>
+        ${u ? `<span class="mt-2 text-[13.5px] text-muted leading-snug line-clamp-2">${esc(u.t)}</span>` : ''}
+        <span class="mt-auto pt-4 flex items-center gap-4 text-[12.5px] text-muted"><span class="inline-flex items-center gap-1 tnum">${ic('calendar', 'w-4 h-4')}${u ? mpDate(u.d) : '—'}</span><span class="inline-flex items-center gap-1 tnum">${ic('newspaper', 'w-4 h-4')}${(p.ups || []).length} ${L(['мэдээ', 'updates'])}</span></span></div></button>`;
+  }).join('');
+}
+/* Мега төслийн дэлгэрэнгүй: ulaanbaatar.mn-ийн явцын мэдээ бүгд (огноо, зураг, товч текст), гүйцэтгэл эх өгүүлбэртэйгээ */
+function openProject(id) {
+  const p = PROJECTS.find((x) => x.id === id); if (!p) return;
+  const c = PCAT[p.c] || PCAT.transport, ups = p.ups || [], hero = ups.find((u) => u.img);
+  let open = ups.length ? ups[0].id : null;
+  const item = (u, k) => `<li class="mp-u ${u.id === open ? 'is-open' : ''}" style="--i:${Math.min(k, 10)}">
+      <button type="button" class="mp-u-h" data-act="mp-up" data-id="${esc(u.id)}" aria-expanded="${u.id === open}">
+        <span class="mp-dot" aria-hidden="true"></span>${u.img ? `<img src="${esc(mpImg(u.img, 240))}" alt="" loading="lazy" class="mp-u-th">` : ''}
+        <span class="min-w-0 flex-1"><span class="block text-[12px] text-muted tnum">${mpDate(u.d)}</span><b class="block mt-0.5 text-[14.5px] leading-snug">${esc(u.t)}</b></span>${ic('chevron-down', 'mp-chev w-4 h-4 text-muted shrink-0')}</button>
+      ${u.id === open ? `<div class="mp-u-b">${u.img ? `<img src="${esc(mpImg(u.img, 1280))}" alt="${esc(u.t)}" loading="lazy" class="mp-u-img">` : ''}${(u.b || []).map((x) => `<p>${esc(x)}</p>`).join('')}
+        <a href="https://ulaanbaatar.mn/mega-project/${encodeURIComponent(u.id)}" target="_blank" rel="noopener" class="mt-3 inline-flex items-center gap-1.5 text-[13.5px] font-bold text-ubblue hover:underline">${L(['ulaanbaatar.mn дээр бүтнээр унших', 'Read in full on ulaanbaatar.mn'])}${ic('arrow-up-right', 'w-4 h-4')}</a></div>` : ''}</li>`;
+  const render = () => `<div class="mp" style="--mc:${c.c}">
+    <div class="mp-hero">${hero ? `<img src="${esc(mpImg(hero.img, 1280))}" alt="" class="mp-hero-img">` : `<div class="scene !absolute inset-0">${Scene('build:day:' + (p.x % 97))}</div>`}<span class="mp-hero-shade"></span>
+      <button type="button" class="mp-x" data-act="modal-close" aria-label="${esc(t('close'))}">${ic('x', 'w-5 h-5')}</button>
+      <div class="mp-hero-in"><span class="mp-chip">${ic(c.i, 'w-4 h-4')}${esc(L(c.t))}</span><h2 class="mp-t">${esc(L(p.n))}</h2>
+        <p class="mp-meta"><span>${ic('newspaper', 'w-4 h-4')}${ups.length} ${L(['явцын мэдээ', 'progress updates'])}</span>${ups[0] ? `<span>${ic('calendar', 'w-4 h-4')}${L(['Сүүлд', 'Latest'])}: ${mpDate(ups[0].d)}</span>` : ''}</p></div></div>
+    ${p.pct ? `<div class="mp-pct"><div class="flex items-center justify-between gap-3"><b class="text-[14px]">${L(['Гүйцэтгэл (сүүлийн мэдээгээр)', 'Progress (latest report)'])}</b><b class="text-[22px] tnum" style="color:${c.c}">${p.pct.v}%</b></div>
+      <span class="mp-bar"><i style="width:${p.pct.v}%"></i></span><p class="mt-2 text-[13px] text-muted leading-snug">«${esc(p.pct.src)}» · ${mpDate(p.pct.d)}</p></div>` : ''}
+    <div class="mp-list-w"><p class="mp-h">${L(['Явцын мэдээ', 'Progress updates'])}</p><ol class="mp-list">${ups.map(item).join('')}</ol>
+      <p class="mt-4 text-[12.5px] text-muted">${L(['Эх сурвалж', 'Source'])}: <a href="https://ulaanbaatar.mn/mega-project" target="_blank" rel="noopener" class="underline underline-offset-2 hover:text-ink">ulaanbaatar.mn/mega-project</a></p></div></div>`;
+  openModal({ size: 'lg', label: L(p.n), render });
+  MS = { mpUp: (uid) => { open = open === uid ? null : uid; paintModal(true); const el = MODAL && $(`.mp-u.is-open`, MODAL.sheet); if (el) el.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' }); } };
 }
 function selectProject(id, pan) {
   S.projSel = id;
@@ -517,6 +573,7 @@ function setProjSt(v) {
   S.projSt = v; $$('[data-act="proj-st"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
   if (S.projSel && !projFiltered().some((p) => p.id === S.projSel)) S.projSel = null;
   $('#proj-list').innerHTML = projList();
+  const cards = $('#mp-cards'); if (cards) { swap(cards, projCards(), 0); const n = $('#mpc-count'); if (n) n.textContent = `${projFiltered().length} ${L(['төсөл', 'projects'])}`; }
   if (MAPS.proj) { MAPS.proj.sel = S.projSel; MAPS.proj.recluster(true); }
 }
 
@@ -769,6 +826,15 @@ const TR_KIND = {   // баримтын төрөл бүрийн тэмдэг, ө
   ord: { i: 'stamp', c: '124 77 255' },
   tender: { i: 'gavel', c: 'var(--c-amber)' },
 };
+/* Ил тод байдлын табтай самбар (Тогтоол / Захирамж / Тендер + хайлт + жагсаалт): нүүр болон бүтэн хуудсанд ижил */
+function trPanel(tabsDef) {
+  return `<div class="mt-6 card overflow-hidden"><div class="px-4 sm:px-6 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-x-6">${tabs('tr', tabsDef, S.tr, { line: 1 })}
+      <div class="md:w-80 pb-3 md:pb-0"><div class="relative">${ic('search', 'w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none')}<input type="search" id="tr-q" data-input="trQ" value="${esc(S.trQ)}" placeholder="${esc(t('docSearch'))}" class="field !h-10 !pl-10 !text-[14px]" aria-label="${esc(t('docSearch'))}" autocomplete="off"/></div></div></div>
+    <div id="tr-panel">${trRows()}</div></div>`;
+}
+function trTabCounts(sec) {   // таб бүрт баримтын тоо
+  $$('[data-tabs="tr"]', sec).forEach((b) => b.insertAdjacentHTML('beforeend', `<span class="ml-1 min-w-[22px] h-[20px] px-1.5 rounded-full bg-soft border border-line text-[11.5px] font-bold tnum grid place-items-center">${(DOCS[b.dataset.v] || []).length}</span>`));
+}
 function tenderBadge(d) {
   if (d.st === 'open') return `<span class="badge ${d.left <= 3 ? 'b-red' : 'b-blue'}"><span class="live !w-1.5 !h-1.5" style="--dot:currentColor"></span>${d.left ? t('daysLeft', { n: d.left }) : t('closesToday')}</span>`;
   if (d.st === 'eval') return `<span class="badge b-off">${ic('hourglass', 'w-3.5 h-3.5')}${t('tEval')}</span>`;
@@ -827,10 +893,10 @@ function renderTr() {
   const sec = $('#transparency');
   if (onHome()) {   // 4 тоо + бүх төрлөөс хамгийн сүүлийн 4 баримт
     const fmt = (v, dec) => (dec ? v.toFixed(dec).replace('.', EN() ? '.' : ',') : num(v));
-    const docs = Object.keys(TR_KIND).flatMap((k) => (DOCS[k] || []).map((d, i) => ({ d, k, i }))).sort((a, b) => a.d.ago - b.d.ago).slice(0, 4);
     sec.innerHTML = homeWrap(homeHead(t('trTitle'), t('trDesc'), 'data-act="page" data-v="transparency"')
       + `<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">${stats.map(([icn, v, dec, suf, l, c]) => `<div class="card p-5 relative overflow-hidden"><span class="absolute inset-x-0 top-0 h-[3px]" style="background:rgb(${c})"></span><span class="w-10 h-10 rounded-xl grid place-items-center" style="background:rgb(${c} / .1);color:rgb(${c})">${ic(icn, 'w-5 h-5')}</span><p class="mt-4 text-[28px] font-extrabold tnum leading-none tracking-tight">${fmt(v, dec)}<span class="text-[17px] font-bold">${esc(suf)}</span></p><p class="text-[13px] text-muted mt-2 leading-snug">${l}</p></div>`).join('')}</div>`
-      + `<ul class="mt-4 card overflow-hidden divide-y divide-line">${docs.map(({ d, k, i }) => `<li><button type="button" class="group w-full text-left px-4 sm:px-6 py-3.5 flex items-center gap-4 hover:bg-soft/70 transition-colors" data-act="doc" data-type="${k}" data-i="${i}"><span class="w-10 h-10 rounded-xl grid place-items-center shrink-0" style="background:rgb(${TR_KIND[k].c} / .1);color:rgb(${TR_KIND[k].c})">${ic(TR_KIND[k].i, 'w-5 h-5')}</span><span class="min-w-0 flex-1"><span class="block text-[12.5px] text-muted tnum">${esc(d.no)} · ${fDate(addDays(today(), -d.ago))}</span><span class="block mt-0.5 text-[15px] font-semibold leading-snug truncate group-hover:text-ubblue transition-colors">${esc(L(d.t))}</span></span>${ic('arrow-right', 'w-4 h-4 text-muted shrink-0')}</button></li>`).join('')}</ul>`);
+      + trPanel(tabsDef));
+    trTabCounts(sec); trReveal(sec);
     return;
   }
   sec.innerHTML = `<div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
@@ -840,18 +906,16 @@ function renderTr() {
       <p class="text-[13px] text-muted inline-flex items-center gap-2 shrink-0">${ic('refresh-cw', 'w-4 h-4')}${L(['Шинэчлэгдсэн: өнөөдөр', 'Updated: today'])} <b class="text-ink tnum">${hhmm(now)}</b></p>
     </div>
     <div class="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">${stats.map(([icn, v, dec, suf, l, c], i) => `<div class="tr-kpi card lift p-5 relative overflow-hidden" style="--i:${i}"><span class="absolute inset-x-0 top-0 h-[3px]" style="background:rgb(${c})"></span><span class="w-10 h-10 rounded-xl grid place-items-center" style="background:rgb(${c} / .1);color:rgb(${c})">${ic(icn, 'w-5 h-5')}</span><p class="mt-4 text-[28px] sm:text-[30px] font-extrabold tnum leading-none tracking-tight"><span data-to="${v}" data-dec="${dec}">0</span><span class="text-[17px] font-bold">${esc(suf)}</span></p><p class="text-[13px] text-muted mt-2 leading-snug">${l}</p></div>`).join('')}</div>
-    <div class="mt-6 card overflow-hidden"><div class="px-4 sm:px-6 border-b border-line flex flex-col md:flex-row md:items-center justify-between gap-x-6">${tabs('tr', tabsDef, S.tr, { line: 1 })}
-      <div class="md:w-80 pb-3 md:pb-0"><div class="relative">${ic('search', 'w-[18px] h-[18px] absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none')}<input type="search" id="tr-q" data-input="trQ" value="${esc(S.trQ)}" placeholder="${esc(t('docSearch'))}" class="field !h-10 !pl-10 !text-[14px]" aria-label="${esc(t('docSearch'))}" autocomplete="off"/></div></div></div>
-    <div id="tr-panel">${trRows()}</div></div></div>`;
-  // таб бүрт баримтын тоо
-  $$('[data-tabs="tr"]', sec).forEach((b) => b.insertAdjacentHTML('beforeend', `<span class="ml-1 min-w-[22px] h-[20px] px-1.5 rounded-full bg-soft border border-line text-[11.5px] font-bold tnum grid place-items-center">${(DOCS[b.dataset.v] || []).length}</span>`));
-  if (sec.classList.contains('tr-in')) $$('[data-to]', sec).forEach((el) => { el.textContent = (+el.dataset.dec ? (+el.dataset.to).toFixed(+el.dataset.dec).replace('.', EN() ? '.' : ',') : num(+el.dataset.to)); });
-  else {
-    // Хэсгийн дээд хэсэг дэлгэцийн доод 20%-аас дээш орж ирэхэд эхэлнэ. Хэсэг хэдий өндөр (олон баримт) байсан ч ажиллана.
-    const go = () => { sec.classList.add('tr-in'); $$('[data-to]', sec).forEach(trCount); };
-    if (!('IntersectionObserver' in window)) go();
-    else { const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '0px 0px -20% 0px' }); io.observe(sec); }
-  }
+    ${trPanel(tabsDef)}</div>`;
+  trTabCounts(sec);
+  trReveal(sec);
+}
+/* Тоо гүйх, мөрүүд дараалан гарах хөдөлгөөн: хэсэг дэлгэцийн доод 20%-аас дээш орж ирэхэд нэг удаа (нүүр, бүтэн хуудас хоёуланд) */
+function trReveal(sec) {
+  if (sec.classList.contains('tr-in')) { $$('[data-to]', sec).forEach((el) => { el.textContent = (+el.dataset.dec ? (+el.dataset.to).toFixed(+el.dataset.dec).replace('.', EN() ? '.' : ',') : num(+el.dataset.to)); }); return; }
+  const go = () => { sec.classList.add('tr-in'); $$('[data-to]', sec).forEach(trCount); };
+  if (!('IntersectionObserver' in window)) { go(); return; }
+  const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: '0px 0px -20% 0px' }); io.observe(sec);
 }
 function setTr(v) {
   if (v === S.tr) return;

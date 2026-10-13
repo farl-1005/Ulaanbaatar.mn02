@@ -100,7 +100,7 @@ function applyOverlay() {
   SQ_POP.splice(0, SQ_POP.length, ...pairsOf(SET.popSearch));
   ALERTS.splice(0, ALERTS.length, ...mergedItems('alerts').filter((a) => !a.off));
   EVENTS.splice(0, EVENTS.length, ...mergedItems('events').map((e) => { if (!ECAT[e.c]) e.c = 'civic'; e.x = Math.max(5, Math.min(995, +e.x || 560)); e.y = Math.max(5, Math.min(615, +e.y || 285)); if (e.date) e.w = dayOffset(e.date); return e; }));
-  PROJECTS.splice(0, PROJECTS.length, ...mergedItems('projects').map((p) => Object.assign(p, { p: Math.max(0, Math.min(100, +p.p || 0)), c: PCAT[p.c] ? p.c : 'transport', x: Math.max(5, Math.min(995, +p.x || 560)), y: Math.max(5, Math.min(615, +p.y || 300)), bud: +p.bud || 0 })));
+  PROJECTS.splice(0, PROJECTS.length, ...mergedItems('projects').map((p) => Object.assign(p, { p: p.p == null || p.p === '' ? null : Math.max(0, Math.min(100, +p.p || 0)), c: PCAT[p.c] ? p.c : 'transport', x: Math.max(5, Math.min(995, +p.x || 560)), y: Math.max(5, Math.min(615, +p.y || 300)), bud: +p.bud || 0 })));
   const svc = mergedItems('services').map((s) => Object.assign(s, { g: ['citizen', 'business', 'esys'].includes(s.g) ? s.g : 'citizen', m: ['on', 'off', 'sys'].includes(s.m) ? s.m : 'on' }));
   ALL_SVC.splice(0, ALL_SVC.length, ...svc);
   QUICK.splice(0, QUICK.length, ...(SET.quick || []).filter((id) => ALL_SVC.some((x) => x.id === id)));

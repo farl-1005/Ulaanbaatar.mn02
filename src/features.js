@@ -767,7 +767,7 @@ function rules() {
   const sits = SITS.map((s) => `- ${s.t[0]} (ID ${s.id}): ${s.steps.map((x, i) => `${i + 1}) ${x.t[0]} [${x.m === 'on' ? 'онлайн' : 'биеэр'}]`).join('; ')}`).join('\n');
   const svcs = SERVICES.citizen.concat(SERVICES.business).map((x) => `${x.t[0]} (${x.m === 'on' ? 'онлайн' : 'биеэр'})`).join(', ');
   const evs = EVENTS.map((e) => Object.assign({}, e, { d: evDate(e.w) })).sort(evSort).slice(0, 8).map((e) => `- ${e.t[0]}: ${(e.d.getMonth() + 1)}-р сарын ${e.d.getDate()}, ${e.tm}, ${e.v[0]}, ${e.price ? e.price + '₮' : 'үнэгүй'}`).join('\n');
-  const avg = Math.round(PROJECTS.reduce((a, p) => a + p.p, 0) / PROJECTS.length);
+  const known = PROJECTS.filter((p) => p.p != null), avg = known.length ? Math.round(known.reduce((a, p) => a + p.p, 0) / known.length) : 0;
   return `You are "AI туслах", the assistant on ulaanbaatar.mn, the Ulaanbaatar city portal. This is a design concept, so all data below is illustrative.
 Reply in ${lang} unless the user clearly writes in another language; then use theirs.
 Keep answers short: 2-5 sentences, or up to 5 bullet lines starting with "- ". No headings, no tables, no emojis.
@@ -905,7 +905,9 @@ document.addEventListener('click', (e) => {
     case 'mv-fs': if (MS && MS.fs) MS.fs(); break;
     case 'mv-copy': if (MS && MS.copy) MS.copy(); break;
     case 'proj-st': setProjSt(d.v); break;
-    case 'proj': selectProject(d.id, true); break;
+    case 'proj': if (S.projSel === d.id && PROJECTS.some((p) => p.id === d.id && p.live)) openProject(d.id); else selectProject(d.id, true); break;   // сонгосон төслийг дахин дарахад дэлгэрэнгүй
+    case 'proj-open': openProject(d.id); break;
+    case 'mp-up': if (MS && MS.mpUp) MS.mpUp(d.id); break;
     case 'proj-close': S.projSel = null; selectProject(null, false); break;
     case 'ev-f': setEvF(d.v); break;
     case 'cal-day': S.calDay = d.k; $('#ev-panel').innerHTML = calHTML(); break;

@@ -268,7 +268,7 @@ function admThumb(col, x) {
   if (['rubrics', 'ecats', 'pcats'].includes(col)) return `<span class="w-11 h-11 rounded-xl grid place-items-center shrink-0" style="background:${esc(x.c || '#64748B')}22;color:${esc(x.c || '#64748B')}">${ic(x.i || 'tag', 'w-5 h-5')}</span>`;
   if (col === 'orgs') return orgMark(x);
   if (col === 'history') return `<span class="w-14 h-11 rounded-xl bg-soft grid place-items-center shrink-0 font-extrabold tnum text-[14px]">${esc(x.y || '')}</span>`;
-  if (col === 'projects') { const c = PCAT[x.c] || PCAT.transport; return pctRing(Math.round(+x.p || 0), 44, 4.5, c.c, 11); }
+  if (col === 'projects') return projBadge(Object.assign({}, x, { p: x.p == null || x.p === '' ? null : Math.round(+x.p) }), 44, 4.5, 11);
   return `<span class="w-11 h-11 rounded-xl bg-ubblue/10 text-ubblue grid place-items-center shrink-0">${ic(x.i || 'file-text', 'w-5 h-5')}</span>`;
 }
 function admMeta(col, x) {
@@ -522,7 +522,7 @@ async function admSave() {
   const empty = (v) => (Array.isArray(v) ? !String(v[0] || '').trim() : v == null || !String(v).trim());
   const miss = sc.fields.filter((f) => f[3] && f[3].req && empty(d[f[0]]));
   if (miss.length) { if (err) err.textContent = L(['Монгол хэл дээрх заавал бөглөх талбарыг бөглөнө үү', 'Fill in the required Mongolian fields']) + ': ' + miss.map((f) => L(f[2])).join(', '); if (ADM.lang !== 'mn') admLang('mn'); return; }
-  if (e.col === 'projects') d.p = Math.max(0, Math.min(100, Math.round(+d.p || 0)));
+  if (e.col === 'projects') d.p = d.p == null || d.p === '' ? null : Math.max(0, Math.min(100, Math.round(+d.p || 0)));
   if (e.col === 'news') { d.views = +d.views || 0; if (!d.d) d.d = ubStamp(ubNow()); }
   if (e.col === 'events') d.price = Math.max(0, +d.price || 0);
   const btn = $('[data-act="adm-save"]'); if (btn) btn.disabled = true;
