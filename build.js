@@ -12,7 +12,7 @@ catch (e) { console.error('✗ Шаардлагатай сангууд сууг�
 
 const ROOT = __dirname, SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
 const FILES = ['data.js', 'data2.js', 'scene.js', 'core.js', 'sections.js', 'skyline.js', 'cms.js', 'admin.js', 'features.js'];
-const { getLiveNews, getLiveMedia, getLiveOrgs, getLiveMega, IMG_DIR } = require('./news');
+const { getLiveNews, getLiveMedia, getLiveOrgs, getLiveMega, getLiveIpiu, IMG_DIR } = require('./news');
 const pascal = (n) => n.split('-').filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 /** Бүтээнэ. Амжилттай бол null, алдаатай бол алдааны текст буцаана. */
@@ -26,6 +26,8 @@ async function build() {
   console.log('  🏛  ' + orgs.note);
   const mega = await getLiveMega();
   console.log('  🏗  ' + mega.note);
+  const ipiu = await getLiveIpiu();
+  console.log('  📊 ' + ipiu.note);
   const js = FILES.map((f) => `/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n');
   const html = fs.readFileSync(path.join(SRC, 'template.html'), 'utf8');
   const ICONS = {}, missing = [];
@@ -37,7 +39,7 @@ async function build() {
   const liveFor = (local) => JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
   const mediaFor = (local) => JSON.stringify(media.items.map(({ imgFile, imgSrc, ...m }) => Object.assign(m, { img: imgFile ? (local ? 'assets/news/' + imgFile : imgSrc) : undefined })));
   const orgsFor = (local) => JSON.stringify({ cats: orgs.cats, orgs: orgs.orgs.map(({ logoFile, logoSrc, ...o }) => Object.assign(o, { logo: logoFile ? (local ? 'assets/news/' + logoFile : logoSrc) : '' })) });
-  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\nconst LIVE_ORGS=${orgsFor(local)};\nconst LIVE_MEGA=${JSON.stringify(mega.projects)};\n${js}\n})();`;
+  const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\nconst LIVE_ORGS=${orgsFor(local)};\nconst LIVE_MEGA=${JSON.stringify(mega.projects)};\nconst LIVE_IPIU=${JSON.stringify(ipiu.projects)};\n${js}\n})();`;
   const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
   // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data.js-ийг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.

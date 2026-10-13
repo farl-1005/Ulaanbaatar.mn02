@@ -1332,3 +1332,34 @@ html.a11y .mcard { opacity: 1; animation: none !important; }
 .mpc-pct { position: absolute; left: 12px; top: 12px; z-index: 1; height: 28px; padding: 0 10px; display: inline-flex; align-items: center; border-radius: 8px; font-size: 13px; font-weight: 800; color: #fff; background: var(--mc); box-shadow: 0 8px 18px -8px var(--mc); }
 #mp-cards .mpc { animation: naIn .6s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 40ms); }
 @media (prefers-reduced-motion: reduce) { #mp-cards .mpc { animation: none; } }
+
+/* ================= ipiu.mn албан ёсны мэдээлэл (мега төсөл) ================= */
+.mp-stage { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 8px; font-size: 11.5px; font-weight: 700; color: var(--sc); background: color-mix(in srgb, var(--sc) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 28%, transparent); white-space: nowrap; }
+.mpc-bar { display: block; margin-top: 12px; height: 5px; border-radius: 8px; background: rgb(var(--c-line)); overflow: hidden; }
+.mpc-bar i { display: block; height: 100%; border-radius: inherit; background: var(--mc); }
+.mp-off { margin: 18px 24px 0; padding: 18px; border-radius: 8px; background: rgb(var(--c-soft)); border: 1px solid rgb(var(--c-line)); }
+@media (min-width: 640px) { .mp-off { margin: 20px 30px 0; padding: 20px; } }
+.mp-kpis { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 640px) { .mp-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.mp-kpis > div { padding: 10px 12px; border-radius: 8px; background: rgb(var(--c-card)); border: 1px solid rgb(var(--c-line)); animation: naIn .5s cubic-bezier(.22, 1, .36, 1) backwards; animation-delay: calc(var(--i) * 60ms); }
+.mp-kpis span { display: block; font-size: 12px; color: rgb(var(--c-muted)); }
+.mp-kpis b { display: block; margin-top: 2px; font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.mp-kpis > div:first-child b { color: var(--mc); }
+.mp-parts { margin-top: 16px; display: grid; gap: 10px; }
+@media (min-width: 640px) { .mp-parts { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; } }
+.mp-pbar { display: block; margin-top: 5px; height: 5px; border-radius: 8px; background: rgb(var(--c-line)); overflow: hidden; }
+.mp-pbar i { display: block; height: 100%; border-radius: inherit; background: var(--mc); opacity: .8; animation: mpGrow 1s cubic-bezier(.22, 1, .36, 1) .25s backwards; transform-origin: left; }
+.mp-metrics { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+@media (min-width: 640px) { .mp-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.mp-metrics div { padding-top: 8px; border-top: 1px solid rgb(var(--c-line)); }
+.mp-metrics dt { font-size: 12px; color: rgb(var(--c-muted)); }
+.mp-metrics dd { margin-top: 2px; font-size: 14.5px; font-weight: 700; }
+.mp-tl { position: relative; margin-top: 10px; padding-left: 20px; }
+.mp-tl::before { content: ""; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; background: rgb(var(--c-line)); }
+.mp-tl li { position: relative; padding-bottom: 14px; }
+.mp-tl li:last-child { padding-bottom: 0; }
+.mp-tl li::before { content: ""; position: absolute; left: -19px; top: 5px; width: 10px; height: 10px; border-radius: 99px; background: rgb(var(--c-card)); border: 2.5px solid var(--mc); }
+.mp-tl-d { display: block; font-size: 12px; font-weight: 700; color: var(--mc); }
+.mp-tl b { display: block; margin-top: 1px; font-size: 14px; }
+.mp-tl p { margin-top: 3px; font-size: 13.5px; line-height: 1.55; color: rgb(var(--c-muted)); }
+@media (prefers-reduced-motion: reduce) { .mp-kpis > div, .mp-pbar i { animation: none; } }

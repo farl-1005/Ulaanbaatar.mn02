@@ -114,6 +114,16 @@ const PROJECTS = [
 ];
 /* Бодит 24 мега төсөл (build үед ulaanbaatar.mn/mega-project-оос, news.js getLiveMega): ангилал = төсөл, мэдээ = явцын мэдээлэл.
    Нэр, ангилал, схем газрын зураг дээрх ойролцоо байрлалыг энд тохируулна (admin-аас засаж болно). Гүйцэтгэлийн хувь зөвхөн мэдээнд тодорхой бичигдсэн бол. */
+/* ulaanbaatar.mn-ийн төсөл → ipiu.mn-ийн төсөл [slug, шууд таарсан эсэх] */
+const MEGA_IPIU = {
+  UB_METRO: ['metro', 1], BRT_BUS: ['brt', 1], CABLE_TRANSPORT: ['cablecar', 1], UB_TRAM: ['tram', 1], RING_ROAD: ['ring-road', 1], TUUL_HIGHWAY: ['tuul', 1],
+  MULTILEVEL_INTERSECTION: ['intersection', 1], SELBE_HOUSING: ['selbe', 1], BAYANKHOSHUU_HOUSING: ['bayankhoshuu', 1], WALL_MATERIAL_HOUSING: ['khm', 1],
+  KHUNNU_CITY: ['hunnu', 1], COAL_PLANT: ['sludge', 1], TPP_5: ['tpp5', 1], WASTE_TO_ENERGY: ['waste', 1], EMEELT_ECO_PARK: ['emeelt', 1],
+  TUUL_WATER_COMPLEX: ['tuul-water', 1], WATER_FLOOD_PROTECTION: ['flood', 1],
+  LRT: ['tram', 0], INTERNATIONAL_HOTEL: ['hunnu', 0], NEW_TSENGELDEKHIAN: ['hunnu', 0], DISTRIBUTED_ENERGY: ['tpp5', 0],
+};
+/* ipiu.mn-ийн үе шат */
+const MEGA_STAGE = { construction: ['Барилгын ажил', 'Construction', '#0EA068'], design: ['Зураг төсөл', 'Design', '#145095'], feasibility: ['ТЭЗҮ', 'Feasibility study', '#E58A00'], planned: ['Төлөвлөлт', 'Planning', '#7C4DFF'] };
 const MEGA_META = {
   SELBE_HOUSING: ['housing', 500, 90, 'Сэлбэ хот', 'Selbe City'],
   RING_ROAD: ['transport', 610, 215, 'Тойрог зам', 'Ring Road'],
@@ -146,6 +156,14 @@ const MEGA_META = {
     const meta = MEGA_META[m.key] || ['infra', 380 + (k % 6) * 60, 160 + Math.floor(k / 6) * 70, m.name, ''];
     return { id: 'mp-' + m.key.toLowerCase(), key: m.key, live: 1, c: meta[0], x: meta[1], y: meta[2], n: [meta[3], meta[4]], p: m.pct ? m.pct.v : null, pct: m.pct, ups: m.ups, bud: 0, due: null };
   }));
+  // ipiu.mn-ийн албан ёсны тоо: шууд таарсан төсөлд гүйцэтгэл, төсөв, хугацаа, үе шат; холбоотойд («Хүннү» → зочид буудал г.м.) зөвхөн мэдээлэл
+  if (typeof LIVE_IPIU === 'undefined' || !LIVE_IPIU.length) return;
+  const IP = Object.fromEntries(LIVE_IPIU.map((x) => [x.slug, x]));
+  Object.entries(MEGA_IPIU).forEach(([key, [slug, own]]) => {
+    const p = PROJECTS.find((x) => x.key === key), ip = IP[slug]; if (!p || !ip) return;
+    p.ipiu = ip; p.ipOwn = !!own;
+    if (own) { if (ip.prog != null) p.p = ip.prog; p.budUsd = ip.budUsd; p.from = ip.from; p.due = ip.to; p.stage = ip.status; }
+  });
 })();
 
 /* ================= Events ================= */
