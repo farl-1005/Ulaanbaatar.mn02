@@ -5,32 +5,40 @@
   "description": "ulaanbaatar.mn: Нийслэлийн порталын шинэчилсэн концепц",
   "scripts": {
     "dev": "nodemon",
-    "build": "node build.js",
-    "serve": "node build.js --serve",
-    "news": "node server/sources",
-    "start": "node server/index.js"
+    "build": "tsc -p server && node dist/server/cli.js build",
+    "build:server": "tsc -p server",
+    "news": "tsc -p server && node dist/server/cli.js news",
+    "start": "node dist/server/main.js"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
     "lucide": "0.469.0",
     "nodemon": "^3.1.14",
     "sharp": "^0.35.5",
-    "tailwindcss": "3.4.17"
+    "tailwindcss": "3.4.17",
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=20.12"
   },
   "nodemonConfig": {
     "watch": [
-      "src",
-      "server",
-      "tailwind.config.js"
+      "server"
     ],
-    "ext": "js,css,html",
-    "exec": "node build.js --serve",
+    "ext": "ts",
+    "exec": "tsc -p server && node dist/server/main.js --dev",
     "delay": 200
   },
   "dependencies": {
+    "@nestjs/common": "^11.2.7",
+    "@nestjs/core": "^11.2.7",
+    "@nestjs/platform-express": "^11.2.7",
     "better-sqlite3": "^13.0.3",
-    "pg": "^8.23.1"
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
   }
 }

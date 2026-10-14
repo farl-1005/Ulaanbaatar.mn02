@@ -125,7 +125,7 @@ function runApply() {
   }
 }
 
-/* ---- Backend API (server/api.js). Сервергүй (нэг файлт хувилбар) үед local горимд шилжинэ. ---- */
+/* ---- Backend API (server/cms/, server/auth/). Сервергүй (нэг файлт хувилбар) үед local горимд шилжинэ. ---- */
 async function apiCall(path, opt = {}) {
   const init = { method: opt.method || 'GET', credentials: 'same-origin', headers: {} };
   if (opt.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opt.body); }

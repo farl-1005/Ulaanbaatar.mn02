@@ -67,7 +67,7 @@ function a11yBtn() {
   return `<button type="button" data-act="a11y" aria-pressed="${!!S.a11y}" class="icon-btn !rounded-lg border transition-colors ${S.a11y ? 'bg-ink text-card border-transparent' : 'border-line hover:bg-soft'}" aria-label="${lbl}" title="${lbl}">${ic('eye', 'w-[19px] h-[19px]')}</button>`;
 }
 function applyA11y() { document.documentElement.classList.toggle('a11y', !!S.a11y); }
-/* Мэдээний хаяг: сервер (server/pages.js) /news/<id> хуудсыг үйлчилдэг бол тэр хаягийг, үгүй бол (нэг файлт хувилбар, статик хостинг) #news/<id> */
+/* Мэдээний хаяг: сервер (server/pages/) /news/<id> хуудсыг үйлчилдэг бол тэр хаягийг, үгүй бол (нэг файлт хувилбар, статик хостинг) #news/<id> */
 const PRETTY = !!document.querySelector('meta[name="ubmn-routes"]');
 const newsHref = (id) => (PRETTY ? '/news/' + encodeURIComponent(id) : '#news/' + id);
 const newsUrl = (n) => (PRETTY ? location.origin + newsHref(n.id) : NEWS_SRC + n.id.slice(1));   // share хийх хаяг

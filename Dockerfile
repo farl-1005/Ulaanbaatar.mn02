@@ -6,7 +6,8 @@ COPY package.json package-lock.json ./
 # Сайтыг сервер дээр тогтмол дахин бүтээдэг тул tailwind, sharp г.м. хэрэгслүүд бас хэрэгтэй
 RUN npm ci --include=dev && npm cache clean --force
 COPY . .
-RUN mkdir -p /data
+# Серверийн TypeScript (Nest.js) кодыг dist/server руу хөрвүүлнэ. Сайтыг (src/) сервер асахдаа бүтээнэ.
+RUN npx tsc -p server && mkdir -p /data
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "server/index.js"]
+CMD ["node", "dist/server/main.js"]

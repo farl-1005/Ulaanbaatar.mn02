@@ -1,8 +1,8 @@
-node_modules/
-dist/
+/node_modules/
+/dist/
 
-# Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг)
-data/
+# Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг). Зөвхөн үндсэн хавтасны data/ (src/data/ бол сайтын агуулга)
+/data/
 
 # macOS
 .DS_Store

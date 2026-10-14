@@ -50,5 +50,5 @@ Admin-ы засвар, иргэдийн хүсэлт, нэвтрэлт **Postgre
 Нөөцийг серверээс гадна (өөрийн компьютер, өөр сервер) тогтмол хуулж хадгална уу.
 
 ## Бусад
-- **Docker-гүй ажиллуулах:** Node.js 20.12+ суулгаад `npm ci && npm start`. `.env.example`-ийг харна уу. Урд нь nginx г.м. reverse proxy тавибал `TRUST_PROXY=1`.
+- **Docker-гүй ажиллуулах:** Node.js 20.12+ суулгаад `npm ci && npm run build && npm start`. `.env.example`-ийг харна уу. Урд нь nginx г.м. reverse proxy тавибал `TRUST_PROXY=1`.
 - **Нөөцөөс сэргээх:** `tar xzf ub-ОГНОО.tgz` → `sudo docker compose exec -T db psql -U ubmn ubmn < db.sql` (PostgreSQL), иргэдийн зургийг `uploads.tgz`-ээс `ubdata` volume руу (`docker compose cp`) хуулаад дахин асаана. Хуучин (SQLite) нөөцөд `backup.sqlite` байна.

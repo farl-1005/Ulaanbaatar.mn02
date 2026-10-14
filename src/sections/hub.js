@@ -1,7 +1,7 @@
 /* ================= Hub: news / services / events ================= */
 const HUBS = ['news', 'services', 'events'];
 const NEWS_CATS = ['all', 'biz', 'city', 'transport', 'edu', 'env', 'util', 'health', 'zar'];
-/* Мэдээний төрөл (ulaanbaatar.mn-ийнхтэй ижил, server/sources/news.js). nt-гүй мэдээ = цаг үеийн мэдээ. */
+/* Мэдээний төрөл (ulaanbaatar.mn-ийнхтэй ижил, server/sources/news.ts). nt-гүй мэдээ = цаг үеийн мэдээ. */
 const NEWS_NT = { time: ['Цаг үеийн мэдээ', 'Current news'], place: ['Харьяа газрын мэдээ', 'Agency news'], review: ['Хэвлэлийн тойм', 'Press review'] };
 const ntOf = (n) => (NEWS_NT[n.nt] ? n.nt : 'time');
 /* ---- Нүүр хуудас: хэсэг бүрийн товч хувилбар. Бүтэн агуулга нь цэсний хуудсанд (/events, /data ...) ---- */
