@@ -8,7 +8,7 @@ import { sharp } from '../common/sharp';
 export const CACHE = NEWS_CACHE;
 export const IMG_DIR = path.join(CACHE, 'img');
 /** Кэш энэ хугацаанаас шинэ бол дахин татахгүй */
-export const CACHE_MIN = 15;
+const CACHE_MIN = 15;
 export const TIMEOUT = 10000;
 export const IMG_MAX_BYTES = 25e6;
 const IMG_W = 960;
@@ -25,7 +25,7 @@ export interface SourceOptions {
 
 /* ---- HTML → цэвэр текстийн догол мөрүүд (клиент талд esc() хийгдэнэ) ---- */
 const ENT: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', laquo: '«', raquo: '»', ndash: '–', mdash: '—', hellip: '…', middot: '·', bull: '•', deg: '°', times: '×' };
-export const decode = (s: string) => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+const decode = (s: string) => s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
   if (e[0] === '#') { const n = e[1].toLowerCase() === 'x' ? parseInt(e.slice(2), 16) : +e.slice(1); return n ? String.fromCodePoint(n) : ''; }
   return ENT[e.toLowerCase()] != null ? ENT[e.toLowerCase()] : m;
 });
@@ -93,7 +93,7 @@ export function orgName(s: unknown): string {
   return name.split(' ').map((w, i) => {
     if (ORG_ABBR.has(w) || /^[A-Z0-9.-]+$/.test(w)) return w;
     const lw = w.toLowerCase(), cap = lw.charAt(0).toUpperCase() + lw.slice(1);
-    return i === 0 || ORG_PROPER.some((p) => lw.startsWith(p)) ? cap.replace(/-(\S)/, (m, c: string) => '-' + c.toUpperCase()) : lw;
+    return i === 0 || ORG_PROPER.some((p) => lw.startsWith(p)) ? cap.replace(/-(\S)/, (_, c: string) => '-' + c.toUpperCase()) : lw;
   }).join(' ');
 }
 

@@ -41,12 +41,6 @@ button.gov-next:hover { background: rgb(255 255 255 / .11); border-color: rgb(25
 .gov-done .gov-mix-bar i { animation: none; transform: none; }
 @keyframes govGrow { from { transform: scaleX(0); } to { transform: none; } }
 
-.gov-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 0 18px; border-radius: 8px; font-size: 14.5px; font-weight: 700; transition: transform .2s, background .25s, box-shadow .25s; }
-.gov-btn:active { transform: scale(.97); }
-.gov-btn-w { background: #fff; color: #0B1D45; box-shadow: 0 12px 26px -14px rgb(0 0 0 / .7); }
-.gov-btn-w:hover { background: #EEF3FF; }
-.gov-btn-g { background: rgb(255 255 255 / .08); color: #fff; border: 1px solid rgb(255 255 255 / .16); }
-.gov-btn-g:hover { background: rgb(255 255 255 / .14); }
 
 .gov-cal { border-radius: 8px; overflow: hidden; }
 .gov-navb { min-width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; border: 1px solid rgb(var(--c-line)); background: rgb(var(--c-card)); color: rgb(var(--c-ink)); transition: background .2s, transform .15s; }

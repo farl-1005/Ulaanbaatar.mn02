@@ -7,7 +7,6 @@ const I = {
   search: ['Хайх', 'Search'],
   searchPh: ['Үйлчилгээ, мэдээ, төсөл хайх', 'Search services, news, projects'],
   login: ['ДАН-аар нэвтрэх', 'Sign in with DAN'],
-  loginShort: ['Нэвтрэх', 'Sign in'],
   menu: ['Цэс', 'Menu'],
   themeLight: ['Гэрэлтэй горим', 'Light mode'],
   themeDark: ['Харанхуй горим', 'Dark mode'],
@@ -53,7 +52,6 @@ const I = {
   govSchedD: ['Засаг даргын уулзалт, хуралдаан, ажлын айлчлал: хэзээ, хаана, юу болох вэ.', "The Governor's meetings, sessions and site visits: when, where and what."],
   govName: ['Б.Пүрэвдагва', 'B. Purevdagva'], govTitle: ['Нийслэлийн Засаг дарга, Улаанбаатар хотын Захирагч', 'Governor of the Capital City and Mayor of Ulaanbaatar'],
   govReception: ['Иргэдийн хүлээн авалт: Мягмар гараг бүр 14:00–16:00, Иргэний танхим', 'Citizen reception: every Tuesday 14:00–16:00, Civic Hall'],
-  govBook: ['Хүлээн авалтад бүртгүүлэх', 'Book a reception slot'],
   reportDesc: ['Замын нүх, гэмтсэн гэрэлтүүлэг, аюултай барилга', 'Potholes, broken lights, unsafe structures'],
   voteDesc: ['Санал асуулга, санал хүсэлт', 'Polls and suggestions'],
 
@@ -133,7 +131,7 @@ const I = {
   aqiAdvVBad: ['Гадаа гарахаас зайлсхийж, цонхоо хааж, агаар цэвэршүүлэгч ашиглана уу.', 'Avoid going out, keep windows closed and use an air purifier.'],
   aqiAdvHaz: ['Онц аюултай. Гэрээсээ гарахгүй байж, агаар цэвэршүүлэгч ажиллуулна уу.', 'Hazardous. Stay indoors and run an air purifier.'],
   mainPol: ['Гол бохирдуулагч', 'Main pollutant'],
-  feels: ['Мэдрэгдэх', 'Feels like'], wind: ['Салхи', 'Wind'], humidity: ['Чийгшил', 'Humidity'], windDir: ['баруун хойноос', 'from NW'],
+  feels: ['Мэдрэгдэх', 'Feels like'], wind: ['Салхи', 'Wind'], humidity: ['Чийгшил', 'Humidity'],
   congestion: ['Түгжрэлийн индекс', 'Congestion index'],
   busiest: ['Хамгийн ачаалалтай', 'Busiest roads'],
   population: ['Хүн ам', 'Population'],
@@ -268,7 +266,7 @@ const I = {
   chatOpen: ['AI туслахыг нээх', 'Open AI assistant'],
   restartChat: ['Шинээр эхлэх', 'New chat'],
 
-  s_services: ['Үйлчилгээ', 'Services'], s_news: ['Мэдээ', 'News'], s_projects: ['Төсөл', 'Projects'], s_events: ['Арга хэмжээ', 'Events'], s_sits: ['Амьдралын нөхцөл', 'Life events'],
+  s_sits: ['Амьдралын нөхцөл', 'Life events'],
   popular: ['Түгээмэл хайлт', 'Popular searches'],
   escClose: ['хаах', 'to close'],
   bb_home: ['Нүүр', 'Home'], bb_services: ['Үйлчилгээ', 'Services'], bb_report: ['Мэдээлэх', 'Report'], bb_news: ['Мэдээ', 'News'], bb_my: ['Миний', 'Me'],

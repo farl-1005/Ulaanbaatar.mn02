@@ -36,7 +36,7 @@ const RUBRICS: Record<string, RegExp> = {
   biz: /бизнес|аж ахуй|стартап|хөрөнгө оруулалт|татвар|худалдаа|үйлдвэр|түншлэл|ногоо/gi,
   city: /хэлэлцүүл|төсөв|НИТХ|тогтоол|хамтын ажиллагаа|ахмад|нийгмийн үйлчилгээ|иргэд|хүний эрх|гамшиг/gi,
 };
-export function classify(title: string, text = ''): string {
+function classify(title: string, text = ''): string {
   let best = 'city', top = 0;
   for (const [cat, re] of Object.entries(RUBRICS)) {
     const sc = 3 * (String(title).match(re) || []).length + Math.min(3, (String(text).match(re) || []).length);

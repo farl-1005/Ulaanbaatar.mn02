@@ -76,6 +76,41 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | `ipiu.ts` | ipiu.mn мега төслийн албан ёсны тоо (гүйцэтгэл, төсөв, хугацаа) | `LIVE_IPIU` |
 | `shared.ts` | Нийтлэг: кэш, татах, HTML → текст, зураг жижигрүүлэх, байгууллагын нэр | |
 
+## Admin
+- Нэвтрэх: сайтын хөлийн **«Удирдлага»** холбоос эсвэл `/#admin`. Нууц үг нь `.env`-ийн `ADMIN_PASSWORD` (анх асаахад `.env` байхгүй бол санамсаргүй нууц үг үүсгэнэ).
+- Admin-аас засагдах хэсгүүд: мэдээ, анхааруулга, арга хэмжээ, медиа, төсөл, үйлчилгээ, амьдралын нөхцөл, ил тод байдал, удирдлагын бүтэц, харьяа байгууллага, түүх, хотын статистик, цэс, ангилал, AI туслахын хариулт, сайтын бүх текст, тохиргоо. Засваргүй бол `src/data/`-ийн анхны агуулга харагдана, «Анхны хувилбарт буцаах» нь засварыг устгана.
+- Admin хадгалах бүрд нээлттэй бүх хөтөч `/api/events`-ээр мэдэгдэл авч, дахин ачаалахгүйгээр шинэчлэгдэнэ.
+- Иргэдийн маягт (эрсдэл мэдээлэх (зурагтай), санал хүсэлт, имэйл бүртгэл) admin-ы **Ирсэн хүсэлт** хэсэгт харагдана. Иргэний зураг `data/uploads/`-д, зөвхөн admin-д харагдана.
+- Сервергүй (`dist/ulaanbaatar-mn.html`, нэг файлт хувилбар) үед засвар хөтчийн санах ойд хадгалагдана.
+
+## API ба хуудсууд
+| Хүсэлт | Эрх | Үүрэг | Код |
+|---|---|---|---|
+| `GET /api/cms` | бүгд | Admin-ы засварууд | `cms/` |
+| `PUT` / `DELETE /api/cms/:col/:id` | admin | Засвар хадгалах / буцаах | `cms/` |
+| `POST /api/cms-log` | admin | Өөрчлөлтийн түүх | `cms/` |
+| `POST /api/login`, `/api/logout` | бүгд | Нэвтрэх / гарах | `auth/` |
+| `POST /api/submit/report\|idea\|digest` | бүгд | Маягт илгээх | `forms/` |
+| `GET /api/submissions`, `PATCH` / `DELETE /api/submissions/:id` | admin | Ирсэн хүсэлт, төлөв солих, устгах | `forms/` |
+| `GET /uploads/:file` | admin | Иргэний оруулсан зураг | `forms/` |
+| `GET /api/events` | бүгд | Шууд мэдэгдэл (SSE) | `events/` |
+| `GET /api/weather`, `/api/air` | бүгд | Цаг агаар, агаарын чанар | `live/` |
+| `GET /api/img?w=240\|1280&u=...` | бүгд | ulaanbaatar.mn-ийн зургийг жижигрүүлэх | `live/` |
+| `GET /api/map/tiles/...` | бүгд | Газрын зураг (hamuga.mn, `HAMUGA_API_KEY`) | `live/` |
+| `GET /api/health` | бүгд | Сервер ажиллаж байгаа эсэх | `health.controller.ts` |
+| `GET /news/:id` | бүгд | Мэдээний хуудас: og:/twitter: tag, JSON-LD, текст нь HTML-д (JS ажиллуулдаггүй робот ч уншина) | `pages/` |
+| `GET /og/:id.jpg` | бүгд | Share хийхэд харагдах 1200×630 зураг (`dist/.og/`-д кэшлэнэ) | `pages/` |
+| `GET /sitemap.xml`, `/robots.txt` | бүгд | Хайлтын системд | `pages/` |
+
+- Хаягийн домэйн (og:, sitemap): `.env`-ийн `SITE_URL` → `DOMAIN` → хүсэлтийн Host.
+- Facebook хуучин preview-г кэшлэдэг: https://developers.facebook.com/tools/debug → «Scrape Again».
+
+## Хамгаалалт
+- Засах бүх үйлдэл нэвтрэлт шаардана (HttpOnly cookie, 7 хоног; өгөгдлийн санд зөвхөн token-ы hash).
+- Өөр сайтаас ирсэн бичих хүсэлтийг хаана (Origin шалгалт, `common/same-origin.guard.ts`).
+- Хурдны хязгаар: нэвтрэх оролдлого 15 минутад 10, маягт нэг IP-ээс цагт 30.
+- Reverse proxy (nginx г.м.) ард `.env`-д `TRUST_PROXY=1` (HTTPS дээр cookie `Secure` болно).
+
 ## Юуг хаана засах вэ
 | Хүсэлт | Файл |
 |---|---|
@@ -89,4 +124,4 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | Шинэ гадны эх сурвалж | `server/sources/<нэр>.ts` → `server/sources/index.ts` → `server/site/site-builder.ts` |
 
 ## `deploy/`: сервер дээр байршуулах
-`DEPLOY.md`-г үзнэ үү. Товчоор: Docker. `setup-nginx.sh` нь бусад сайттай хуваалцсан nginx-тэй сервер, `setup-ubuntu.sh` нь Caddy-тэй цэвэр сервер, `update.sh` нь шинэчлэх, `backup.sh` нь нөөцлөх скрипт.
+`DEPLOY.md`-г үзнэ үү. Товчоор: Docker. `setup-nginx.sh` нь бусад сайттай хуваалцсан nginx-тэй сервер, `setup-ubuntu.sh` нь Caddy-тэй цэвэр сервер, `update.sh` нь шинэчлэх, `backup.sh` нь нөөцлөх скрипт. Өөрийн Mac дээр байнга ажиллуулах: `mac-service.sh`. Байгаа PostgreSQL сервер рүү холбох: `connect-postgres.sh`.

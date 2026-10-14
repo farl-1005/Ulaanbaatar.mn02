@@ -6,7 +6,7 @@ import * as path from 'path';
 
 /** Төслийн үндсэн хавтас (хөрвүүлсэн dist/server/config.js-ээс хоёр шат дээш) */
 export const ROOT = path.resolve(__dirname, '..', '..');
-export const PROD = process.env.NODE_ENV === 'production';
+const PROD = process.env.NODE_ENV === 'production';
 /** npm run dev: src/-ийн өөрчлөлтийг харж дахин бүтээнэ, нээлттэй хөтчийг өөрөө refresh хийлгэнэ */
 export const DEV = process.argv.includes('--dev');
 

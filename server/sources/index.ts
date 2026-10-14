@@ -6,6 +6,6 @@
 export { getLiveIpiu } from './ipiu';
 export { getLiveMedia } from './media';
 export { getLiveMega } from './mega';
-export { classify, getLiveNews } from './news';
+export { getLiveNews } from './news';
 export { getLiveOrgs } from './orgs';
 export { IMG_DIR } from './shared';

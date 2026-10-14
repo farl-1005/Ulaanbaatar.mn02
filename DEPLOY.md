@@ -34,7 +34,6 @@ Admin-ы засвар, иргэдийн хүсэлт, нэвтрэлт **Postgre
 - Суулгах, шинэчлэх скриптүүд `.env`-д `POSTGRES_PASSWORD`, `DATABASE_URL`, `COMPOSE_FILE`-ийг өөрсдөө үүсгэнэ.
 - Өмнө нь SQLite-аар ажиллаж байсан серверт `update.sh`-ийг ажиллуулахад PostgreSQL асаж, хуучин өгөгдөл **автоматаар шилжинэ** (SQLite файл нөөц болж үлдэнэ).
 - `DATABASE_URL` тохируулаагүй бол SQLite (`/data/ub.sqlite`) хэвээр ажиллана.
-- Өөрийн компьютер дээр: `bash deploy/local-postgres.sh`.
 - Байгаа PostgreSQL сервер рүү (pgAdmin-д харагддаг г.м.): `bash deploy/connect-postgres.sh <хост> <порт> <өгөгдлийн сан> <хэрэглэгч>`. Нууц үгийг асууж, холболтыг шалгаад `.env`-д бичнэ. Сайтын хүснэгтүүд тусдаа `ubmn` schema-д үүсэх тул тухайн өгөгдлийн сангийн бусад хүснэгтэд хүрэхгүй (`DATABASE_SCHEMA`).
 - PostgreSQL руу орж харах: `cd /opt/ulaanbaatar-mn && sudo docker compose exec db psql -U ubmn ubmn`
 
@@ -49,6 +48,17 @@ Admin-ы засвар, иргэдийн хүсэлт, нэвтрэлт **Postgre
 | Admin нууц үг солих | `.env`-ийн `ADMIN_PASSWORD`-ийг засаад `sudo docker compose up -d` |
 
 Нөөцийг серверээс гадна (өөрийн компьютер, өөр сервер) тогтмол хуулж хадгална уу.
+
+## Өөрийн Mac дээр байнга ажиллуулах
+Backend-ийг (сайттай нь) энэ компьютер дээр байнга ажиллуулна: нэвтрэхэд автоматаар асна, терминал хаасан ч зогсохгүй, унавал өөрөө дахин асна (macOS launchd).
+```bash
+bash deploy/mac-service.sh install     # бүтээгээд суулгаж асаана → http://localhost:3000
+bash deploy/mac-service.sh restart     # кодоо өөрчилсний дараа
+bash deploy/mac-service.sh status      # ажиллаж байгаа эсэх
+bash deploy/mac-service.sh logs        # лог (гарах: Ctrl + C)
+bash deploy/mac-service.sh uninstall   # зогсоож устгана
+```
+Өгөгдлийн сан, нууц үгийг `.env`-ээс уншина (`bash deploy/connect-postgres.sh ...`). Ижил сүлжээний бусад компьютерээс `http://<энэ Mac-ийн IP>:3000` хаягаар орно.
 
 ## Бусад
 - **Docker-гүй ажиллуулах:** Node.js 20.12+ суулгаад `npm ci && npm run build && npm start`. `.env.example`-ийг харна уу. Урд нь nginx г.м. reverse proxy тавибал `TRUST_PROXY=1`.

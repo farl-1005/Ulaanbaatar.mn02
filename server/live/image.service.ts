@@ -9,7 +9,7 @@ import { IMG_DIR } from '../sources/shared';
 
 const GALLERY_DIR = path.join(IMG_DIR, 'g');
 const ALLOWED = /^https:\/\/ulaanbaatar\.mn\/files\/[\w/.%()-]+\.(jpe?g|png|webp|gif)$/i;
-export const IMAGE_WIDTHS = [240, 1280];
+const IMAGE_WIDTHS = [240, 1280];
 
 /** Медиа зураг: ulaanbaatar.mn-ийн эх зургийг (2–5 МБ) жижигрүүлж WebP болгон диск дээр кэшлэнэ.
     240: дөрвөлжин жижиг зураг, 1280: томруулж үзэх. sharp байхгүй эсвэл алдаа гарвал эх зураг руу шилжүүлнэ. */
