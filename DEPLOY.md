@@ -29,13 +29,21 @@ curl -fsSL https://raw.githubusercontent.com/farl-1005/Ulaanbaatar.mn02/main/dep
 Бусад сайт, галт хана, 80/443 портод хүрэхгүй. 3010 эзлэгдсэн бол гуравдахь аргументаар өөр порт: `... ub.example.mn 3020`.
 Дараагийн бүх команд (update.sh, backup.sh, `docker compose ...`) өөрчлөлтгүй ажиллана (`.env`-ийн `COMPOSE_FILE`).
 
+## Өгөгдлийн сан: PostgreSQL
+Admin-ы засвар, иргэдийн хүсэлт, нэвтрэлт **PostgreSQL**-д хадгалагдана (Docker-ийн `db` сервис, `pgdata` volume, зөвхөн дотоод сүлжээнд).
+- Суулгах, шинэчлэх скриптүүд `.env`-д `POSTGRES_PASSWORD`, `DATABASE_URL`, `COMPOSE_FILE`-ийг өөрсдөө үүсгэнэ.
+- Өмнө нь SQLite-аар ажиллаж байсан серверт `update.sh`-ийг ажиллуулахад PostgreSQL асаж, хуучин өгөгдөл **автоматаар шилжинэ** (SQLite файл нөөц болж үлдэнэ).
+- `DATABASE_URL` тохируулаагүй бол SQLite (`/data/ub.sqlite`) хэвээр ажиллана.
+- Өөрийн компьютер дээр: `bash deploy/local-postgres.sh`.
+- PostgreSQL руу орж харах: `cd /opt/ulaanbaatar-mn && sudo docker compose exec db psql -U ubmn ubmn`
+
 ## 3. Өдөр тутмын ажиллагаа
 | Үйлдэл | Команд (сервер дээр) |
 |---|---|
 | GitHub-ийн шинэ кодыг гаргах | `sudo bash /opt/ulaanbaatar-mn/deploy/update.sh` |
 | Лог харах | `cd /opt/ulaanbaatar-mn && sudo docker compose logs -f app` |
 | Дахин асаах | `cd /opt/ulaanbaatar-mn && sudo docker compose restart` |
-| Нөөц авах | `sudo bash /opt/ulaanbaatar-mn/deploy/backup.sh` → `backups/ub-ОГНОО.tgz` |
+| Нөөц авах (PostgreSQL dump + зураг) | `sudo bash /opt/ulaanbaatar-mn/deploy/backup.sh` → `backups/ub-ОГНОО.tgz` |
 | Өдөр бүр автоматаар нөөцлөх | `echo "0 3 * * * root bash /opt/ulaanbaatar-mn/deploy/backup.sh" \| sudo tee /etc/cron.d/ubmn-backup` |
 | Admin нууц үг солих | `.env`-ийн `ADMIN_PASSWORD`-ийг засаад `sudo docker compose up -d` |
 
@@ -43,4 +51,4 @@ curl -fsSL https://raw.githubusercontent.com/farl-1005/Ulaanbaatar.mn02/main/dep
 
 ## Бусад
 - **Docker-гүй ажиллуулах:** Node.js 20.12+ суулгаад `npm ci && npm start`. `.env.example`-ийг харна уу. Урд нь nginx г.м. reverse proxy тавибал `TRUST_PROXY=1`.
-- **Нөөцөөс сэргээх:** `tar xzf ub-ОГНОО.tgz` → `backup.sqlite`-ийг `ub.sqlite` болгож, `uploads`-тай хамт `ubdata` volume руу (`docker compose cp`) хуулаад дахин асаана.
+- **Нөөцөөс сэргээх:** `tar xzf ub-ОГНОО.tgz` → `sudo docker compose exec -T db psql -U ubmn ubmn < db.sql` (PostgreSQL), иргэдийн зургийг `uploads.tgz`-ээс `ubdata` volume руу (`docker compose cp`) хуулаад дахин асаана. Хуучин (SQLite) нөөцөд `backup.sqlite` байна.

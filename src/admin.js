@@ -241,7 +241,7 @@ function admDash() {
   const news = mergedItems('news'), pub = news.filter((n) => !n.draft), drafts = news.length - pub.length;
   const views = pub.reduce((a, n) => a + (+n.views || 0), 0), alerts = mergedItems('alerts'), act = alerts.filter((a) => !a.off).length;
   const evs = mergedItems('events'), up = evs.filter((e) => (e.date ? dayOffset(e.date) : (typeof e.w === 'number' ? e.w : 0)) >= 0).length;
-  const projs = mergedItems('projects'), avg = projs.length ? Math.round(projs.reduce((a, p) => a + (+p.p || 0), 0) / projs.length) : 0;
+  const projs = mergedItems('projects'), known = projs.filter((p) => p.p != null && p.p !== ''), avg = known.length ? Math.round(known.reduce((a, p) => a + (+p.p || 0), 0) / known.length) : 0;   // гүйцэтгэл мэдэгдэх төслүүдээр
   const top = pub.slice().sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 5), maxV = Math.max(1, ...(top.map((n) => +n.views || 0)));
   const kpi = (icon, v, l, sub, go) => `<button type="button" class="card p-5 text-left hover:border-ink/25 transition-colors" data-act="adm-go" data-v="${go}"><span class="w-10 h-10 rounded-xl bg-ubblue/10 text-ubblue grid place-items-center">${ic(icon, 'w-5 h-5')}</span><p class="mt-4 text-[30px] font-extrabold tnum leading-none tracking-tight">${v}</p><p class="mt-1.5 text-[13.5px] font-semibold">${l}</p><p class="text-[12.5px] text-muted">${sub}</p></button>`;
   const act2 = { create: ['нэмлээ', 'added'], update: ['засварлалаа', 'edited'], delete: ['устгалаа', 'deleted'], revert: ['анхны хувилбарт буцаалаа', 'reverted'] };

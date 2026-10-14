@@ -1,0 +1,24 @@
+# PostgreSQL нэмэлт (deploy/docker-compose.nginx.yml-тэй хамт). deploy/update.sh, setup-*.sh нь .env-д POSTGRES_PASSWORD, DATABASE_URL
+# үүсгээд COMPOSE_FILE-д энэ файлыг нэмдэг. Нууц үг үүсээгүй үед (хуучин суулгац) огт идэвхжихгүй тул сайт унахгүй.
+# Анх асахад апп өмнөх SQLite (/data/ub.sqlite)-ийн бүх өгөгдлийг PostgreSQL руу өөрөө шилжүүлнэ.
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file: ../.env                   # POSTGRES_PASSWORD
+    environment:
+      POSTGRES_USER: ubmn
+      POSTGRES_DB: ubmn
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ubmn -d ubmn"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  pgdata:

@@ -1,10 +1,9 @@
 /* Backend API
-   - Admin CMS: засвар бүр data/ub.sqlite-д хадгалагдаж, нээлттэй бүх хөтөч рүү /api/events-ээр шууд мэдэгдэнэ.
+   - Admin CMS: засвар бүр өгөгдлийн санд (PostgreSQL, эсвэл DATABASE_URL-гүй үед data/ub.sqlite) хадгалагдаж, нээлттэй бүх хөтөч рүү /api/events-ээр шууд мэдэгдэнэ.
    - Иргэдийн маягт: эрсдэл мэдээлэх (зурагтай), санал хүсэлт, имэйл бүртгэл → submissions хүснэгт.
    - Admin нэвтрэлт: .env файлын ADMIN_PASSWORD. Анх асаахад файл байхгүй бол санамсаргүй нууц үг үүсгэнэ.
    build.js (npm run dev) болон server/index.js (npm start) хоёулаа энэ модулийг ашиглана. */
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
-const Database = require('better-sqlite3');
 
 const ROOT = path.join(__dirname, '..');
 const ENV_FILE = path.join(ROOT, '.env');
@@ -20,41 +19,8 @@ const DATA = process.env.DATA_DIR || (PROD && fs.existsSync('/data') ? '/data' :
 const UPLOADS = path.join(DATA, 'uploads');
 fs.mkdirSync(UPLOADS, { recursive: true });
 
-/* ================= Өгөгдлийн сан ================= */
-const db = new Database(path.join(DATA, 'ub.sqlite'));
-db.pragma('journal_mode = WAL');
-db.exec(`
-  CREATE TABLE IF NOT EXISTS cms (col TEXT NOT NULL, id TEXT NOT NULL, body TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY (col, id));
-  CREATE TABLE IF NOT EXISTS cms_log (n INTEGER PRIMARY KEY AUTOINCREMENT, at TEXT NOT NULL, action TEXT, col TEXT, id TEXT, title TEXT, by TEXT);
-  CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL);
-  CREATE TABLE IF NOT EXISTS submissions (id TEXT PRIMARY KEY, kind TEXT NOT NULL, data TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new', created_at TEXT NOT NULL, updated_at TEXT);
-  CREATE INDEX IF NOT EXISTS submissions_kind ON submissions (kind, created_at);
-  CREATE TABLE IF NOT EXISTS air_log (ts INTEGER PRIMARY KEY, aqi INTEGER NOT NULL, main TEXT);
-`);
-const Q = {
-  cmsAll: db.prepare('SELECT col, id, body FROM cms'),
-  cmsCol: db.prepare('SELECT id, body FROM cms WHERE col = ?'),
-  cmsOne: db.prepare('SELECT body FROM cms WHERE col = ? AND id = ?'),
-  cmsPut: db.prepare('INSERT INTO cms (col, id, body, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT (col, id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at'),
-  cmsDel: db.prepare('DELETE FROM cms WHERE col = ? AND id = ?'),
-  logAdd: db.prepare('INSERT INTO cms_log (at, action, col, id, title, by) VALUES (?, ?, ?, ?, ?, ?)'),
-  logRecent: db.prepare('SELECT at, action, col, id, title, by FROM cms_log ORDER BY n DESC LIMIT 20'),
-  sessAdd: db.prepare('INSERT INTO sessions (token_hash, expires) VALUES (?, ?)'),
-  sessGet: db.prepare('SELECT expires FROM sessions WHERE token_hash = ?'),
-  sessDel: db.prepare('DELETE FROM sessions WHERE token_hash = ?'),
-  sessGc: db.prepare('DELETE FROM sessions WHERE expires < ?'),
-  subAdd: db.prepare('INSERT INTO submissions (id, kind, data, created_at) VALUES (?, ?, ?, ?)'),
-  subCount: db.prepare('SELECT COUNT(*) AS n FROM submissions WHERE kind = ?'),
-  subList: db.prepare('SELECT id, kind, data, status, created_at, updated_at FROM submissions ORDER BY created_at DESC LIMIT 300'),
-  subGet: db.prepare('SELECT id, data FROM submissions WHERE id = ?'),
-  subStatus: db.prepare('UPDATE submissions SET status = ?, updated_at = ? WHERE id = ?'),
-  airAdd: db.prepare('INSERT OR IGNORE INTO air_log (ts, aqi, main) VALUES (?, ?, ?)'),
-  airSince: db.prepare('SELECT ts, aqi FROM air_log WHERE ts >= ? ORDER BY ts'),
-  airGc: db.prepare('DELETE FROM air_log WHERE ts < ?'),
-  subDel: db.prepare('DELETE FROM submissions WHERE id = ?'),
-  subNew: db.prepare("SELECT COUNT(*) AS n FROM submissions WHERE status = 'new'"),
-  emailExists: db.prepare("SELECT 1 FROM submissions WHERE kind = 'digest' AND json_extract(data, '$.email') = ?"),
-};
+/* ================= Өгөгдлийн сан: PostgreSQL (DATABASE_URL) эсвэл SQLite — server/db.js ================= */
+const db = require('./db');
 
 /* ================= Туслах ================= */
 const COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
@@ -83,9 +49,9 @@ function cookies(req) {
   const out = {}; String(req.headers.cookie || '').split(';').forEach((p) => { const i = p.indexOf('='); if (i > 0) out[p.slice(0, i).trim()] = decodeURIComponent(p.slice(i + 1).trim()); });
   return out;
 }
-function isAdmin(req) {
+async function isAdmin(req) {
   const tok = cookies(req)[COOKIE]; if (!tok) return false;
-  const s = Q.sessGet.get(sha(tok)); return !!(s && s.expires > Date.now());
+  const s = await db.sessGet(sha(tok)); return !!(s && s.expires > Date.now());
 }
 const clientIp = (req) => (process.env.TRUST_PROXY ? String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() : '') || req.socket.remoteAddress || '?';
 const secure = (req) => !!(req.socket.encrypted || (process.env.TRUST_PROXY && req.headers['x-forwarded-proto'] === 'https'));
@@ -97,7 +63,7 @@ function limited(key, max, windowMs) {
   arr.push(t); hits.set(key, arr);
   return arr.length > max;
 }
-setInterval(() => { const t = Date.now(); for (const [k, v] of hits) if (!v.some((x) => t - x < 3600e3)) hits.delete(k); Q.sessGc.run(t); }, 600e3).unref();
+setInterval(() => { const t = Date.now(); for (const [k, v] of hits) if (!v.some((x) => t - x < 3600e3)) hits.delete(k); db.sessGc(t).catch(() => {}); }, 600e3).unref();
 
 /* ================= Газрын зураг: hamuga.mn «UB Engineering Map server» =================
    Түлхүүрийг (HAMUGA_API_KEY, .env) хөтөч рүү гаргахгүйн тулд tile-ыг манай серверээр дамжуулна:
@@ -159,7 +125,7 @@ async function air(force) {
       if (!j || j.status !== 'success') { const msg = j && j.data && j.data.message; if (AIR_ERR[msg]) { const e = new Error(msg); e.code = AIR_ERR[msg]; throw e; } j = await get('https://api.airvisual.com/v2/nearest_city?lat=47.9184&lon=106.9177'); }
       if (!j || j.status !== 'success') { const msg = (j && j.data && j.data.message) || 'bad_response'; const e = new Error(msg); e.code = AIR_ERR[msg] || 'air_unavailable'; throw e; }
       const p = j.data.current.pollution, ts = Date.parse(p.ts) || Date.now();
-      Q.airAdd.run(ts, Math.round(p.aqius), p.mainus || null); Q.airGc.run(Date.now() - 7 * 864e5);   // 7 хоногийн түүх хадгална
+      await db.airAdd(ts, Math.round(p.aqius), p.mainus || null); await db.airGc(Date.now() - 7 * 864e5);   // 7 хоногийн түүх хадгална
       airCache = { at: Date.now(), ts, aqi: Math.round(p.aqius), main: p.mainus || '', aqicn: p.aqicn, city: j.data.city };
     } finally { airBusy = null; }
   })();
@@ -191,7 +157,7 @@ async function airNow() {
   const o = om.status === 'fulfilled' ? om.value : null, q = iq.status === 'fulfilled' ? iq.value : null;
   if (!q && !o) throw (iq.reason && iq.reason.code ? iq.reason : om.reason);
   if (!q) return o;
-  const log = Q.airSince.all(Date.now() - 25 * 3600e3).map((r) => [r.ts, r.aqi]);
+  const log = (await db.airSince(Date.now() - 25 * 3600e3)).map((r) => [r.ts, r.aqi]);
   return { at: q.at, ts: q.ts, aqi: q.aqi, main: q.main, src: 'iqair', pol: o ? o.pol : null, series: log.length >= 12 || !o ? log : o.series, seriesSrc: log.length >= 12 || !o ? 'iqair' : 'openmeteo' };
 }
 // Зочингүй үед ч 24 цагийн түүх тасрахгүйн тулд 15 минут тутам уншина (түлхүүртэй үед л)
@@ -261,9 +227,10 @@ async function handle(req, res) {
     let ok = false; try { ok = new URL(req.headers.origin).host === req.headers.host; } catch (e) { /* буруу origin */ }
     if (!ok) return fail(res, 403, 'bad_origin');
   }
-  const admin = isAdmin(req), ip = clientIp(req);
+  const ip = clientIp(req);
   try {
-    if (p === '/api/health') return send(res, 200, { ok: true });
+    if (p === '/api/health') return send(res, 200, { ok: true, db: db.kind });
+    const admin = await isAdmin(req);
     if (p === '/api/img' && m === 'GET') return imgProxy(res, url.searchParams.get('u') || '', +url.searchParams.get('w') || 0, ip);
     if (p === '/api/air' && m === 'GET') {
       try { const a = await airNow(); res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=120' }); res.end(JSON.stringify(a)); }
@@ -285,8 +252,8 @@ async function handle(req, res) {
 
     if (p === '/api/cms' && m === 'GET') {
       const data = {}; COLS.forEach((c) => { data[c] = {}; });
-      for (const r of Q.cmsAll.all()) if (data[r.col]) data[r.col][r.id] = JSON.parse(r.body);
-      return send(res, 200, { data, log: admin ? Q.logRecent.all() : [], admin, inboxNew: admin ? Q.subNew.get().n : 0 });
+      for (const r of await db.cmsAll()) if (data[r.col]) data[r.col][r.id] = r.body;
+      return send(res, 200, { data, log: admin ? await db.logRecent() : [], admin, inboxNew: admin ? await db.subNew() : 0 });
     }
 
     if (p === '/api/login' && m === 'POST') {
@@ -295,12 +262,12 @@ async function handle(req, res) {
       const ok = pw && crypto.timingSafeEqual(Buffer.from(sha(b.password || '')), Buffer.from(sha(pw)));
       if (!ok) return fail(res, 401, 'wrong_password');
       const tok = crypto.randomBytes(32).toString('base64url');
-      Q.sessAdd.run(sha(tok), Date.now() + SESSION_DAYS * 864e5);
+      await db.sessAdd(sha(tok), Date.now() + SESSION_DAYS * 864e5);
       res.setHeader('Set-Cookie', `${COOKIE}=${tok}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_DAYS * 86400}${secure(req) ? '; Secure' : ''}`);
       return send(res, 200, { ok: true });
     }
     if (p === '/api/logout' && m === 'POST') {
-      const tok = cookies(req)[COOKIE]; if (tok) Q.sessDel.run(sha(tok));
+      const tok = cookies(req)[COOKIE]; if (tok) await db.sessDel(sha(tok));
       res.setHeader('Set-Cookie', `${COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
       return send(res, 200, { ok: true });
     }
@@ -310,11 +277,11 @@ async function handle(req, res) {
       if (limited('submit:' + ip, 30, 3600e3)) return fail(res, 429, 'too_many_requests');
       const kind = r[1], b = await readJSON(req, 4.5e6), v = validate(kind, b);
       if (v.error) return fail(res, 400, v.error);
-      if (kind === 'digest' && Q.emailExists.get(v.data.email)) return send(res, 200, { ok: true, id: null });
-      let n = 48500 + Q.subCount.get(kind).n + 1, id;
-      while (Q.subGet.get((id = `${PREFIX[kind]}-${new Date().getFullYear()}-${n}`))) n++;   // устгасан дугаар давхцахгүй
+      if (kind === 'digest' && await db.emailExists(v.data.email)) return send(res, 200, { ok: true, id: null });
+      let n = 48500 + (await db.subCount(kind)) + 1, id;
+      while (await db.subGet((id = `${PREFIX[kind]}-${new Date().getFullYear()}-${n}`))) n++;   // устгасан дугаар давхцахгүй
       if (kind === 'report' && b.photo) v.data.photo = savePhoto(id, b.photo);
-      Q.subAdd.run(id, kind, JSON.stringify(v.data), now());
+      await db.subAdd(id, kind, v.data, now());
       broadcast('submission');
       return send(res, 201, { ok: true, id });
     }
@@ -335,29 +302,29 @@ async function handle(req, res) {
       if (m === 'PUT') {
         const b = await readJSON(req, 1e6);
         if (!b || typeof b !== 'object' || Array.isArray(b)) return fail(res, 400, 'bad_body');
-        Q.cmsPut.run(col, id, JSON.stringify(Object.assign(b, { id })), now()); broadcast('cms');
+        await db.cmsPut(col, id, Object.assign(b, { id }), now()); broadcast('cms');
         return send(res, 200, { ok: true });
       }
-      if (m === 'DELETE') { Q.cmsDel.run(col, id); broadcast('cms'); return send(res, 200, { ok: true }); }
+      if (m === 'DELETE') { await db.cmsDel(col, id); broadcast('cms'); return send(res, 200, { ok: true }); }
     }
     if (p === '/api/cms-log' && m === 'POST') {
       const b = await readJSON(req, 8192);
-      Q.logAdd.run(now(), str(b.action, 20), str(b.col, 20), str(b.id, 80), str(b.title, 140), 'admin');
+      await db.logAdd(now(), str(b.action, 20), str(b.col, 20), str(b.id, 80), str(b.title, 140), 'admin');
       return send(res, 200, { ok: true });
     }
 
     if (p === '/api/submissions' && m === 'GET') {
-      return send(res, 200, { list: Q.subList.all().map((x) => Object.assign({}, x, { data: JSON.parse(x.data) })) });
+      return send(res, 200, { list: await db.subList() });
     }
     if ((r = p.match(/^\/api\/submissions\/([\w-]+)$/))) {
       if (m === 'PATCH') {
         const b = await readJSON(req, 1024);
         if (!['new', 'progress', 'done', 'rejected'].includes(b.status)) return fail(res, 400, 'bad_status');
-        Q.subStatus.run(b.status, now(), r[1]); broadcast('submission'); return send(res, 200, { ok: true });
+        await db.subStatus(b.status, now(), r[1]); broadcast('submission'); return send(res, 200, { ok: true });
       }
       if (m === 'DELETE') {
-        const row = Q.subGet.get(r[1]);
-        if (row) { const ph = JSON.parse(row.data).photo; if (ph) fs.rm(path.join(UPLOADS, path.basename(ph)), () => {}); Q.subDel.run(r[1]); }
+        const row = await db.subGet(r[1]);
+        if (row) { const ph = row.data && row.data.photo; if (ph) fs.rm(path.join(UPLOADS, path.basename(ph)), () => {}); await db.subDel(r[1]); }
         broadcast('submission'); return send(res, 200, { ok: true });
       }
     }
@@ -370,7 +337,7 @@ async function handle(req, res) {
 }
 
 /* server/pages.js-д: admin-ы засварыг унших */
-function cmsCol(col) { const out = {}; for (const r of Q.cmsCol.all(col)) out[r.id] = JSON.parse(r.body); return out; }
-function cmsGet(col, id) { const r = Q.cmsOne.get(col, id); return r ? JSON.parse(r.body) : null; }
+async function cmsCol(col) { const out = {}; for (const r of await db.cmsCol(col)) out[r.id] = r.body; return out; }
+function cmsGet(col, id) { return db.cmsOne(col, id); }
 
-module.exports = { handles, handle, cmsCol, cmsGet, secure };
+module.exports = { handles, handle, cmsCol, cmsGet, secure, db };

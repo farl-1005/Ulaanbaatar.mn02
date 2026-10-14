@@ -30,9 +30,24 @@ grep -q '^ADMIN_PASSWORD=' .env || { printf 'ADMIN_PASSWORD=%s\n' "$(openssl ran
 set_env() { if grep -q "^$1=" .env; then sed -i "s|^$1=.*|$1=$2|" .env; else printf '%s=%s\n' "$1" "$2" >> .env; fi; }
 set_env SITE_URL "https://$DOMAIN"
 set_env APP_PORT "$PORT"
-set_env COMPOSE_FILE "deploy/docker-compose.nginx.yml"   # update.sh, backup.sh энэ горимыг ашиглана
+grep -q "^COMPOSE_FILE=.*compose.pg" .env || set_env COMPOSE_FILE "deploy/docker-compose.nginx.yml"   # update.sh, backup.sh энэ горимыг ашиглана (ensure_pg PostgreSQL-ийг нэмнэ)
 set_env COMPOSE_PROJECT_NAME "ulaanbaatar-mn"
 sed -i '/^DOMAIN=/d' .env   # Caddy-ийн тохиргоо, энд хэрэггүй
+# PostgreSQL-ийн нууц үг, холболтын хаягийг .env-д үүсгэнэ (байхгүй бол). Анх асахад апп хуучин SQLite-ийн өгөгдлийг өөрөө шилжүүлнэ.
+ensure_pg() {
+  grep -q '^POSTGRES_PASSWORD=' .env 2>/dev/null || { (umask 077; printf 'POSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 16)" >> .env); echo "→ PostgreSQL-ийн нууц үгийг .env-д үүсгэлээ"; }
+  local pw; pw=$(grep '^POSTGRES_PASSWORD=' .env | head -1 | cut -d= -f2-)
+  grep -q '^DATABASE_URL=' .env || printf 'DATABASE_URL=postgres://ubmn:%s@db:5432/ubmn\n' "$pw" >> .env
+  # PostgreSQL-ийн нэмэлт compose файлыг идэвхжүүлнэ (nginx горим эсвэл Caddy горим)
+  local cf; cf=$(grep '^COMPOSE_FILE=' .env | head -1 | cut -d= -f2-)
+  case "$cf" in
+    *compose.pg*) ;;
+    *docker-compose.nginx.yml*) sed -i "s|^COMPOSE_FILE=.*|COMPOSE_FILE=deploy/docker-compose.nginx.yml:deploy/compose.pg.nginx.yml|" .env ;;
+    "") printf 'COMPOSE_FILE=docker-compose.yml:deploy/compose.pg.yml\n' >> .env ;;
+    *) sed -i "s|^COMPOSE_FILE=.*|COMPOSE_FILE=$cf:deploy/compose.pg.yml|" .env ;;
+  esac
+}
+ensure_pg
 
 echo "→ Апп-ыг асааж байна (анх удаа 3–5 минут)..."
 docker compose up -d --build

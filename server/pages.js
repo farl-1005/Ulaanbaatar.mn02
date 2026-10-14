@@ -57,11 +57,11 @@ function merged(defs, ov) {   // src/cms.js-ийн mergedItems-тэй ижил �
   return out;
 }
 const paras = (s) => String(s || '').split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean);
-function allNews() {
+async function allNews() {
   const idx = cached(INDEX, JSON.parse); if (!idx) return null;
-  const rub = clone(idx.rub), rubOv = api.cmsCol('rubrics');
+  const rub = clone(idx.rub), rubOv = await api.cmsCol('rubrics');
   for (const id in rubOv) if (!rubOv[id].deleted) rub[id] = { t: rubOv[id].t || (rub[id] || {}).t, c: rubOv[id].c || (rub[id] || {}).c };
-  const news = merged(idx.news, api.cmsCol('news')).filter((n) => !n.draft && ID_RE.test(n.id || '') && mn(n.t)).map((n) => {
+  const news = merged(idx.news, await api.cmsCol('news')).filter((n) => !n.draft && ID_RE.test(n.id || '') && mn(n.t)).map((n) => {
     if (n.bt) { const a = paras(n.bt[0]), b = paras(n.bt[1]); n.b = Array.from({ length: Math.max(a.length, b.length) }, (_, i) => [a[i] || b[i] || '', b[i] || a[i] || '']); }
     if (!rub[n.cat]) n.cat = 'city';
     n.at = isoUB(n.d);
@@ -80,14 +80,14 @@ function sceneSvg(key) {
   return SCENE ? Buffer.from(SCENE(key).replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" `)) : null;
 }
 /* Мэдээний зургийн эх: бодит зураг, admin-аас оруулсан зураг эсвэл чимэглэл. null бол сайтын ерөнхий зураг. */
-function ogSource(n) {
+async function ogSource(n) {
   const img = (n && n.img) || '';
   if (PHOTO_RE.test(img)) {
     const f = path.join(SITE, img);
     try { const st = fs.statSync(f); return { key: `photo:${img}:${st.mtimeMs}`, load: () => fs.promises.readFile(f) }; } catch (e) { /* зураг алга */ }
   }
   if (img.startsWith('media:')) {
-    const m = api.cmsGet('media', img.slice(6)), mm = m && /^data:image\/(?:webp|png|jpeg|gif);base64,([A-Za-z0-9+/=]+)$/.exec(m.src || '');
+    const m = await api.cmsGet('media', img.slice(6)), mm = m && /^data:image\/(?:webp|png|jpeg|gif);base64,([A-Za-z0-9+/=]+)$/.exec(m.src || '');
     if (mm) return { key: 'media:' + sha(mm[1]), load: async () => Buffer.from(mm[1], 'base64') };
   }
   if (SCENE_RE.test(img) && sceneSvg(img)) return { key: 'scene:' + img, load: async () => sceneSvg(img) };
@@ -162,10 +162,10 @@ function notFound(req, res, opts = {}) {
   if (!out) { send(req, res, 404, 'text/plain; charset=utf-8', 'Not found'); return; }
   send(req, res, 404, 'text/html; charset=utf-8', opts.bodyEnd ? out.replace('</body>', () => opts.bodyEnd + '</body>') : out);
 }
-function newsPage(o, n, all) {
+async function newsPage(o, n, all) {
   const r = all.rub[n.cat] || { t: ['Мэдээ'] }, cat = mn(r.t);
   const title = fill(mn(n.t)), lead = fill(mn(n.l)), body = (n.b || []).map((p) => fill(mn(p))).filter(Boolean);
-  const desc = clip(lead || body[0] || title, 200), p = '/news/' + encodeURIComponent(n.id), src = ogSource(n);
+  const desc = clip(lead || body[0] || title, 200), p = '/news/' + encodeURIComponent(n.id), src = await ogSource(n);
   const srcUrl = n.live ? all.src + n.id.slice(1) : /^https?:\/\//.test(n.src || '') ? n.src : '';
   const modified = /^\d{4}-\d\d-\d\dT/.test(n.updatedAt || '') ? n.updatedAt : n.at;   // admin-аас засварласан огноо
   const ld = {
@@ -209,7 +209,7 @@ async function handle(req, res, p, opts = {}) {
     if (p === '/robots.txt') return send(req, res, 200, 'text/plain; charset=utf-8', `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /uploads/\n\nSitemap: ${o}/sitemap.xml\n`);
 
     if (p === '/sitemap.xml') {
-      const all = allNews(); if (!all) return building();
+      const all = await allNews(); if (!all) return building();
       const url = (loc, mod) => `<url><loc>${esc(o + loc)}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`;
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[url('/', all.news[0] && all.news[0].at)].concat(Object.keys(PAGES).map((k) => url('/' + k))).concat(all.news.map((n) => url('/news/' + encodeURIComponent(n.id), n.at))).join('\n')}\n</urlset>\n`;
       return send(req, res, 200, 'application/xml; charset=utf-8', xml);
@@ -217,7 +217,7 @@ async function handle(req, res, p, opts = {}) {
 
     if ((r = p.match(OG_P))) {
       const id = r[1]; let src = null, n = null;
-      if (id !== 'site') { const all = allNews(); n = all && all.news.find((x) => x.id === id); if (!n) return send(req, res, 404, 'text/plain; charset=utf-8', 'Not found'); src = ogSource(n); }
+      if (id !== 'site') { const all = await allNews(); n = all && all.news.find((x) => x.id === id); if (!n) return send(req, res, 404, 'text/plain; charset=utf-8', 'Not found'); src = await ogSource(n); }
       if (!sharp) { if (n && PHOTO_RE.test(n.img || '')) { res.writeHead(302, { Location: '/' + n.img }); res.end(); return; } return send(req, res, 404, 'text/plain; charset=utf-8', 'Not found'); }
       let file;
       try { file = await ogFile(src); } catch (e) { console.warn('  ⚠ og зураг (' + id + '):', e.message); file = await ogFile(null); }
@@ -227,10 +227,10 @@ async function handle(req, res, p, opts = {}) {
     }
 
     if ((r = p.match(NEWS_P))) {
-      const id = r[1], all = allNews();
+      const id = r[1], all = await allNews();
       if (!all) return building();
       const n = ID_RE.test(id) && all.news.find((x) => x.id === id);
-      const out = n ? newsPage(o, n, all) : page(o, notFoundMeta(p));
+      const out = n ? await newsPage(o, n, all) : page(o, notFoundMeta(p));
       return out ? html(n ? 200 : 404, out) : building();
     }
 
