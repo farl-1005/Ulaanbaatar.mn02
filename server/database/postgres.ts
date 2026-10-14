@@ -1,4 +1,6 @@
-/* PostgreSQL (DATABASE_URL өгсөн бол). Анх хоосон байхад data/ub.sqlite байвал өгөгдлийг нь автоматаар шилжүүлнэ. */
+/* PostgreSQL (DATABASE_URL өгсөн бол). Анх хоосон байхад data/ub.sqlite байвал өгөгдлийг нь автоматаар шилжүүлнэ.
+   DATABASE_SCHEMA (жишээ нь ubmn): өөр программтай хуваалцдаг өгөгдлийн санд хүснэгтүүдээ тусдаа schema-д хадгална
+   (бусдын sessions г.м. ижил нэртэй хүснэгтэд хүрэхгүй). */
 import * as fs from 'fs';
 import { Pool, types } from 'pg';
 import { Database } from './database';
@@ -22,16 +24,21 @@ export class PostgresDatabase extends Database {
   /** Хүснэгтүүд бэлэн болох (асуулга бүр үүнийг хүлээнэ) */
   private readonly ready: Promise<void>;
 
-  constructor(url: string) {
+  constructor(url: string, private readonly schema = '') {
     super();
+    if (schema && !/^[a-z_][a-z0-9_]{0,62}$/.test(schema)) throw new Error('DATABASE_SCHEMA буруу: ' + schema);
     const ssl = /[?&]sslmode=(require|verify)/.test(url) ? { rejectUnauthorized: !/sslmode=require/.test(url) } : undefined;
-    this.pool = new Pool({ connectionString: url, max: +(process.env.DB_POOL || 0) || 10, ssl });
+    this.pool = new Pool({
+      connectionString: url, max: +(process.env.DB_POOL || 0) || 10, ssl,
+      options: schema ? `-c search_path=${schema}` : undefined,   // холболт бүр зөвхөн өөрийн schema-г харна
+    });
     this.pool.on('error', (e) => console.error('  ⚠ PostgreSQL:', e.message));
     this.ready = this.init();
     this.ready.catch((e) => console.error('  ✗ PostgreSQL-д холбогдож чадсангүй (DATABASE_URL-ийг шалгана уу):', e.message));
   }
 
   private async init() {
+    if (this.schema) await this.pool.query(`CREATE SCHEMA IF NOT EXISTS ${this.schema}`);
     await this.pool.query(SCHEMA);
     await this.migrateFromSqlite();
   }

@@ -35,6 +35,7 @@ Admin-ы засвар, иргэдийн хүсэлт, нэвтрэлт **Postgre
 - Өмнө нь SQLite-аар ажиллаж байсан серверт `update.sh`-ийг ажиллуулахад PostgreSQL асаж, хуучин өгөгдөл **автоматаар шилжинэ** (SQLite файл нөөц болж үлдэнэ).
 - `DATABASE_URL` тохируулаагүй бол SQLite (`/data/ub.sqlite`) хэвээр ажиллана.
 - Өөрийн компьютер дээр: `bash deploy/local-postgres.sh`.
+- Байгаа PostgreSQL сервер рүү (pgAdmin-д харагддаг г.м.): `bash deploy/connect-postgres.sh <хост> <порт> <өгөгдлийн сан> <хэрэглэгч>`. Нууц үгийг асууж, холболтыг шалгаад `.env`-д бичнэ. Сайтын хүснэгтүүд тусдаа `ubmn` schema-д үүсэх тул тухайн өгөгдлийн сангийн бусад хүснэгтэд хүрэхгүй (`DATABASE_SCHEMA`).
 - PostgreSQL руу орж харах: `cd /opt/ulaanbaatar-mn && sudo docker compose exec db psql -U ubmn ubmn`
 
 ## 3. Өдөр тутмын ажиллагаа

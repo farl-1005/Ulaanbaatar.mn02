@@ -7,8 +7,9 @@ import { SqliteDatabase } from './sqlite';
 function openDatabase(): Database {
   const url = process.env.DATABASE_URL;
   if (url) {
-    console.log('  🐘 Өгөгдлийн сан: PostgreSQL');
-    return new PostgresDatabase(url);
+    const schema = process.env.DATABASE_SCHEMA || '';
+    console.log('  🐘 Өгөгдлийн сан: PostgreSQL' + (schema ? ` (schema: ${schema})` : ''));
+    return new PostgresDatabase(url, schema);
   }
   const db = new SqliteDatabase();
   console.log('  🗄  Өгөгдлийн сан: SQLite (' + db.file + ')');
