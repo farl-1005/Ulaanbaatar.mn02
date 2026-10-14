@@ -7,7 +7,7 @@
     "dev": "nodemon",
     "build": "node build.js",
     "serve": "node build.js --serve",
-    "news": "node news.js",
+    "news": "node server/sources",
     "start": "node server/index.js"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@
    - /              Нүүр хуудас (og: tag-тай). <meta name="ubmn-routes"> нь app.js-д /news/<id> хаяг ашиглаж болохыг хэлнэ.
    - /og/<id>.jpg   Share хийхэд харагдах 1200×630 зураг. sharp-аар үүсгэж dist/.og/-д кэшлэнэ.
    - /sitemap.xml, /robots.txt
-   Мэдээ: build.js-ийн бичсэн dist/news-index.json + admin-ы засвар (data/ub.sqlite), src/cms.js-ийн дүрмээр нийлүүлнэ.
+   Мэдээ: build.js-ийн бичсэн dist/news-index.json + admin-ы засвар (server/db.js), src/admin/cms.js-ийн дүрмээр нийлүүлнэ.
    Домэйн: SITE_URL (жишээ нь https://ulaanbaatar.mn) → DOMAIN → хүсэлтийн Host. */
 const fs = require('fs'), path = require('path'), crypto = require('crypto'), vm = require('vm');
 const api = require('./api');
@@ -15,7 +15,7 @@ const ROOT = path.join(__dirname, '..'), DIST = path.join(ROOT, 'dist'), SITE = 
 const TEMPLATE = path.join(SITE, 'index.html'), INDEX = path.join(DIST, 'news-index.json'), OG_DIR = path.join(DIST, '.og');
 const ID_RE = /^[\w.-]{1,80}$/, PHOTO_RE = /^assets\/news\/[\w.-]+$/, SCENE_RE = /^[a-z]+:[a-z]+:\d+$/;
 const NEWS_P = /^\/news\/([^/]+)\/?$/, OG_P = /^\/og\/([\w.-]+)\.jpg$/, PAGE_P = /^\/([a-z]+)\/?$/;
-/* Цэсний тусдаа хуудсууд (src/core.js PAGES-тэй ижил): хаяг → гарчиг, тайлбар */
+/* Цэсний тусдаа хуудсууд (src/core/pages.js PAGES-тэй ижил): хаяг → гарчиг, тайлбар */
 const PAGES = {
   news: ['Мэдээ мэдээлэл', 'Нийслэлийн Засаг дарга, дүүрэг, харьяа байгууллагуудын бүх мэдээ, зар мэдээлэл.'],
   services: ['Үйлчилгээ', 'Иргэн, аж ахуйн нэгжид зориулсан бүх үйлчилгээ, амьдралын нөхцөл бүрт хэрэгтэй алхмууд.'],
@@ -35,7 +35,7 @@ const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const mn = (v) => (Array.isArray(v) ? v[0] || v[1] || '' : String(v || ''));   // сервер дээр монголоор; хэлийг хөтөч дээр сольдог
 const clip = (s, n) => { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : s; };
-/* src/core.js-ийн fill: {t+3} → 3 хоногийн дараах огноо */
+/* src/core/time.js-ийн fill: {t+3} → 3 хоногийн дараах огноо */
 const fill = (s) => String(s).replace(/\{t([+-]\d+)\}/g, (_, n) => { const d = new Date(Date.now() + 8 * 3600e3 + n * 864e5); return (d.getUTCMonth() + 1) + '-р сарын ' + d.getUTCDate(); }).replace(/\{(aqi|tr)\}/g, '');
 const isoUB = (d) => { const m = String(d || '').match(/(\d{4})\D(\d{2})\D(\d{2})\D+(\d{2}):(\d{2})/); return m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:00+08:00` : null; };
 const dateMn = (iso) => { const m = iso.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}:\d{2})/); return `${m[1]} оны ${+m[2]}-р сарын ${+m[3]}, ${m[4]}`; };
@@ -50,7 +50,7 @@ function cached(file, parse) {
 }
 
 /* ================= Мэдээ: build-ийн жагсаалт + admin-ы засвар ================= */
-function merged(defs, ov) {   // src/cms.js-ийн mergedItems-тэй ижил дүрэм
+function merged(defs, ov) {   // src/admin/cms.js-ийн mergedItems-тэй ижил дүрэм
   const out = [], seen = new Set();
   defs.forEach((d) => { seen.add(d.id); const o = ov[d.id]; if (o && o.deleted) return; out.push(Object.assign(clone(d), o || {})); });
   Object.keys(ov).forEach((id) => { const o = ov[id]; if (!seen.has(id) && !o.deleted) out.push(clone(o)); });
@@ -71,10 +71,10 @@ async function allNews() {
 }
 
 /* ================= og зураг ================= */
-let SCENE;   // src/scene.js-ийн Scene(): мэдээний чимэглэлийг (SVG) сервер дээр зурна
+let SCENE;   // src/art/scene.js-ийн Scene(): мэдээний чимэглэлийг (SVG) сервер дээр зурна
 function sceneSvg(key) {
   if (SCENE === undefined) {
-    try { SCENE = vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src', 'scene.js'), 'utf8') + '\n;Scene', { CMS: { data: { media: {} } }, LOGO_SRC: '' }); }
+    try { SCENE = vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'src', 'art', 'scene.js'), 'utf8') + '\n;Scene', { CMS: { data: { media: {} } }, LOGO_SRC: '', document: { documentElement: { style: { setProperty() {} } } } }); }   // document: хөтчийн лого тохиргооны мөрийг алгасна
     catch (e) { console.warn('  ⚠ scene.js:', e.message); SCENE = null; }
   }
   return SCENE ? Buffer.from(SCENE(key).replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" `)) : null;

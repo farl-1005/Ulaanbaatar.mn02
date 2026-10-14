@@ -11,8 +11,78 @@ try { lucide = require('lucide'); require.resolve('tailwindcss/package.json'); }
 catch (e) { console.error('✗ Шаардлагатай сангууд суугаагүй байна. Энэ хавтсан дотроо эхлээд "npm install" гэж ажиллуулна уу.\n  Одоогийн хавтас: ' + process.cwd()); process.exit(1); }
 
 const ROOT = __dirname, SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist'), SITE = path.join(DIST, 'site');
-const FILES = ['data.js', 'data2.js', 'scene.js', 'core.js', 'sections.js', 'skyline.js', 'cms.js', 'admin.js', 'features.js'];
-const { getLiveNews, getLiveMedia, getLiveOrgs, getLiveMega, getLiveIpiu, IMG_DIR } = require('./news');
+/* Хөтчийн JavaScript: дараах файлууд энэ дарааллаар нэг IIFE болж нийлнэ (дараагийнх нь өмнөхийнхөө тодорхойлсныг ашиглана).
+   Шинэ файл нэмбэл зөвхөн энд нэмнэ. Бүтцийн тайлбар: ARCHITECTURE.md */
+const FILES = [
+  // Өгөгдөл: текст, мэдээ, үйлчилгээ, төсөл... (энгийн тогтмолууд)
+  'data/i18n.js',
+  'data/alerts.js',
+  'data/news.js',
+  'data/media.js',
+  'data/services.js',
+  'data/map.js',
+  'data/projects.js',
+  'data/events.js',
+  'data/transparency.js',
+  'data/about.js',
+  'data/city-stats.js',
+  'data/my-page.js',
+  'data/governor.js',
+  'data/banners.js',
+  'data/chat.js',
+  // Зураг чимэглэл (SVG үүсгэгч)
+  'art/scene.js',
+  // Цөм: туслах функц, төлөв, header, хайлт, чиглүүлэлт, хуудсууд
+  'core/helpers.js',
+  'core/state.js',
+  'core/time.js',
+  'core/motion.js',
+  'core/modal.js',
+  'core/header.js',
+  'core/ticker.js',
+  'core/mobile-menu.js',
+  'core/search.js',
+  'core/router.js',
+  'core/pages.js',
+  // Нүүрний хэсгүүд (дарааллаараа)
+  'sections/hero.js',
+  'sections/hub.js',
+  'sections/life-events.js',
+  'sections/media.js',
+  'sections/map-view.js',
+  'sections/projects.js',
+  'sections/city-data.js',
+  'sections/events.js',
+  'sections/transparency.js',
+  'sections/governor.js',
+  'sections/about.js',
+  'sections/rail.js',
+  'sections/footer.js',
+  // Зураг чимэглэл (SVG үүсгэгч)
+  'art/skyline.js',
+  // Admin (CMS) ба өгөгдлийн давхарга
+  'admin/cms.js',
+  'admin/admin.js',
+  // Цонх, маягт, үзэгч, AI туслах, эхлүүлэлт
+  'features/shared.js',
+  'features/news-reader.js',
+  'features/season.js',
+  'features/services.js',
+  'features/dan-login.js',
+  'features/forms.js',
+  'features/media-player.js',
+  'features/documents.js',
+  'features/my-page.js',
+  'features/assistant.js',
+  'features/wiring.js',
+  'features/live-data.js',
+  'features/to-top.js',
+  'features/weather.js',
+  'features/init.js',
+];
+/* Мэдээний хуудас, sitemap-д (server/pages.js) хэрэгтэй NEWS жагсаалтыг эдгээр файлаас гаргана */
+const NEWS_DATA = ['data/i18n.js', 'data/alerts.js', 'data/news.js', 'data/media.js'];
+const { getLiveNews, getLiveMedia, getLiveOrgs, getLiveMega, getLiveIpiu, IMG_DIR } = require('./server/sources');
 const pascal = (n) => n.split('-').filter(Boolean).map((s) => s[0].toUpperCase() + s.slice(1)).join('');
 
 /** Бүтээнэ. Амжилттай бол null, алдаатай бол алдааны текст буцаана. */
@@ -42,10 +112,10 @@ async function build() {
   const mk = (local) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(ICONS)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\nconst LIVE_ORGS=${orgsFor(local)};\nconst LIVE_MEGA=${JSON.stringify(mega.projects)};\nconst LIVE_IPIU=${JSON.stringify(ipiu.projects)};\n${js}\n})();`;
   const bundle = mk(true), bundleOne = mk(false);
   try { new vm.Script(bundle, { filename: 'app.js' }); } catch (e) { return 'JavaScript алдаа: ' + e.message; }
-  // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data.js-ийг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
+  // Мэдээ бүрийн хуудас, sitemap (server/pages.js): data/ файлуудыг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
   let idx;
-  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\nconst LIVE_MEDIA=[];\n${fs.readFileSync(path.join(SRC, 'data.js'), 'utf8')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data.js' }); }
-  catch (e) { return 'data.js алдаа: ' + e.message; }
+  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\nconst LIVE_MEDIA=[];\n${NEWS_DATA.map((f) => fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data/news.js' }); }
+  catch (e) { return 'data/news.js алдаа: ' + e.message; }
   const newsIndex = {
     src: idx.NEWS_SRC,
     rub: Object.fromEntries(Object.entries(idx.RUB).map(([k, r]) => [k, { t: r.t, c: r.c }])),
@@ -55,7 +125,10 @@ async function build() {
   for (const n of live.items.concat(media.items)) if (n.imgFile) fs.copyFileSync(path.join(IMG_DIR, n.imgFile), path.join(SITE, 'assets', 'news', n.imgFile));
   for (const o of orgs.orgs) if (o.logoFile) fs.copyFileSync(path.join(IMG_DIR, o.logoFile), path.join(SITE, 'assets', 'news', o.logoFile));
   fs.mkdirSync(path.join(SITE, 'assets'), { recursive: true });
-  try { execSync('npx tailwindcss -c tailwind.config.js -i src/input.css -o dist/.tailwind.css --minify', { cwd: ROOT, stdio: 'pipe' }); }
+  // CSS: src/styles/*.css-ийг нэрийн дарааллаар (01-, 02- ...) нийлүүлээд Tailwind-аар боловсруулна
+  const STYLES = path.join(SRC, 'styles');
+  fs.writeFileSync(path.join(DIST, '.input.css'), fs.readdirSync(STYLES).filter((f) => f.endsWith('.css')).sort().map((f) => fs.readFileSync(path.join(STYLES, f), 'utf8')).join(''));
+  try { execSync('npx tailwindcss -c tailwind.config.js -i dist/.input.css -o dist/.tailwind.css --minify', { cwd: ROOT, stdio: 'pipe' }); }
   catch (e) { return 'CSS алдаа: ' + ((e.stderr && e.stderr.toString()) || e.message); }
   const css = fs.readFileSync(path.join(DIST, '.tailwind.css'), 'utf8');
   fs.writeFileSync(path.join(DIST, 'ulaanbaatar-mn.html'), html.replace('/*__CSS__*/', () => css).replace('/*__JS__*/', () => bundleOne));
