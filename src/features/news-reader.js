@@ -24,14 +24,19 @@ function openNews(id) {
 function newsBack() {
   if (history.state && history.state.ubNews) history.back(); else setRoute('home');
 }
-window.addEventListener('popstate', () => {
-  const id = urlNewsId(), pk = urlPage();
-  if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
-  else if (pk) { if (S.route !== 'page' || S.page !== pk) { S.page = pk; if (pk === 'services') S.hub = 'services'; else if (pk === 'news') S.hub = 'news'; setRoute('page'); } }
-  else if (/^#admin(\/|$)/.test(location.hash)) { admFromHash(location.hash); if (S.route !== 'admin') setRoute('admin'); else renderAdmin(); }
-  else if (PRETTY && !/^\/(index\.html)?$/.test(location.pathname)) { if (S.route !== '404') setRoute('404'); }
-  else if (S.route === 'news' || S.route === 'page' || S.route === '404') setRoute('home');
-});
+/* Хөтчийн «Буцах», «Урагшлах»: хаягаар нь хуудсаа нээнэ (init() дуудна) */
+function watchHistory() {
+  window.addEventListener('popstate', () => {
+    const id = urlNewsId(), pk = urlPage();
+    if (id && NEWS_BY[id]) { S.newsId = id; S.newsFb = false; setRoute('news'); }
+    else if (pk) { if (S.route !== 'page' || S.page !== pk) { S.page = pk; if (pk === 'services') S.hub = 'services'; else if (pk === 'news') S.hub = 'news'; setRoute('page'); } }
+    else if (/^#admin(\/|$)/.test(location.hash)) openAdmin(location.hash.slice(7));
+    else if (PRETTY && !/^\/(index\.html)?$/.test(location.pathname)) { if (S.route !== '404') setRoute('404'); }
+    else if (S.route === 'news' || S.route === 'page' || S.route === '404') setRoute('home');
+  });
+}
+/* Admin (/admin, тусдаа төсөл) руу шилжинэ. view: «news» эсвэл «news/n123» (тэр мэдээг засахаар нээнэ) */
+function openAdmin(view) { location.href = '/admin/' + (view ? '#' + view : ''); }
 /* ---- 404 «Хуудас олдсонгүй»: сервер <meta name="ubmn-404"> гэж тэмдэглэсэн, эсвэл мэдээ олдоогүй үед ---- */
 function render404() {
   const links = MENU.map((m) => [pageOf({ sec: m.sec }), m]).filter(([k]) => k);
@@ -124,7 +129,7 @@ function renderNewsPage() {
         ${body}
         ${newsAction(n)}
         ${n.d ? `<div class="mt-8 rounded-[8px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"><p class="flex gap-3 text-[14px] text-muted leading-relaxed">${ic('info', 'w-5 h-5 shrink-0')}<span>${n.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p><a class="btn btn-sm btn-ghost shrink-0" href="${NEWS_SRC}${n.id.slice(1)}" target="_blank" rel="noopener">${ic('external-link', 'w-4 h-4')}${t('srcLink')}</a></div>` : ''}
-        ${CMS.canEdit ? `<button type="button" class="btn btn-sm btn-ghost mt-4" data-act="adm-site-edit" data-col="news" data-id="${n.id}">${ic('pencil-line', 'w-4 h-4')}${L(['Энэ мэдээг засах', 'Edit this story'])}</button>` : ''}
+        ${CMS.canEdit ? `<a class="btn btn-sm btn-ghost mt-4" href="/admin/#news/${esc(n.id)}">${ic('pencil-line', 'w-4 h-4')}${L(['Энэ мэдээг засах', 'Edit this story'])}</a>` : ''}
         <div class="mt-8 pt-6 border-t border-line flex flex-wrap items-center gap-2"><span class="text-[13px] text-muted mr-1">${L(['Шошго:', 'Tags:'])}</span>
           <button type="button" class="chip" data-act="go" data-sec="hub" data-hub="news" data-cat="${n.cat}">#${esc(L(r.t))}</button><span class="chip">#${L(['Улаанбаатар', 'Ulaanbaatar'])}</span><span class="chip">#${L(['Нийслэл', 'Capital'])}</span></div>
         </div>

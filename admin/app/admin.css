@@ -1,5 +1,4 @@
-/* ============ Admin ============ */
-body.admin-mode > *:not(#view-admin):not(#modal-root):not(#toast-root):not(script) { display: none !important; }
+/* Admin-ы өөрийн загвар. Бусад бүх класс (btn, card, chip, field, Tailwind) сайтын /assets/style.css-ээс. */
 .adm-nav { display: flex; align-items: center; gap: 12px; width: 100%; height: 42px; padding: 0 12px; border-radius: 8px; font-weight: 600; font-size: 14.5px; color: rgb(255 255 255 / .72); transition: background-color .2s, color .2s; }
 .adm-nav:hover { background: rgb(255 255 255 / .08); color: #fff; }
 .adm-nav[aria-current="true"] { background: rgb(255 255 255 / .14); color: #fff; box-shadow: inset 3px 0 0 rgb(var(--c-red)); }
@@ -10,6 +9,5 @@ body.admin-mode > *:not(#view-admin):not(#modal-root):not(#toast-root):not(scrip
 .adm-switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform .22s cubic-bezier(.2,.8,.2,1); }
 .adm-switch:checked { background: rgb(var(--c-green)); }
 .adm-switch:checked::before { transform: translateX(18px); }
-.scene > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 1s cubic-bezier(.2,.8,.2,1); }
-@media (hover: hover) { .lift:hover .zoom > img, .zoom-on:hover .zoom > img { transform: scale(1.06); } }
-
+/* Икон: сайтын ic() SVG-г орлуулах хүрээ байршилд нөлөөлөхгүй */
+.adm-ic { display: contents; }

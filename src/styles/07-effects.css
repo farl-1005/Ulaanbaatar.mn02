@@ -3,7 +3,6 @@
 #rail { display: none; }
 @media (min-width: 1840px) and (min-height: 700px) {
   #rail:not([hidden]) { display: block; position: absolute; top: 24px; bottom: 48px; right: calc((100% - 1320px) / 4 - 106px); width: 212px; z-index: 20; pointer-events: none; }
-  body.admin-mode #rail { display: none; }
 }
 .rail-card { position: sticky; top: 96px; pointer-events: auto; }
 .rail-intro { animation: railIn 1s cubic-bezier(.22, 1, .36, 1) 1.1s both; }

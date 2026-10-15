@@ -1,6 +1,9 @@
 /node_modules
 /dist
 /data
+/admin/.next
+/admin/out
+/admin/node_modules
 .env
 .git
 .claude

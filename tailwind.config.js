@@ -1,5 +1,5 @@
 module.exports = {
-  content: ['./src/**/*.{html,js}'],
+  content: ['./src/**/*.{html,js}', './admin/{app,src}/**/*.{ts,tsx}'],   // admin/ ч сайтын CSS-ийг (assets/style.css) ашигладаг
   theme: {
     extend: {
       colors: {

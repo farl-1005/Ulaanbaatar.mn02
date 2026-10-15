@@ -108,8 +108,6 @@ const I = {
   projDesc: ['Нийслэлийн 24 мега төслийн явцыг газрын зураг дээрээс хянаарай. Тойрог дээр дарж томруулна.', 'Follow the 24 flagship projects on the map. Tap a cluster to zoom in.'],
   st_progress: ['Явцад', 'In progress'], st_done: ['Дууссан', 'Completed'], st_planned: ['Эхлэх шатанд', 'Early stage'],
   avgProgress: ['Дундаж гүйцэтгэл', 'Average progress'],
-  projectsN: ['{n} төсөл', '{n} projects'],
-  completedN: ['{n} дууссан', '{n} completed'],
   budget: ['Төсөв', 'Budget'],
   dueYear: ['Дуусах он', 'Completion'],
   zoomHint: ['Томруулахын тулд Ctrl дарж гүйлгэнэ үү', 'Hold Ctrl and scroll to zoom'],
@@ -149,7 +147,6 @@ const I = {
   savedT: ['Хадгаллаа', 'Saved'], unsavedT: ['Хадгалснаас хаслаа', 'Removed from saved'],
   noEvents: ['Энэ өдөр тохирох арга хэмжээ алга. Өөр өдөр сонгоно уу.', 'Nothing matches on this day. Pick another date.'],
   noEventsF: ['Энэ шүүлтүүрт тохирох арга хэмжээ алга.', 'No events match this filter.'],
-  eventsOn: ['{d}-ний арга хэмжээ', 'Events on {d}'],
 
   trTitle: ['Ил тод байдал', 'Transparency'],
   trDesc: ['Хотын шийдвэр, худалдан авалт бүрэн нээлттэй. Баримт бүрийг дугаар, нэрээр нь хайна.', 'City decisions and procurement, fully open. Search any document by number or title.'],
@@ -175,7 +172,6 @@ const I = {
   founded: ['Үүсгэн байгуулагдсан', 'Founded'], area: ['Нутаг дэвсгэр', 'Area'], admin: ['Засаг захиргаа', 'Administration'], elevation: ['Далайн түвшнээс дээш', 'Elevation'],
   adminV: ['9 дүүрэг, 204 хороо', '9 districts, 204 khoroos'],
 
-  contact: ['Холбоо барих', 'Contact'],
   hotline: ['Иргэдийн санал хүсэлтийн утас, 24/7', 'Citizen hotline, 24/7'],
   emergency: ['Яаралтай тусламж', 'Emergency'],
   fire: ['Гал', 'Fire'], police: ['Цагдаа', 'Police'], ambulance: ['Түргэн тусламж', 'Ambulance'],
@@ -208,7 +204,6 @@ const I = {
   rDone: ['Мэдээлэл бүртгэгдлээ', 'Report received'],
   rDoneD: ['Хянах дугаар {id}. 30 минутын дотор хариуцах байгууллагад шилжүүлж, явцыг Миний булан хэсэгт мэдэгдэнэ.', 'Tracking number {id}. It goes to the responsible agency within 30 minutes; follow progress in My page.'],
   trackIt: ['Явцыг харах', 'Track progress'],
-  needCat: ['Төрлөө сонгоно уу', 'Choose a type first'],
 
   vTitle: ['Санал өгөх', 'Have your say'],
   vPoll: ['Санал асуулга', 'Poll'], vIdea: ['Санал хүсэлт', 'Suggestion'],
@@ -217,7 +212,6 @@ const I = {
   voteBtn: ['Саналаа өгөх', 'Cast my vote'],
   voted: ['Таны санал бүртгэгдлээ', 'Your vote is in'],
   totalVotes: ['Нийт {n} санал', '{n} votes'],
-  yourPick: ['Таны сонголт', 'Your choice'],
   topic: ['Сэдэв', 'Topic'],
   ideaPh: ['Хотод юуг өөрчлөх вэ? Санаагаа бичээрэй.', 'What would you change in the city?'],
   ideaSend: ['Илгээх', 'Send'], ideaSent: ['Санал илгээгдлээ. 14 хоногт хариу өгнө.', 'Suggestion sent. You will get a reply within 14 days.'],
@@ -231,7 +225,6 @@ const I = {
   waiting: ['Баталгаажуулалт хүлээж байна', 'Waiting for confirmation'],
   regPh: ['Регистрийн дугаар', 'Register number'], sendCode: ['Код илгээх', 'Send code'], codePh: ['6 оронтой код', '6-digit code'], codeSent: ['Бүртгэлтэй утас руу код илгээлээ', 'Code sent to your registered phone'],
   signIn: ['Нэвтрэх', 'Sign in'],
-  bankPick: ['Банкаа сонгоно уу', 'Choose your bank'],
   demoNote: ['Концепц: дурын утга оруулахад нэвтэрнэ.', 'Concept: any value signs you in.'],
   signedIn: ['Амжилттай нэвтэрлээ', 'Signed in'],
   myCorner: ['Миний булан', 'My page'],
@@ -267,8 +260,6 @@ const I = {
   restartChat: ['Шинээр эхлэх', 'New chat'],
 
   s_sits: ['Амьдралын нөхцөл', 'Life events'],
-  popular: ['Түгээмэл хайлт', 'Popular searches'],
-  escClose: ['хаах', 'to close'],
   bb_home: ['Нүүр', 'Home'], bb_services: ['Үйлчилгээ', 'Services'], bb_report: ['Мэдээлэх', 'Report'], bb_news: ['Мэдээ', 'News'], bb_my: ['Миний', 'Me'],
   share: ['Холбоос хуулах', 'Copy link'], copied: ['Холбоос хуулагдлаа', 'Link copied'],
   helpful: ['Энэ мэдээлэл хэрэгтэй байсан уу?', 'Was this useful?'], thanks: ['Санал өгсөнд баярлалаа', 'Thanks for the feedback'],

@@ -6,8 +6,8 @@
 
 ## Эхлүүлэх
 ```bash
-npm install     # нэг удаа: Nest.js, TypeScript, Tailwind CSS, Lucide икон, nodemon татна
-npm run dev     # хөгжүүлэлт: http://localhost:8080
+npm install     # нэг удаа: Nest.js, Next.js, TypeScript, Tailwind CSS, Lucide икон татна
+npm run dev     # хөгжүүлэлт: сайт http://localhost:8080, admin http://localhost:8080/admin
 npm run build   # зөвхөн бүтээх (байршуулахын өмнө)
 npm start       # production сервер (эхлээд npm run build)
 npm run news    # ulaanbaatar.mn-ээс мэдээг одоо шууд дахин татах
@@ -25,9 +25,9 @@ npm run news    # ulaanbaatar.mn-ээс мэдээг одоо шууд дахи�
 | `src/core/` | Туслах функц, төлөв, header, цэс, гүйдэг мөр, хайлт, чиглүүлэлт |
 | `src/sections/` | Нүүр хуудасны хэсэг бүр өөрийн файлд |
 | `src/features/` | Цонхнууд (мэдээ унших, нэвтрэх, мэдээлэх, санал), чат, цаг агаар, эхлүүлэх код |
-| `src/admin/` | Admin-ы өгөгдлийн давхарга (`cms.js`), удирдлагын дэлгэц (`admin.js`) |
 | `src/art/` | Кодоор зурдаг чимэглэл, лого, header-ийн хотын зураг |
 | `src/styles/` | CSS (01-base.css-д өнгөний токен) |
+| `admin/` | Удирдлага (Next.js + React): http://localhost:8080/admin |
 | `server/` | Backend (Nest.js, TypeScript): API, өгөгдлийн сан, мэдээний хуудас, сайтыг бүтээх |
 | `server/sources/` | Бүтээх үед ulaanbaatar.mn, ipiu.mn-ээс татах өгөгдөл |
 | `deploy/` | Сервер дээр байршуулах скриптүүд |
@@ -36,7 +36,7 @@ npm run news    # ulaanbaatar.mn-ээс мэдээг одоо шууд дахи�
 - **Tailwind:** Ангиллуудыг (жишээ нь `bg-ubred`, `lg:grid-cols-3`) JS доторх текстээс автоматаар уншина. Ангиллын нэрийг бүтнээр нь бичнэ (`'bg-' + color` гэж залгаж болохгүй).
 - **Икон:** `ic('нэр')` гэж бичнэ. Нэрийг https://lucide.dev/icons -оос авна. Байхгүй нэр бичвэл бүтээх үед мэдэгдэнэ.
 - **Өнгө:** `src/styles/01-base.css`-ийн эхэнд байрлах `--c-red`, `--c-navy` зэрэг токеноор солино.
-- **Admin:** Локал дээр өөрчлөлт хөтчийн санах ойд хадгалагдана. Олон хүн хамтран засахын тулд `src/admin/cms.js`-ийн `cmsWrite`, `cmsDelete`, `initCMS` функцуудыг өөрийн сервер эсвэл API руу холбоно.
+- **Admin:** `/admin` хаягаар (тусдаа `admin/` Next.js төсөл). Засвар серверийн өгөгдлийн санд хадгалагдаж, сайтын бүх зочинд шууд харагдана. Нууц үг нь `.env`-ийн `ADMIN_PASSWORD`.
 - **Бодит мэдээ (`server/sources/news.ts`):** build бүрт ulaanbaatar.mn-ийн API-аас (`https://ulaanbaatar.mn/api/article?type=TIME_HISTORY`) сүүлийн 30 мэдээг бүтэн текст, үзэлттэй нь татна. API нь хөтчөөс шууд хандахыг (CORS) хаадаг тул Node.js талд татдаг.
   - Кэш: `dist/.news/`. 15 минутаас шинэ бол дахин татахгүй; сүлжээ тасарвал хуучин кэш, кэш ч байхгүй бол `src/data/news.js`-ийн жишээ мэдээг ашиглана.
   - Зураг: нүүр зургийг (дунджаар 2.5MB) `sharp`-аар 960px WebP болгож `dist/site/assets/news/`-д хийнэ (дунджаар ~60KB). 25MB-аас том зургийг алгасаж чимэглэлээр орлуулна.

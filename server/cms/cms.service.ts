@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Database } from '../database/database';
 import { EventsService } from '../events/events.service';
 
-/** Admin-аас засагдах бүлгүүд (src/admin/cms.js-ийн CMS_COLS-тай ижил байх ёстой) */
+/** Admin-аас засагдах бүлгүүд (src/core/cms.js-ийн CMS_COLS-тай ижил байх ёстой) */
 export const CMS_COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
   'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners', 'govsched'];
 export const ID_RE = /^[\w.-]{1,80}$/;

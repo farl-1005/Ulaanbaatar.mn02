@@ -17,7 +17,7 @@ curl -fsSL https://raw.githubusercontent.com/farl-1005/Ulaanbaatar.mn02/main/dep
 
 Дууссаны дараа:
 - Сайт: `https://ub.example.mn` (домэйнгүй бол `http://<серверийн IP>`)
-- Admin: `/#admin`. Нууц үг: `sudo cat /opt/ulaanbaatar-mn/.env`
+- Admin: `/admin` (жишээ нь https://ub.smartsolution.mn/admin). Нууц үг: `sudo cat /opt/ulaanbaatar-mn/.env`
 - Анх асахад мэдээ, зургийг татаж бүтээхэд 1–2 минут болно. Дараа нь 15 минут тутам мэдээ автоматаар шинэчлэгдэнэ.
 
 ## 2б. Сервер дээр nginx аль хэдийн ажиллаж байвал (бусад сайттай хамтын сервер)

@@ -22,6 +22,10 @@ export const SRC = path.join(ROOT, 'src');
 export const DIST = path.join(ROOT, 'dist');
 /** Бүтээсэн сайт: index.html, assets/app.js, assets/style.css */
 export const SITE = path.join(DIST, 'site');
+/** Admin (admin/ — Next.js төсөл): `next build`-ийн гаргасан статик файлууд, /admin хаягаар */
+export const ADMIN_OUT = path.join(ROOT, 'admin', 'out');
+/** npm run dev үед admin-ы `next dev` сервер */
+export const ADMIN_DEV_URL = process.env.ADMIN_DEV_URL || 'http://localhost:3001';
 /** Байнгын өгөгдөл: SQLite, иргэдийн зураг (Docker-т /data volume) */
 export const DATA = process.env.DATA_DIR || (PROD && fs.existsSync('/data') ? '/data' : path.join(ROOT, 'data'));
 export const UPLOADS = path.join(DATA, 'uploads');

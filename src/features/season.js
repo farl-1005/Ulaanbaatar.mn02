@@ -99,7 +99,6 @@ function newsProgress() {
   const r = a.getBoundingClientRect(), total = r.height - innerHeight * 0.6;
   bar.style.transform = `scaleX(${Math.min(1, Math.max(0, total > 0 ? -r.top / total : 1))})`;
 }
-window.addEventListener('scroll', () => { if (S.route === 'news') requestAnimationFrame(newsProgress); }, { passive: true });
 function openGov(i) {
   const g = GOV[i];
   openModal({ size: 'md', render: () => `${modalHead(t('govNews'), t('govRole'), 'landmark', 'bg-navy text-white')}<article class="px-5 sm:px-7 py-6"><p class="text-[13px] text-muted">${ago(g.ago)}</p><h3 class="mt-2 text-[22px] font-extrabold leading-snug">${esc(L(g.t))}</h3><p class="mt-3 text-[16px] leading-relaxed text-ink/85">${esc(L(g.l))}</p><button type="button" class="btn btn-ghost mt-6" data-act="vote" data-tab="idea" data-gov="1">${ic('pen-line', 'w-[18px] h-[18px]')}${t('govLetter')}</button></article>` });

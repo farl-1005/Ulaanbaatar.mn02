@@ -77,5 +77,5 @@ if command -v certbot >/dev/null; then
 else echo "  ⚠ certbot олдсонгүй. HTTPS-ийн тулд: sudo apt install certbot python3-certbot-nginx && sudo certbot --nginx -d $DOMAIN"; fi
 
 echo
-echo "✓ Боллоо: https://$DOMAIN   Admin: https://$DOMAIN/#admin (нууц үг: sudo grep ADMIN_PASSWORD $DIR/.env)"
+echo "✓ Боллоо: https://$DOMAIN   Admin: https://$DOMAIN/admin (нууц үг: sudo grep ADMIN_PASSWORD $DIR/.env)"
 echo "  Шинэчлэх: sudo bash $DIR/deploy/update.sh    Лог: cd $DIR && sudo docker compose logs -f app"

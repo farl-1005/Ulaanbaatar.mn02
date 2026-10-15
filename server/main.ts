@@ -8,7 +8,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { DEV } from './config';
-import { serveStaticAssets } from './site/static-assets';
+import { serveAdmin, serveStaticAssets } from './site/static-assets';
 
 async function bootstrap() {
   if (!process.env.ADMIN_PASSWORD) console.warn('  ⚠ ADMIN_PASSWORD тохируулаагүй тул admin нэвтрэлт идэвхгүй байна.');
@@ -19,6 +19,7 @@ async function bootstrap() {
   app.disable('x-powered-by');
   app.enableShutdownHooks();
   serveStaticAssets(app);
+  serveAdmin(app);
 
   const port = await listen(app, +(process.env.PORT || 0) || (DEV ? 8080 : 3000));
   console.log(DEV

@@ -80,10 +80,11 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
     for (const res of this.devClients) res.write(`event: ${ev}\ndata: ${data.replace(/\n/g, ' ')}\n\n`);
   }
 
-  /** src/ болон tailwind.config.js-ийг харж, өөрчлөгдвөл дахин бүтээнэ (хадгалах үед олон event ирдэг тул 200мс хүлээнэ) */
+  /** src/, admin-ы эх код (CSS-ийн класс, икон) болон tailwind.config.js-ийг харж, өөрчлөгдвөл дахин бүтээнэ (хадгалах үед олон event ирдэг тул 200мс хүлээнэ) */
   private watchSources() {
     let wait: NodeJS.Timeout | undefined;
     const changed = () => { clearTimeout(wait); wait = setTimeout(() => void this.rebuild(), 200); };
-    this.watchers.push(fs.watch(SRC, { recursive: true }, changed), fs.watch(path.join(ROOT, 'tailwind.config.js'), changed));
+    const dirs = [SRC, path.join(ROOT, 'admin', 'src'), path.join(ROOT, 'admin', 'app')].filter((d) => fs.existsSync(d));
+    this.watchers.push(...dirs.map((d) => fs.watch(d, { recursive: true }, changed)), fs.watch(path.join(ROOT, 'tailwind.config.js'), changed));
   }
 }

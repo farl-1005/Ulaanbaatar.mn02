@@ -16,7 +16,7 @@ export interface NewsItem {
 }
 export interface NewsFeed { news: NewsItem[]; rub: Record<string, Rubric>; src: string }
 
-/** Мэдээний жагсаалт: бүтээх үеийн dist/news-index.json + admin-ы засвар (src/admin/cms.js-ийн дүрмээр нийлүүлнэ). */
+/** Мэдээний жагсаалт: бүтээх үеийн dist/news-index.json + admin-ы засвар (src/core/cms.js-ийн дүрмээр нийлүүлнэ). */
 @Injectable()
 export class NewsFeedService {
   private index: { mtime: number; data: any } | null = null;
@@ -58,7 +58,7 @@ export class NewsFeedService {
   }
 }
 
-/** Анхны жагсаалт + засвар: засвартай бол дарж бичнэ, deleted бол хасна, шинээр нэмсэнийг төгсгөлд нь (src/admin/cms.js mergedItems) */
+/** Анхны жагсаалт + засвар: засвартай бол дарж бичнэ, deleted бол хасна, шинээр нэмсэнийг төгсгөлд нь (src/core/cms.js mergedItems) */
 function merged(defs: any[], ov: Record<string, any>): any[] {
   const out: any[] = [], seen = new Set<string>();
   defs.forEach((d) => { seen.add(d.id); const o = ov[d.id]; if (o && o.deleted) return; out.push(Object.assign(clone(d), o || {})); });

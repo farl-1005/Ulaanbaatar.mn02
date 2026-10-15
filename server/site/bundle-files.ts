@@ -48,9 +48,8 @@ export const BUNDLE_FILES = [
   'sections/footer.js',
   // Зураг чимэглэл (SVG үүсгэгч)
   'art/skyline.js',
-  // Admin (CMS) ба өгөгдлийн давхарга
-  'admin/cms.js',
-  'admin/admin.js',
+  // Admin-ы засварыг сайтад тусгах (засварыг /admin — admin/ төсөлд хийнэ)
+  'core/cms.js',
   // Цонх, маягт, үзэгч, AI туслах, эхлүүлэлт
   'features/shared.js',
   'features/news-reader.js',
@@ -68,6 +67,9 @@ export const BUNDLE_FILES = [
   'features/weather.js',
   'features/init.js',
 ];
+
+/** assets/kit.js (admin-д): дээрх бүх файл (сайтыг асаадаг init.js-ээс бусад) + src/kit.js */
+export const KIT_FILES = BUNDLE_FILES.filter((f) => f !== 'features/init.js').concat('kit.js');
 
 /** Мэдээний хуудас, sitemap-д (pages/) хэрэгтэй NEWS жагсаалтыг эдгээр файлаас гаргана */
 export const NEWS_DATA_FILES = ['data/i18n.js', 'data/alerts.js', 'data/news.js', 'data/media.js'];

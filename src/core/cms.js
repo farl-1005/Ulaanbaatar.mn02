@@ -1,7 +1,7 @@
-/* ================= CMS data layer =================
-   Built-in content is the default; edits live in an overlay that is either the
-   artifact's shared db (cms/site/<collection>/<id>, admin-only writes, live for
-   every signed-in viewer) or, outside claude.ai, this browser's storage. */
+/* ================= CMS: admin-ы засварыг сайтад тусгах =================
+   Сайтын анхны агуулга нь src/data/, admin-ы засвар нь серверт (GET /api/cms). Хоёрыг энд нийлүүлнэ (applyOverlay).
+   Засварыг /admin хийнэ (admin/ — тусдаа Next.js төсөл). Тэр нь анхны агуулга (DEF), applyOverlay-г assets/kit.js-ээр ашиглана.
+   Сервергүй (нэг файлт хувилбар) үед анхны агуулга харагдана. */
 const CMS_COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
   'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners', 'govsched'];
 const cloneJ = (x) => JSON.parse(JSON.stringify(x));
@@ -38,12 +38,10 @@ const DEF = {
   topics: TOPICS.map(([k, mn, en], i) => ({ id: k, t: [mn, en], ord: (i + 1) * 10 })),
   faq: FAQ.map((f, i) => ({ id: 'f' + (i + 1), kw: f.re.source.replace(/\\b/g, '').split('|').join(', '), a: cloneJ(f.a), acts: f.acts || [] })).concat([{ id: 'f0', kw: '', a: cloneJ(FAQ_DEFAULT.a) }]),
 };
-const CMS = { mode: 'pending', db: null, user: null, uid: null, canEdit: false, isOwner: false, data: {}, log: [] };
+/* mode: 'api' (сервертэй) | 'static' (сервергүй). canEdit: admin нэвтэрсэн эсэх (сайт дээр «Сайтыг засах» холбоос харуулна). */
+const CMS = { mode: 'pending', canEdit: false, data: {} };
 CMS_COLS.forEach((c) => { CMS.data[c] = {}; });
 let SET = Object.assign({}, DEF.settings);
-
-function cmsLocalLoad() { const x = store.get('cms', null) || {}; CMS_COLS.forEach((c) => { CMS.data[c] = x[c] || {}; }); CMS.log = x.log || []; }
-function cmsLocalSave() { const x = { log: CMS.log.slice(0, 40) }; CMS_COLS.forEach((c) => { x[c] = CMS.data[c]; }); try { localStorage.setItem('ubmn:cms', JSON.stringify(x)); return true; } catch (e) { return false; } }
 
 function mergedItems(col) {
   const defs = DEF[col] || [], ov = CMS.data[col] || {}, out = [], seen = new Set();
@@ -115,7 +113,6 @@ function runApply() {
   applyOverlay();
   const added = NEWS.filter((n) => !before.has(n.id));
   const wasFirst = firstApply; firstApply = false;
-  if (S.route === 'admin') { admRefresh(); return; }
   const y = window.scrollY; renderAll(); if (MODAL) paintModal(true); window.scrollTo(0, y);
   if (!wasFirst && added.length && S.route === 'home') toast(L(['Шинэ мэдээ нийтлэгдлээ', 'New story published']) + ': ' + L(added[0].t), 'bell-ring');
   if (S.pendingNews) {   // /news/<id> хаягаар орж ирсэн, admin-аас нэмсэн мэдээ
@@ -125,22 +122,19 @@ function runApply() {
   }
 }
 
-/* ---- Backend API (server/cms/, server/auth/). Сервергүй (нэг файлт хувилбар) үед local горимд шилжинэ. ---- */
+/* ---- Backend API (server/). Маягт илгээхэд ч ашиглана (features/forms.js). ---- */
 async function apiCall(path, opt = {}) {
   const init = { method: opt.method || 'GET', credentials: 'same-origin', headers: {} };
   if (opt.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opt.body); }
   const r = await fetch('/api' + path, init);
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    if (r.status === 401 && CMS.mode === 'api' && CMS.canEdit && path !== '/login') { CMS.canEdit = CMS.isOwner = false; if (S.route === 'admin') setTimeout(renderAdmin, 0); }
-    throw { code: j.error || 'http_' + r.status, status: r.status };
-  }
+  if (!r.ok) throw { code: j.error || 'http_' + r.status, status: r.status };
   return j;
 }
 async function cmsApiLoad() {
   const j = await apiCall('/cms');
   CMS_COLS.forEach((c) => { CMS.data[c] = (j.data && j.data[c]) || {}; });
-  CMS.log = j.log || []; CMS.canEdit = CMS.isOwner = !!j.admin; CMS.uid = j.admin ? 'admin' : null; CMS.inboxNew = j.inboxNew || 0;
+  CMS.canEdit = !!j.admin;
 }
 async function cmsApiInit() {
   if (location.protocol === 'file:') return false;
@@ -151,76 +145,14 @@ async function cmsApiInit() {
   try {
     const es = new EventSource('/api/events');
     es.addEventListener('cms', reload);
-    es.addEventListener('submission', () => { if (!CMS.canEdit) return; reload(); if (typeof admInboxChanged === 'function') admInboxChanged(); });
   } catch (e) { /* шууд шинэчлэлгүйгээр ажиллана */ }
   scheduleApply(); cmsReadyUI(); return true;
 }
-async function cmsLogin(password) { await apiCall('/login', { method: 'POST', body: { password } }); await cmsApiLoad(); scheduleApply(); cmsReadyUI(); }
-async function cmsLogout() { try { await apiCall('/logout', { method: 'POST', body: {} }); } catch (e) { /* ignore */ } CMS.canEdit = CMS.isOwner = false; CMS.uid = null; CMS.log = []; cmsReadyUI(); }
-
 async function initCMS() {
-  const hasRuntime = !!(window.claude && typeof window.claude.use === 'function');
-  if (!hasRuntime && await cmsApiInit()) return;
-  if (!hasRuntime) {
-    cmsLocalLoad(); CMS.mode = 'local'; CMS.canEdit = true;
-    // Admin in one tab, site in another: pick up edits from other tabs of the same browser instantly.
-    window.addEventListener('storage', (e) => { if (e.key === 'ubmn:cms') { cmsLocalLoad(); scheduleApply(); } });
-    scheduleApply(); cmsReadyUI(); return;
-  }
-  let db = null, user = null;
-  try { [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } catch (e) { /* resolves null on failure */ }
-  CMS.user = user;
-  if (!db) { CMS.mode = 'static'; CMS.canEdit = false; cmsReadyUI(); return; }
-  CMS.db = db; CMS.mode = 'db';
-  if (user) { CMS.canEdit = !!(await user.canEdit()); CMS.isOwner = !!(await user.isOwner()); CMS.uid = await user.id(); }
-  const base = db.doc('cms/site');
-  CMS_COLS.forEach((col) => {
-    base.collection(col).onSnapshot((snap) => {
-      const m = {}; snap.docs.forEach((d) => { if (d.exists) m[d.id] = Object.assign({}, d.data(), { id: d.id }); });
-      CMS.data[col] = m; scheduleApply();
-    }, (e) => console.warn('cms', col, e && e.code));
-  });
-  base.collection('log').orderBy('at', 'desc').limit(20).onSnapshot((snap) => {
-    CMS.log = snap.docs.filter((d) => d.exists).map((d) => Object.assign({ id: d.id }, d.data()));
-    if (S.route === 'admin' && ADM.view === 'dash') admRefresh();
-  }, () => {});
-  cmsReadyUI();
+  if (await cmsApiInit()) return;
+  CMS.mode = 'static'; scheduleApply(); cmsReadyUI();   // сервергүй: анхны агуулга
 }
 function cmsReadyUI() {
   renderHeader(); setActiveNav(currentSec);
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
-  if (S.route === 'admin') renderAdmin();
-}
-
-/* ---- writes ---- */
-const isDefaultId = (col, id) => (DEF[col] || []).some((x) => x.id === id);
-function cleanBody(o) { const b = cloneJ(o); ['ts', 'ago', '_edited', '_new', 'b', 'w', 'd_'].forEach((k) => { delete b[k]; }); return b; }
-async function cmsWrite(col, id, body) {
-  if (CMS.mode === 'api') { await apiCall(`/cms/${col}/${encodeURIComponent(id)}`, { method: 'PUT', body }); CMS.data[col][id] = Object.assign({}, body, { id }); scheduleApply(); return; }
-  if (CMS.mode === 'db') { await CMS.db.doc(`cms/site/${col}/${id}`).set(body); return; }
-  if (CMS.mode !== 'local') throw { code: 'not_granted' };
-  const prev = CMS.data[col][id]; CMS.data[col][id] = Object.assign({}, body, { id });
-  if (!cmsLocalSave()) { if (prev) CMS.data[col][id] = prev; else delete CMS.data[col][id]; throw { code: 'quota_exceeded' }; }
-  scheduleApply();
-}
-async function cmsDelete(col, id) {
-  if (CMS.mode === 'api') { await apiCall(`/cms/${col}/${encodeURIComponent(id)}`, { method: 'DELETE' }); delete CMS.data[col][id]; scheduleApply(); return; }
-  if (CMS.mode === 'db') { await CMS.db.doc(`cms/site/${col}/${id}`).delete(); return; }
-  delete CMS.data[col][id]; cmsLocalSave(); scheduleApply();
-}
-const stamp = () => ({ updatedAt: new Date().toISOString(), by: CMS.uid || 'local' });
-async function cmsSave(col, id, data, title, action) { await cmsWrite(col, id, Object.assign(cleanBody(data), { id }, stamp())); cmsLog(action || 'update', col, id, title); }
-async function cmsRemove(col, id, title) { if (isDefaultId(col, id)) await cmsWrite(col, id, Object.assign({ id, deleted: true }, stamp())); else await cmsDelete(col, id); cmsLog('delete', col, id, title); }
-async function cmsRevert(col, id, title) { await cmsDelete(col, id); cmsLog('revert', col, id, title); }
-async function cmsLog(action, col, id, title) {
-  const e = Object.assign({ at: new Date().toISOString(), action, col, id, title: String(title || '').slice(0, 140) }, { by: CMS.uid || 'local' });
-  try { if (CMS.mode === 'api') { CMS.log.unshift(e); await apiCall('/cms-log', { method: 'POST', body: e }); } else if (CMS.mode === 'db') await CMS.db.collection('cms/site/log').add(e); else { CMS.log.unshift(e); cmsLocalSave(); } } catch (er) { /* activity log is best-effort */ }
-}
-function cmsErr(e) {
-  const c = e && e.code;
-  if (c === 'quota_exceeded') return L(['Хадгалах багтаамж дүүрсэн байна', 'Storage is full']);
-  if (c === 'unauthorized') return L(['Нэвтрэх хугацаа дууссан. Дахин нэвтэрнэ үү.', 'Your session expired. Sign in again.']);
-  if (c === 'too_large') return L(['Өгөгдөл хэт том байна', 'The data is too large']);
-  if (c === 'invalid_argument') return L(['Хадгалах эрх байхгүй эсвэл өгөгдөл хэт том байна', 'No permission, or the data is too large']);
-  return L(['Хадгалж чадсангүй. Дахин оролдоно уу.', "Couldn't save. Try again."]);
 }

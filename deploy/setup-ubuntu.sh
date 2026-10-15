@@ -42,4 +42,4 @@ ensure_pg
 
 echo "→ Сайтыг асааж байна (анх удаа 2–4 минут)..."
 docker compose up -d --build
-echo "✓ Боллоо: ${DOMAIN:+https://$DOMAIN}${DOMAIN:-http://<серверийн IP>}   Admin: /#admin"
+echo "✓ Боллоо: ${DOMAIN:+https://$DOMAIN}${DOMAIN:-http://<серверийн IP>}   Admin: /admin"

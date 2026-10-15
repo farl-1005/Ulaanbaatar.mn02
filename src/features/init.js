@@ -30,6 +30,11 @@ function showChatTip() {
   tip.classList.remove('hidden'); setTimeout(() => tip.classList.add('hidden'), 7000);
 }
 function init() {
+  wireEvents(); watchHistory();   // товч, маягт, хөтчийн «Буцах» (features/wiring.js, features/news-reader.js)
+  window.addEventListener('scroll', () => {   // цэсний уншилтын зураас, мэдээ уншилтын явц
+    if (!dockRaf) dockRaf = requestAnimationFrame(() => { dockRaf = 0; dockProgress(); });
+    if (S.route === 'news') requestAnimationFrame(newsProgress);
+  }, { passive: true });
   applyTheme(false);
   applyA11y();
   S.intro = !reduced;
@@ -48,11 +53,11 @@ function init() {
   if (document.querySelector('meta[name="ubmn-404"]')) setRoute('404');   // сервер: ийм хуудас/мэдээ алга
   else if (nid) {
     if (PRETTY && h.startsWith('news/')) try { history.replaceState(null, '', newsHref(nid)); } catch (e) { /* ignore */ }   // хуучин #news/<id> холбоос
-    if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/admin/cms.js)
+    if (NEWS_BY[nid]) { S.newsId = nid; setRoute('news'); } else S.pendingNews = nid;   // admin-аас нэмсэн мэдээ: CMS ачаалагдсаны дараа нээнэ (src/core/cms.js)
   }
   else if (urlPage()) { S.page = urlPage(); if (S.page === 'services') S.hub = 'services'; setRoute('page'); }
   else if (h === 'my' && S.user) setRoute('my');
-  else if (h === 'admin' || h.startsWith('admin/')) { admFromHash(h); setRoute('admin'); }
+  else if (h === 'admin' || h.startsWith('admin/')) openAdmin(h.slice(6));   // хуучин /#admin холбоос → /admin
   else if (PAGE_ONLY.includes(h)) openPage(h, { sec: h });   // хуучин /#about холбоос
   else if (['hub', 'gov', 'situations', 'media', 'projects', 'data', 'events', 'transparency'].includes(h)) setTimeout(() => scrollToSec(h), 450);
   window.addEventListener('resize', debounce(() => initTabs(), 150));

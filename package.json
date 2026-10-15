@@ -4,9 +4,10 @@
   "private": true,
   "description": "ulaanbaatar.mn: Нийслэлийн порталын шинэчилсэн концепц",
   "scripts": {
-    "dev": "nodemon",
-    "build": "tsc -p server && node dist/server/cli.js build",
+    "dev": "concurrently -k -n server,admin -c blue,magenta \"nodemon\" \"npm run dev -w admin\"",
+    "build": "tsc -p server && node dist/server/cli.js build && npm run build -w admin",
     "build:server": "tsc -p server",
+    "build:admin": "npm run build -w admin",
     "news": "tsc -p server && node dist/server/cli.js news",
     "start": "node dist/server/main.js"
   },
@@ -15,6 +16,8 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.5",
     "@types/pg": "^8.23.1",
+    "concurrently": "^9.2.5",
+    "http-proxy-middleware": "^3.0.7",
     "lucide": "0.469.0",
     "nodemon": "^3.1.14",
     "sharp": "^0.35.5",
@@ -40,5 +43,8 @@
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
-  }
+  },
+  "workspaces": [
+    "admin"
+  ]
 }
