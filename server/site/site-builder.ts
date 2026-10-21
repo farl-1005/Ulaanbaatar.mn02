@@ -1,5 +1,5 @@
 /* Сайтыг бүтээнэ (npm run build, сервер асахад болон 15 минут тутам):
-     dist/site/index.html, assets/app.js, assets/style.css, assets/news/*.webp   ← сервер үйлчилнэ
+     dist/site/assets/app.js, style.css, news/*.webp                           ← сайтын хуудсууд (site/ — Next.js) ачаална
      dist/site/assets/kit.js                                                    ← admin (/admin) урьдчилан харахад сайтын функцууд
      dist/ulaanbaatar-mn.html                                                   ← бүх зүйл нэг файлд (сервергүй хувилбар)
      dist/news-index.json                                                       ← мэдээний хуудас, sitemap (pages/)
@@ -104,8 +104,6 @@ async function build(): Promise<string | null> {
   fs.writeFileSync(path.join(SITE, 'assets', 'app.js'), bundle);
   fs.writeFileSync(path.join(SITE, 'assets', 'kit.js'), kit);
   fs.writeFileSync(path.join(SITE, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 244 256"><image href="${LOGO}" width="244" height="256"/></svg>`);
-  const head = '<link rel="stylesheet" href="assets/style.css">\n<link rel="icon" href="favicon.svg" type="image/svg+xml">';
-  fs.writeFileSync(path.join(SITE, 'index.html'), html.replace('<style>/*__CSS__*/</style>', () => head).replace('<script>/*__JS__*/</script>', () => '<script src="assets/app.js"></script>'));
   fs.writeFileSync(path.join(DIST, 'news-index.json'), JSON.stringify(newsIndex));
   console.log(`✓ Бүтээлээ (${Date.now() - t0} мс)`);
   return null;

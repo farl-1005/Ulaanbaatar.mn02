@@ -2,6 +2,7 @@
 /dist
 /data
 /admin/.next
+/site/.next
 /admin/out
 /admin/node_modules
 .env

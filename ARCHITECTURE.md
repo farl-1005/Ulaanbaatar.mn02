@@ -2,7 +2,9 @@
 
 Төсөл 3 хэсгээс бүрдэнэ:
 
-1. **Сайт (frontend): `src/`**. Энгийн JavaScript, framework байхгүй. Сервер бүх файлыг дарааллаар нь нэг `assets/app.js` болгон нийлүүлнэ.
+1. **Сайт (frontend)**: Next.js руу үе шаттайгаар шилжиж байна.
+   - **`site/`**: [Next.js](https://nextjs.org) + React. Хуудсууд (нүүр, `/news`, `/news/<id>` …), мета, SEO, мэдээний текстийг сервер дээр бэлддэг.
+   - **`src/`**: хуудасны доторх хэсгүүд (header, мэдээ, үйлчилгээ …). Одоогоор энгийн JavaScript, сервер нэг `assets/app.js` болгон нийлүүлнэ. Дараагийн үе шатуудад хэсэг бүрийг `site/` руу React бүрэлдэхүүн болгон шилжүүлнэ.
 2. **Удирдлага (admin): `admin/`**. Тусдаа [Next.js](https://nextjs.org) + React төсөл, `/admin` хаягаар. Сайтын агуулгыг засна.
 3. **Сервер (backend): `server/`**. [Nest.js](https://nestjs.com) + TypeScript. Сайт, admin-ыг үйлчилж, `/api/...` хүсэлтэд хариулна.
 
@@ -15,8 +17,9 @@
    src/styles/*.css ─┘                         └──▶ assets/kit.js (admin-д: сайтын карт, чимэглэл, анхны агуулга)
                                                                │
    admin/ (Next.js) ──▶ admin/out/ ──────────────┐             ▼
-   хөтөч ◀──── server/main.ts (Nest.js) ──┬─ /admin  удирдлага (admin/out, npm run dev үед next dev)
-                                          ├─ pages/   нүүр, /news/<id>, og зураг, sitemap
+   хөтөч ◀──── server/main.ts (Nest.js) ──┬─ /, /news, /news/<id> ...  site/ (Next.js, Nest өөр дотроо ажиллуулна) + assets/app.js
+                                          ├─ /admin  удирдлага (admin/out, npm run dev үед next dev)
+                                          ├─ pages/   хуудасны өгөгдөл (/api/pages), og зураг, sitemap
                                           ├─ cms/, auth/, forms/, events/   /api/...  ──▶ database/ (PostgreSQL эсвэл SQLite)
                                           └─ live/    цаг агаар, агаарын чанар, газрын зураг, зураг
 ```
@@ -25,7 +28,7 @@
 | Тушаал | Юу хийх |
 |---|---|
 | `npm run dev` | Хөгжүүлэлт: сайт http://localhost:8080, admin http://localhost:8080/admin. `src/`-ийн файл хадгалахад сайтыг дахин бүтээж хөтчийг refresh хийнэ, `server/`-ийн файл хадгалахад серверийг дахин асаана, `admin/`-ийн файл хадгалахад admin шууд шинэчлэгдэнэ (`next dev`, 3001 порт) |
-| `npm run build` | Бүгдийг бүтээнэ: сервер (`dist/server/`), сайт (`dist/site/`, `dist/ulaanbaatar-mn.html` нэг файлт хувилбар), admin (`admin/out/`) |
+| `npm run build` | Бүгдийг бүтээнэ: сервер (`dist/server/`), `src/` (`dist/site/assets/`, `dist/ulaanbaatar-mn.html` нэг файлт хувилбар), сайтын хуудсууд (`site/.next/`), admin (`admin/out/`) |
 | `npm start` | Production сервер (эхлээд `npm run build`). Сайтыг 15 минут тутам дахин бүтээж шинэ мэдээ оруулна |
 | `npm run news` | ulaanbaatar.mn-ээс мэдээ, медиаг кэшийг үл хайхран одоо шууд татна |
 
@@ -45,6 +48,20 @@ TypeScript-ийг `tsc` нь `dist/server/` руу хөрвүүлдэг (`server
 | `styles/` | CSS: нэрийн дарааллаар (01, 02 …) нийлж Tailwind-аар бүтээгдэнэ. Өнгөний токен `01-base.css`-д |
 | `template.html` | HTML араг бүтэц, фонт, мета |
 | `kit.js` | Admin-д өгөх сайтын функцууд (урьдчилан харах карт, чимэглэл, икон, анхны агуулга) → `assets/kit.js` |
+
+## `site/`: сайтын хуудсууд (Next.js + React)
+
+Nest сервер (`server/site/next-app.ts`) Next.js-ийг өөр дотроо ажиллуулна: нэг процесс, нэг порт. `/api`, `/admin`, `/assets`, `/og`, `/sitemap.xml` Nest-д, бусад бүх хаяг Next.js-д очно. `npm run dev` үед `site/`-ийн файл хадгалахад хөтөч өөрөө шинэчлэгдэнэ.
+
+| Файл | Агуулга |
+|---|---|
+| `app/layout.tsx` | `<head>` (фонт, CSS, горим), `assets/app.js`-ийг ачаална |
+| `app/Shell.tsx` | Хуудасны хүрээ: хэсэг бүрийн байр (`#hero`, `#hub` …). Одоогоор `app.js` дүүргэнэ |
+| `app/page.tsx` | Нүүр |
+| `app/[page]/page.tsx` | `/news`, `/services`, `/events` … (жагсаалт: `server/pages/pages.service.ts` `PAGES`) |
+| `app/news/[id]/page.tsx` | Мэдээний хуудас: гарчиг, текст, og:, JSON-LD (өгөгдөл: `/api/pages/news/<id>`) |
+| `app/not-found.tsx` | 404 |
+| `lib/server.ts`, `lib/meta.ts` | Nest API-аас өгөгдөл авах, мета (og:, twitter:, canonical) |
 
 ## `admin/`: удирдлага (Next.js + React)
 
@@ -79,8 +96,8 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | `forms/` | Иргэдийн маягт (`/api/submit/...`), admin-ы «Ирсэн хүсэлт» (`/api/submissions`, `/uploads/...`) |
 | `events/` | Шууд мэдэгдэл (`/api/events`, Server-Sent Events): admin хадгалахад бүх хөтөч шинэчлэгдэнэ |
 | `live/` | Гадны бодит цагийн өгөгдөл: цаг агаар, агаарын чанар (IQAir, Open-Meteo), газрын зураг (hamuga.mn), зураг жижигрүүлэх (`/api/img`) |
-| `site/` | Сайтыг бүтээх (`site-builder.ts`), JS файлын дараалал (`bundle-files.ts`), dev горимд автоматаар дахин бүтээх |
-| `pages/` | Сервер дээр бэлддэг хуудсууд: нүүр, `/news/<id>` (og: tag, JSON-LD), og зураг, `sitemap.xml`, `robots.txt` |
+| `site/` | `src/`-ийг бүтээх (`site-builder.ts`), JS файлын дараалал (`bundle-files.ts`), dev горимд автоматаар дахин бүтээх, Next.js-ийг ажиллуулах (`next-app.ts`), admin-ыг үйлчлэх (`static-assets.ts`) |
+| `pages/` | Хуудасны өгөгдөл (`/api/pages`, `/api/pages/news/<id>` → `site/`), og зураг, `sitemap.xml`, `robots.txt` |
 | `sources/` | Бүтээх үед татах гадны өгөгдөл (доор) |
 
 ### `server/sources/`: гадны эх сурвалж

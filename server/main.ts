@@ -1,4 +1,4 @@
-/* Сервер асаах: сайт (dist/site) + backend (/api).
+/* Сервер асаах: сайтын хуудсууд (site/ — Next.js), admin (/admin), backend (/api).
      npm start      production (порт: PORT, анхдагч 3000). Асахдаа сайтыг бүтээж, NEWS_REFRESH_MIN минут тутам дахин бүтээнэ.
      npm run dev    хөгжүүлэлт: http://localhost:8080, src/-ийн файл хадгалах бүрд дахин бүтээж хөтчийг refresh хийлгэнэ.
    Reverse proxy (nginx г.м.) ард ажиллуулбал TRUST_PROXY=1. */
@@ -8,6 +8,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { DEV } from './config';
+import { serveSite } from './site/next-app';
 import { serveAdmin, serveStaticAssets } from './site/static-assets';
 
 async function bootstrap() {
@@ -20,8 +21,10 @@ async function bootstrap() {
   app.enableShutdownHooks();
   serveStaticAssets(app);
   serveAdmin(app);
+  await serveSite(app);   // нүүр, /news, /news/<id> ... (site/ — Next.js)
 
   const port = await listen(app, +(process.env.PORT || 0) || (DEV ? 8080 : 3000));
+  process.env.UBMN_INTERNAL_URL = `http://127.0.0.1:${port}`;   // Next.js хуудсууд өгөгдлөө /api-аас авна
   console.log(DEV
     ? `\n→ http://localhost:${port}  (хөтөч өөрөө refresh хийгдэнэ, зогсоох: Ctrl + C, гараар дахин асаах: rs + Enter)\n`
     : `→ http://localhost:${port}  (ulaanbaatar.mn + API, мэдээ тогтмол шинэчлэгдэнэ)`);

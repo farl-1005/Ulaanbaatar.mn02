@@ -1,35 +1,27 @@
 import { Controller, Get, Param, Req, Res } from '@nestjs/common';
+import { ApiError } from '../common/http';
 import type { Request, Response } from 'express';
 import { NewsFeedService } from './news-feed.service';
 import { OgImageService, PHOTO_RE } from './og-image.service';
 import { PAGES, PagesService } from './pages.service';
 
-/** Сайтын хуудсууд. Бүгд ижил апп (index.html), харин хаяг бүр өөрийн гарчиг, og: tag-тай. */
+/** Хуудасны өгөгдөл (сайт өөрөө site/ — Next.js), share зураг, sitemap.xml, robots.txt */
 @Controller()
 export class PagesController {
   constructor(private readonly pages: PagesService, private readonly feed: NewsFeedService, private readonly og: OgImageService) {}
 
-  /** Нүүр хуудас */
-  @Get(['/', 'index.html'])
-  home(@Req() req: Request, @Res() res: Response) {
-    this.pages.sendHtml(res, 200, this.pages.home(this.pages.origin(req)));
+  /** GET /api/pages: цэсний хуудсууд, сайтын ерөнхий share зураг (site/ — Next.js хуудсууд үүгээр мета бэлддэг) */
+  @Get('api/pages')
+  info() {
+    return { pages: PAGES, siteImage: this.og.url('site', null) };
   }
 
-  /** /news, /services, /events ... */
-  @Get(Object.keys(PAGES))
-  section(@Req() req: Request, @Res() res: Response) {
-    const key = req.path.replace(/\//g, '');
-    this.pages.sendHtml(res, 200, this.pages.section(this.pages.origin(req), key));
-  }
-
-  /** /news/<id>: мэдээний хуудас, текст нь HTML-д шууд орно */
-  @Get('news/:id')
-  async news(@Param('id') id: string, @Req() req: Request, @Res() res: Response) {
+  /** GET /api/pages/news/<id>: мэдээний хуудасны өгөгдөл (site/app/news/[id]) */
+  @Get('api/pages/news/:id')
+  async news(@Param('id') id: string) {
     const found = await this.feed.find(id);
-    if (!found) return this.pages.sendBuilding(res);
-    const o = this.pages.origin(req);
-    if (!found.item) return this.pages.sendHtml(res, 404, this.pages.notFoundPage(o, req.path));
-    this.pages.sendHtml(res, 200, await this.pages.newsPage(o, found.item, found.feed));
+    if (!found || !found.item) throw new ApiError(404, 'not_found');
+    return this.pages.newsData(found.item, found.feed);
   }
 
   /** /og/<id>.jpg: share хийхэд харагдах зураг (id = site бол сайтын ерөнхий зураг) */

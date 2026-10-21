@@ -2,8 +2,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import * as path from 'path';
 import { ADMIN_DEV_URL, ADMIN_OUT, DEV, SITE } from '../config';
 
-/** dist/site/assets/ (app.js, style.css, мэдээний зураг) статик файлаар.
-    index.html-ийг шууд өгөхгүй: нүүр болон мэдээний хуудсыг pages/ og: tag-тайгаар бэлддэг. */
+/** dist/site/assets/ (app.js, style.css, kit.js, мэдээний зураг) статик файлаар. Хуудсууд өөрсдөө site/ (Next.js)-ээс. */
 export function serveStaticAssets(app: NestExpressApplication) {
   const dir = path.join(SITE, 'assets');
   app.useStaticAssets(dir, {

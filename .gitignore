@@ -6,6 +6,9 @@
 /admin/out/
 /admin/node_modules/
 /admin/next-env.d.ts
+/site/.next/
+/site/next-env.d.ts
+/site/node_modules/
 *.tsbuildinfo
 
 # Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг). Зөвхөн үндсэн хавтасны data/ (src/data/ бол сайтын агуулга)

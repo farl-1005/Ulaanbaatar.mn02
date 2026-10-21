@@ -20,8 +20,10 @@ try { process.loadEnvFile(ENV_FILE); } catch { /* .env байхгүй бол о�
 /** Хөтчийн код */
 export const SRC = path.join(ROOT, 'src');
 export const DIST = path.join(ROOT, 'dist');
-/** Бүтээсэн сайт: index.html, assets/app.js, assets/style.css */
+/** src/-ээс бүтээсэн файлууд: assets/app.js, style.css, kit.js, мэдээний зураг, favicon.svg */
 export const SITE = path.join(DIST, 'site');
+/** Нийтийн сайтын хуудсууд (site/ — Next.js төсөл), Nest өөр дотроо ажиллуулна */
+export const SITE_APP = path.join(ROOT, 'site');
 /** Admin (admin/ — Next.js төсөл): `next build`-ийн гаргасан статик файлууд, /admin хаягаар */
 export const ADMIN_OUT = path.join(ROOT, 'admin', 'out');
 /** npm run dev үед admin-ы `next dev` сервер */

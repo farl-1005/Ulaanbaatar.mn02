@@ -1,0 +1,18 @@
+{
+  "name": "ulaanbaatar-mn-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ulaanbaatar.mn-ийн нийтийн сайт: Next.js + React. Nest сервер (server/main.ts) өөр дотроо ажиллуулна.",
+  "scripts": {
+    "build": "next build"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0"
+  },
+  "dependencies": {
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}

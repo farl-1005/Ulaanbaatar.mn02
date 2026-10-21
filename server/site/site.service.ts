@@ -5,9 +5,6 @@ import * as path from 'path';
 import { DEV, REFRESH_MIN, ROOT, SITE, SRC } from '../config';
 import { buildSite } from './site-builder';
 
-/* npm run dev: нээлттэй хуудас /__dev-ээр холбогдож, шинэ бүтээлт гарвал refresh хийнэ, алдаа гарвал доод талд улаанаар харуулна */
-const DEV_SCRIPT = `<script>(()=>{let seen=null;const es=new EventSource('/__dev');const ok=(e)=>{if(e.data==='0')return;if(seen&&e.data!==seen)location.reload();seen=e.data;};es.addEventListener('hello',ok);es.addEventListener('built',ok);es.addEventListener('fail',(e)=>{let b=document.getElementById('__devErr');if(!b){b=document.createElement('div');b.id='__devErr';b.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#D81E34;color:#fff;font:600 14px/1.45 system-ui,sans-serif;padding:14px 16px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);white-space:pre-wrap';document.body.appendChild(b);}b.textContent='✗ '+e.data;});})();</script>`;
-
 /** Сайтыг бүтээх ажлыг удирдана:
     - production: сервер асахад, дараа нь REFRESH_MIN минут тутам (ulaanbaatar.mn-ийн шинэ мэдээ орно)
     - npm run dev: src/-ийн файл хадгалах бүрд дахин бүтээж, нээлттэй хөтчийг refresh хийлгэнэ */
@@ -32,14 +29,9 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
     this.watchers.forEach((w) => w.close());
   }
 
-  /** Сайт бүтээгдсэн эсэх (эхний бүтээлт дуусаагүй бол хуудсууд 503 буцаана) */
+  /** Сайт (assets/app.js) нэг ч удаа бүтээгдсэн эсэх */
   get ready() {
-    return fs.existsSync(path.join(SITE, 'index.html'));
-  }
-
-  /** HTML хуудасны </body>-ийн өмнө нэмэх код (dev горимд автоматаар refresh хийх скрипт) */
-  get bodyEnd() {
-    return DEV ? DEV_SCRIPT : '';
+    return fs.existsSync(path.join(SITE, 'assets', 'app.js'));
   }
 
   /** Дахин бүтээнэ. Бүтээж байх үед дахин дуудвал (dev) дууссаны дараа нэг удаа давтана. */
@@ -54,7 +46,7 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
     return this.building;
   }
 
-  /** GET /__dev (dev горимд): бүтээлт бүрийн дараа хөтөч рүү мэдэгдэнэ */
+  /** GET /__dev (dev горимд): бүтээлт бүрийн дараа хөтөч рүү мэдэгдэнэ (site/app/layout.tsx-ийн скрипт сонсоно) */
   subscribe(req: Request, res: Response) {
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
     res.write(`event: hello\ndata: ${this.buildId}\n\n`);
