@@ -38,8 +38,8 @@ const DEF = {
   topics: TOPICS.map(([k, mn, en], i) => ({ id: k, t: [mn, en], ord: (i + 1) * 10 })),
   faq: FAQ.map((f, i) => ({ id: 'f' + (i + 1), kw: f.re.source.replace(/\\b/g, '').split('|').join(', '), a: cloneJ(f.a), acts: f.acts || [] })).concat([{ id: 'f0', kw: '', a: cloneJ(FAQ_DEFAULT.a) }]),
 };
-/* mode: 'api' (сервертэй) | 'static' (сервергүй). canEdit: admin нэвтэрсэн эсэх (сайт дээр «Сайтыг засах» холбоос харуулна). */
-const CMS = { mode: 'pending', canEdit: false, data: {} };
+/* mode: 'api' (сервертэй) | 'static' (сервергүй) */
+const CMS = { mode: 'pending', data: {} };
 CMS_COLS.forEach((c) => { CMS.data[c] = {}; });
 let SET = Object.assign({}, DEF.settings);
 
@@ -134,7 +134,6 @@ async function apiCall(path, opt = {}) {
 async function cmsApiLoad() {
   const j = await apiCall('/cms');
   CMS_COLS.forEach((c) => { CMS.data[c] = (j.data && j.data[c]) || {}; });
-  CMS.canEdit = !!j.admin;
 }
 async function cmsApiInit() {
   if (location.protocol === 'file:') return false;
