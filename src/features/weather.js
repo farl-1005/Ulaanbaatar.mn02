@@ -35,12 +35,12 @@ async function loadAir() {
   paintAir();
 }
 function paintAir() {
-  const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
+  renderChrome();
   const ac = $('[data-card="aqi"]'); if (ac) { ac.innerHTML = aqiCardInner(true); bindAqiHover(); }
   setLive('aqi', S.aqi);
 }
 function paintWeather() {
-  const ps = $('#pulse-strip'); if (ps) ps.innerHTML = pulseSegs('strip');
+  renderChrome();
   const wc = $('[data-card="weather"]'); if (wc) wc.innerHTML = weatherCardInner();
 }
 function startLive() {

@@ -1,6 +1,11 @@
-/* Сайтын хүрээ: хэсэг бүрийн байр (id). Агуулгыг одоогоор src/ доторх код (assets/app.js) зурна;
-   дараагийн үе шатуудад хэсэг бүрийг React бүрэлдэхүүн болгоно. src/template.html-тэй ижил бүтэц (нэг файлт хувилбарт). */
+/* Сайтын хүрээ: header, цэс, footer нь React (./chrome/), нүүрний хэсгүүдийн агуулгыг одоогоор src/ доторх код (assets/app.js) зурна;
+   дараагийн үе шатуудад хэсэг бүрийг React бүрэлдэхүүн болгоно. */
 import type { ReactNode } from 'react';
+import { Dock } from './chrome/Dock';
+import { Footer } from './chrome/Footer';
+import { HeaderBand } from './chrome/Header';
+import { BottomBar, MobileMenu } from './chrome/MobileMenu';
+import { TopStrip } from './chrome/TopStrip';
 
 interface Props {
   /** Мэдээний хуудас: сервер дээр бэлдсэн текст (JS ажиллуулдаггүй робот ч уншина) */
@@ -16,11 +21,11 @@ export function Shell({ news, notFound }: Props) {
     <>
       <a className="skip" href="#main" id="skip-link">Үндсэн агуулга руу шилжих</a>
 
-      <div id="topstrip" className="bg-navy text-white" />
-      <header id="hdr-band" className="hdr-white sticky z-50 lg:static" style={sticky} />
+      <div id="topstrip" className="bg-navy text-white"><TopStrip /></div>
+      <header id="hdr-band" className="hdr-white sticky z-50 lg:static" style={sticky}><HeaderBand /></header>
       <div id="hdr-scene" className="lg:hidden relative overflow-hidden" aria-hidden="true" />
       <div id="nav-sentinel" aria-hidden="true" style={{ height: 1, marginTop: -1 }} />
-      <div id="hdr-nav" className="hidden lg:block sticky z-50" style={sticky} />
+      <div id="hdr-nav" className="hidden lg:block sticky z-50" style={sticky}><Dock /></div>
       <div id="ticker" />
 
       <main id="main" tabIndex={-1}>
@@ -42,9 +47,10 @@ export function Shell({ news, notFound }: Props) {
         <div id="view-404" hidden={!notFound}>{notFound && <NotFoundText />}</div>
       </main>
 
-      <footer id="footer" />
+      <footer id="footer"><Footer /></footer>
       <div className="h-20 lg:hidden" aria-hidden="true" />
-      <div id="bbar" />
+      <div id="bbar"><BottomBar /></div>
+      <MobileMenu />
       <div id="chat" />
       <div id="modal-root" />
       <div id="toast-root" className="fixed left-0 right-0 z-[95] flex flex-col items-center gap-2 pointer-events-none px-4" style={{ bottom: 'calc(96px + env(safe-area-inset-bottom, 0px))' }} />

@@ -28,7 +28,7 @@ export const BUNDLE_FILES = [
   'core/modal.js',
   'core/header.js',
   'core/ticker.js',
-  'core/mobile-menu.js',
+  'core/chrome.js',
   'core/search.js',
   'core/router.js',
   'core/pages.js',
@@ -45,7 +45,6 @@ export const BUNDLE_FILES = [
   'sections/governor.js',
   'sections/about.js',
   'sections/rail.js',
-  'sections/footer.js',
   // Зураг чимэглэл (SVG үүсгэгч)
   'art/skyline.js',
   // Admin-ы засварыг сайтад тусгах (засварыг /admin — admin/ төсөлд хийнэ)

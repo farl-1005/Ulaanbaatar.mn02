@@ -1,4 +1,4 @@
-/* ================= Header: хөвөгч «dock» цэс (core/header.js renderHeader/setupNav) ================= */
+/* ================= Header: хөвөгч «dock» цэс (site/app/chrome/Dock.tsx) ================= */
 @media (min-width: 1024px) { #hdr-nav { padding-top: 10px; pointer-events: none; } #hdr-nav .dock { pointer-events: auto; } }
 .dock { position: relative; border-radius: 8px; background: rgb(var(--c-card) / .86);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border: 1px solid rgb(var(--c-line));
@@ -27,7 +27,7 @@
 .dock:hover::before, .dock:hover::after { opacity: 1; }
 .dock-in { position: relative; z-index: 1; height: 60px; display: flex; align-items: center; padding: 0 8px; }
 .dock-items { position: relative; display: flex; align-items: center; gap: 2px; min-width: 0; }
-/* шингэн тодруулга (setupNav pillTo) */
+/* шингэн тодруулга (Dock.tsx pillTo) */
 .nav-pill { position: absolute; left: 0; top: 50%; height: 42px; margin-top: -21px; width: 0; border-radius: 8px; list-style: none; pointer-events: none;
   background: rgb(var(--c-soft)); box-shadow: inset 0 0 0 1px rgb(var(--c-line) / .9), 0 1px 2px rgb(var(--shadow) / .06); opacity: 0; transition: opacity .25s; }
 .nav-btn { position: relative; height: 42px; padding: 0 10px; display: inline-flex; align-items: center; gap: 5px; border-radius: 8px; white-space: nowrap;
@@ -112,7 +112,7 @@
 @media (max-width: 639px) { .tk { height: 44px; border-radius: 8px; } .tk-tag { padding: 0 22px 0 11px; } .tk-item { font-size: 13.5px; } .tk-count { display: none; } }
 @media (prefers-reduced-motion: reduce) { .tk-stripes { animation: none; } .tk-item { transition: opacity .2s; } .nav-pill { transition: none; } }
 
-/* ================= Толгойн лого: орох, hover, тайван үеийн хөдөлгөөн (core/header.js renderHeader, art/scene.js logoEmblem) ================= */
+/* ================= Толгойн лого: орох, hover, тайван үеийн хөдөлгөөн (site/app/chrome/Header.tsx) ================= */
 .logo-em { position: relative; isolation: isolate; display: inline-grid; flex: none; transition: transform .7s cubic-bezier(.22, 1, .36, 1); }
 .logo-em > img { transition: transform .7s cubic-bezier(.22, 1, .36, 1), filter .7s cubic-bezier(.22, 1, .36, 1); }
 /* ард нь алтан-улаан гэрэлтэлт */

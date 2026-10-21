@@ -1,7 +1,6 @@
 /* Сайтыг бүтээнэ (npm run build, сервер асахад болон 15 минут тутам):
      dist/site/assets/app.js, style.css, news/*.webp                           ← сайтын хуудсууд (site/ — Next.js) ачаална
      dist/site/assets/kit.js                                                    ← admin (/admin) урьдчилан харахад сайтын функцууд
-     dist/ulaanbaatar-mn.html                                                   ← бүх зүйл нэг файлд (сервергүй хувилбар)
      dist/news-index.json                                                       ← мэдээний хуудас, sitemap (pages/)
    Алхмууд: гадны эх сурвалжаас бодит өгөгдөл татах → src/*.js-ийг нэг IIFE болгох (бодит өгөгдөл, икон, лого шигтгэнэ)
            → src/styles/*.css-ийг Tailwind-аар бүтээх. */
@@ -27,9 +26,9 @@ function collectIcons(js: string) {
   return { icons, missing: [...missing] };
 }
 
-/** Admin төслийн (admin/) эх код: kit.js-д тэдний ашигласан иконыг нэмэхэд */
-function adminSources(): string {
-  return ['src', 'app'].map((d) => path.join(ROOT, 'admin', d)).filter((d) => fs.existsSync(d))
+/** React төслүүдийн (site/, admin/) эх код: тэдний ашигласан иконыг app.js, kit.js-д нэмэхэд */
+function reactSources(project: 'site' | 'admin'): string {
+  return (project === 'site' ? ['app', 'lib'] : ['src', 'app']).map((d) => path.join(ROOT, project, d)).filter((d) => fs.existsSync(d))
     .flatMap((d) => (fs.readdirSync(d, { recursive: true }) as string[]).filter((f) => /\.tsx?$/.test(f)).map((f) => fs.readFileSync(path.join(d, f), 'utf8')))
     .join('\n');
 }
@@ -54,24 +53,24 @@ async function build(): Promise<string | null> {
 
   const concat = (files: string[]) => files.map((f) => `/* ---- ${f} ---- */\n` + fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n');
   const js = concat(BUNDLE_FILES), kitJs = concat(KIT_FILES);
-  const html = fs.readFileSync(path.join(SRC, 'template.html'), 'utf8');
-  const { icons, missing } = collectIcons(js);
+  const { missing } = collectIcons(js);
+  const siteIcons = collectIcons(js + '\n' + reactSources('site')).icons;   // сайтын хүрээ (site/app/chrome/) ч иконоо эндээс авна
   if (missing.length) return 'Lucide-д байхгүй икон: ' + missing.join(', ') + ' (https://lucide.dev/icons)';
   const LOGO = 'data:image/webp;base64,' + fs.readFileSync(path.join(SRC, 'logo.webp')).toString('base64');   // src/logo.webp-г солиход лого солигдоно
 
-  // Бодит мэдээ: dist/site нь жижигрүүлсэн зургийг (assets/news/*.webp), нэг файлт хувилбар нь эх зургийг ашиглана.
-  const img = (file: string | null | undefined, src: string | undefined, local: boolean) => (file ? (local ? 'assets/news/' + file : src) : undefined);
-  const liveFor = (local: boolean) => JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: img(imgFile, imgSrc, local) })));
-  const mediaFor = (local: boolean) => JSON.stringify(media.items.map(({ imgFile, imgSrc, ...m }) => Object.assign(m, { img: img(imgFile, imgSrc, local) })));
-  const orgsFor = (local: boolean) => JSON.stringify({ cats: orgs.cats, orgs: orgs.orgs.map(({ logoFile, logoSrc, ...o }) => Object.assign(o, { logo: logoFile ? img(logoFile, logoSrc, local) : '' })) });
-  const bundleFor = (local: boolean, code = js, iconSet = icons) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(iconSet)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveFor(local)};\nconst LIVE_MEDIA=${mediaFor(local)};\nconst LIVE_ORGS=${orgsFor(local)};\nconst LIVE_MEGA=${JSON.stringify(mega.projects)};\nconst LIVE_IPIU=${JSON.stringify(ipiu.projects)};\n${code}\n})();`;
-  const bundle = bundleFor(true), bundleOne = bundleFor(false);
-  const kit = bundleFor(true, kitJs, collectIcons(kitJs + '\n' + adminSources()).icons);   // admin-ы икон ч орно
+  // Бодит мэдээ: зургийг жижигрүүлсэн хувилбараар (assets/news/*.webp)
+  const img = (file: string | null | undefined) => (file ? 'assets/news/' + file : undefined);
+  const liveNews = JSON.stringify(live.items.map(({ imgFile, imgSrc, ...n }) => Object.assign(n, { img: img(imgFile) })));
+  const liveMedia = JSON.stringify(media.items.map(({ imgFile, imgSrc, ...m }) => Object.assign(m, { img: img(imgFile) })));
+  const liveOrgs = JSON.stringify({ cats: orgs.cats, orgs: orgs.orgs.map(({ logoFile, logoSrc, ...o }) => Object.assign(o, { logo: logoFile ? img(logoFile) : '' })) });
+  const bundleFor = (code: string, iconSet: Record<string, string>) => `(()=>{'use strict';\nconst ICONS=${JSON.stringify(iconSet)};\nconst LOGO_SRC=${JSON.stringify(LOGO)};\nconst LIVE_NEWS=${liveNews};\nconst LIVE_MEDIA=${liveMedia};\nconst LIVE_ORGS=${liveOrgs};\nconst LIVE_MEGA=${JSON.stringify(mega.projects)};\nconst LIVE_IPIU=${JSON.stringify(ipiu.projects)};\n${code}\n})();`;
+  const bundle = bundleFor(js, siteIcons);
+  const kit = bundleFor(kitJs, collectIcons(kitJs + '\n' + reactSources('admin')).icons);   // admin-ы икон ч орно
   try { new vm.Script(bundle, { filename: 'app.js' }); new vm.Script(kit, { filename: 'kit.js' }); } catch (e) { return 'JavaScript алдаа: ' + (e as Error).message; }
 
   // Мэдээ бүрийн хуудас, sitemap: data/ файлуудыг ажиллуулж хөтөч дээрхтэй ижил NEWS жагсаалтыг авна.
   let idx: any;
-  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveFor(true)};\nconst LIVE_MEDIA=[];\n${NEWS_DATA_FILES.map((f) => fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data/news.js' }); }
+  try { idx = vm.runInNewContext(`const LIVE_NEWS=${liveNews};\nconst LIVE_MEDIA=[];\n${NEWS_DATA_FILES.map((f) => fs.readFileSync(path.join(SRC, f), 'utf8')).join('\n')}\n;({ NEWS, RUB, NEWS_SRC })`, {}, { filename: 'data/news.js' }); }
   catch (e) { return 'data/news.js алдаа: ' + (e as Error).message; }
   const newsIndex = {
     src: idx.NEWS_SRC,
@@ -99,7 +98,6 @@ async function build(): Promise<string | null> {
   }
   const css = fs.readFileSync(path.join(DIST, '.tailwind.css'), 'utf8');
 
-  fs.writeFileSync(path.join(DIST, 'ulaanbaatar-mn.html'), html.replace('/*__CSS__*/', () => css).replace('/*__JS__*/', () => bundleOne));
   fs.writeFileSync(path.join(SITE, 'assets', 'style.css'), css);
   fs.writeFileSync(path.join(SITE, 'assets', 'app.js'), bundle);
   fs.writeFileSync(path.join(SITE, 'assets', 'kit.js'), kit);

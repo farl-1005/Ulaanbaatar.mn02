@@ -6,7 +6,7 @@ function openLogin(after) {
   let tab = 'app', stage = 0, timer = null;
   const finish = () => {
     clearTimeout(timer); stage = 9; paintModal();
-    setTimeout(() => { S.user = { on: 1 }; store.set('user', S.user); closeModal(); renderHeader(); setActiveNav(currentSec); toast(t('signedIn'), 'fingerprint'); if (after) after(); }, 950);
+    setTimeout(() => { S.user = { on: 1 }; store.set('user', S.user); closeModal(); renderChrome(); setActiveNav(currentSec); toast(t('signedIn'), 'fingerprint'); if (after) after(); }, 950);
   };
   const body = () => {
     if (tab === 'app') return `<div class="mx-auto w-48 h-48 rounded-2xl border border-line p-2 bg-white">${qrSVG(11)}</div><p class="mt-4 text-center font-semibold">${t('scanQr')}</p><p class="mt-1.5 flex justify-center items-center gap-2 text-[13.5px] text-muted"><span class="typing"><span></span><span></span><span></span></span>${t('waiting')}</p>`;

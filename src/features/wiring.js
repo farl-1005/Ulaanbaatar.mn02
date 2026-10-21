@@ -22,10 +22,10 @@ function wireEvents() {
       case 'news-more': { const from = S.newsN; S.newsN += NEWS_STEP; const g = $('#news-grid'); if (g) g.innerHTML = newsGridAll(from); break; }
       case 'home': S.homeY = 0; if (S.route !== 'home') setRoute('home'); closeMenu(); setHash(''); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); break;
       case 'lang': setLang(d.v); break;
-      case 'a11y': { S.a11y = !S.a11y; store.set('a11y', S.a11y); applyA11y(); renderHeader(); renderTicker(); setActiveNav(currentSec); const mb = $('#mmenu [data-act="a11y"]'); if (mb) mb.outerHTML = a11yBtn(); toast(S.a11y ? t('a11yOn') : t('a11yOff'), 'eye'); setTimeout(() => initTabs(), 60); break; }
+      case 'a11y': { S.a11y = !S.a11y; store.set('a11y', S.a11y); applyA11y(); renderChrome(); renderTicker(); setActiveNav(currentSec); toast(S.a11y ? t('a11yOn') : t('a11yOff'), 'eye'); setTimeout(() => initTabs(), 60); break; }
       case 'theme': { S.theme = S.theme === 'dark' ? 'light' : 'dark'; store.set('theme', S.theme);
         const br = el.getBoundingClientRect(), origin = { x: br.left + br.width / 2, y: br.top + br.height / 2 };
-        applyTheme(true, () => { renderHeader(); setActiveNav(currentSec); const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0); const mb = $('#mmenu [data-act="theme"]'); if (mb) mb.outerHTML = themeBtn(false); $$('[data-act="theme"] svg').forEach((ico) => ico.classList.add('theme-pop')); }, origin);
+        applyTheme(true, () => { renderChrome(); setActiveNav(currentSec); const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0); $$('[data-act="theme"] svg').forEach((ico) => ico.classList.add('theme-pop')); }, origin);
         break; }
       case 'search': openSearch(); break;
       case 'sq': SQ.q = d.v; SQ.idx = 0; $('#sq').value = d.v; sqRender(); $('#sq').focus(); break;
@@ -36,9 +36,8 @@ function wireEvents() {
       case 'sgo': searchGo(d.type, d.id); break;
       case 'menu': openMenu(); break;
       case 'menu-close': closeMenu(); break;
-      case 'acc': { const p = $(`[data-acc="${d.i}"]`), open = el.getAttribute('aria-expanded') === 'true'; p.classList.toggle('hidden', open); el.setAttribute('aria-expanded', String(!open)); el.querySelector('svg').style.transform = open ? '' : 'rotate(180deg)'; break; }
       case 'login': closeMenu(); openLogin(); break;
-      case 'logout': S.user = null; store.set('user', null); renderHeader(); setActiveNav(currentSec); if (S.route === 'my') setRoute('home'); toast(t('loggedOut'), 'log-out'); break;
+      case 'logout': S.user = null; store.set('user', null); renderChrome(); setActiveNav(currentSec); if (S.route === 'my') setRoute('home'); toast(t('loggedOut'), 'log-out'); break;
       case 'user-menu': { const m = $('[data-usermenu]'); m.classList.toggle('hidden'); el.setAttribute('aria-expanded', String(!m.classList.contains('hidden'))); break; }
       case 'my': closeMenu(); $('[data-usermenu]') && $('[data-usermenu]').classList.add('hidden'); setRoute('my'); break;
       case 'go': go(Object.assign({}, d)); break;
@@ -129,7 +128,7 @@ function wireEvents() {
   document.addEventListener('keydown', (e) => {
     if (e.target.id === 'chat-in' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); chatSend(e.target.value); return; }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); openSearch(); return; }
-    if (e.key === 'Escape') { if (MODAL) { closeModal(); return; } if ($('#mmenu')) { closeMenu(); return; } if (S.chatOpen) { toggleChat(false); return; } const nav = $('#navbar'); if (nav && nav._close) nav._close(); return; }
+    if (e.key === 'Escape') { if (MODAL) { closeModal(); return; } if (CHROME.menu) { closeMenu(); return; } if (S.chatOpen) { toggleChat(false); return; } const nav = $('#navbar'); if (nav && nav._close) nav._close(); return; }
     if (MODAL && $('#sq') && ['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key) && !e.isComposing) {
       if (e.key === 'Enter') { const x = SQ.items[SQ.idx]; if (x) { e.preventDefault(); searchGo(x.type, x.id); } else if (SQ.q.trim() && e.target.id === 'sq') { e.preventDefault(); $('[data-act="sq-ai"]') && $('[data-act="sq-ai"]').click(); } return; }
       if (SQ.items.length) { e.preventDefault(); sqMove(e.key === 'ArrowDown' ? 1 : -1); }

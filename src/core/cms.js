@@ -140,7 +140,7 @@ async function cmsApiInit() {
   try { await Promise.race([cmsApiLoad(), new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 4000))]); } catch (e) { return false; }
   CMS.mode = 'api';
   let tm = null;
-  const reload = () => { clearTimeout(tm); tm = setTimeout(() => cmsApiLoad().then(() => { scheduleApply(); renderHeader(); }).catch(() => {}), 150); };
+  const reload = () => { clearTimeout(tm); tm = setTimeout(() => cmsApiLoad().then(() => { scheduleApply(); renderChrome(); }).catch(() => {}), 150); };
   try {
     const es = new EventSource('/api/events');
     es.addEventListener('cms', reload);
@@ -152,6 +152,6 @@ async function initCMS() {
   CMS.mode = 'static'; scheduleApply(); cmsReadyUI();   // сервергүй: анхны агуулга
 }
 function cmsReadyUI() {
-  renderHeader(); setActiveNav(currentSec);
+  renderChrome(); setActiveNav(currentSec);
   const n = $('#navbar'), s = $('#nav-sentinel'); if (n && s) n.classList.toggle('stuck', s.getBoundingClientRect().top < 0);
 }

@@ -1,6 +1,6 @@
 /* ================= Init ================= */
 function renderAll() {
-  renderHeader(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); renderFooter(); paintToTop(); if (S.route === 'page') renderPageHero(); renderRail(); renderBottomBar(); renderChat();
+  renderChrome(); renderTicker(); renderHero(); renderHub(); renderGov(); renderSits(); renderMedia(); renderProjects(); renderData(); renderEvents(); renderTr(); renderAbout(); paintToTop(); if (S.route === 'page') renderPageHero(); renderRail(); renderChat();
   if (S.route === 'my') renderMy();
   if (S.route === 'news') renderNewsPage();
   if (S.route === '404') render404();   // хэл солиход
