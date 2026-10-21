@@ -101,11 +101,6 @@ function wireEvents() {
       case 'bk-ok': MS.bkOk(); break;
       case 'dan-send': MS.danSend(); break;
       case 'dan-ok': MS.danOk(); break;
-      case 'r-cat': MS.rCat(d.v); break;
-      case 'r-next': MS.rNext(); break;
-      case 'r-back': MS.rBack(); break;
-      case 'r-locate': MS.rLocate(); break;
-      case 'r-track': MS.rTrack(); break;
       case 'v-pick': MS.vPick(+d.i); break;
       case 'v-cast': MS.vCast(); break;
       case 'v-topic': MS.vTopic(d.v); break;

@@ -2,7 +2,8 @@
 # Өгөгдлийн сан ба иргэдийн зургийг нөөцлөнө (/opt/ulaanbaatar-mn/backups). Өдөр бүр ажиллуулах:
 #   echo "0 3 * * * root bash /opt/ulaanbaatar-mn/deploy/backup.sh" | sudo tee /etc/cron.d/ubmn-backup
 set -euo pipefail
-cd /opt/ulaanbaatar-mn
+# Төслийн хавтас: скриптийн байрлалаас (bash <хавтас>/deploy/backup.sh), эсвэл APP_DIR, эсвэл /opt/ulaanbaatar-mn
+if [ -f "${BASH_SOURCE[0]:-}" ]; then cd "$(dirname "${BASH_SOURCE[0]}")/.."; else cd "${APP_DIR:-/opt/ulaanbaatar-mn}"; fi
 mkdir -p backups
 STAMP=$(date +%F)
 TMP=$(mktemp -d)
