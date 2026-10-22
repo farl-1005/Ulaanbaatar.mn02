@@ -1,6 +1,6 @@
 'use client';
 /* Admin-ы үндсэн бүрэлдэхүүн.
-   1) Сайтын хэрэгслийг (/assets/kit.js) ачаална  2) Засваруудыг (GET /api/cms) ачаалж, шууд шинэчлэлтэд холбогдоно
+   1) Сайтын хэрэгслийг (site/lib/ub/ модулиуд) ачаална  2) Засваруудыг (GET /api/cms) ачаалж, шууд шинэчлэлтэд холбогдоно
    3) Нэвтрээгүй бол нэвтрэх хуудас  4) Хаягаар (#news, #news/<id>, #news/new) хэсэг, засварлах цонхоо нээнэ */
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { cms, useCms } from './cms';
@@ -35,7 +35,7 @@ export default function AdminApp() {
     return (
       <Center><div className="card max-w-md p-8 text-center">
         <h1 className="text-[20px] font-extrabold">Сайтын файл олдсонгүй</h1>
-        <p className="mt-2 text-muted">/assets/kit.js ачаалсангүй. Сайтыг бүтээгээд (npm run build) серверээ асаана уу.</p>
+        <p className="mt-2 text-muted">Сайтын өгөгдөл (/assets/live.json) ачаалсангүй. Серверээ асаана уу (npm run dev эсвэл npm start).</p>
       </div></Center>
     );
   }

@@ -1,5 +1,5 @@
 module.exports = {
-  content: ['./src/**/*.{html,js}', './admin/{app,src}/**/*.{ts,tsx}', './site/{app,lib}/**/*.{ts,tsx}'],   // admin/, site/ (Next.js) ч энэ CSS-ийг (assets/style.css) ашигладаг
+  content: ['./site/{app,lib}/**/*.{js,ts,tsx}', './admin/{app,src}/**/*.{ts,tsx}'],   // сайт, admin (Next.js) хоёулаа энэ CSS-ийг (assets/style.css) ашигладаг
   theme: {
     extend: {
       colors: {

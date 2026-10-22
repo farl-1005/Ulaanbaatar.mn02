@@ -1,0 +1,7 @@
+/* ================= Data series ================= */
+export const AQI_PROFILE = [118, 112, 104, 96, 90, 86, 84, 88, 82, 70, 58, 49, 44, 42, 45, 52, 61, 72, 88, 104, 121, 129, 126, 122];
+export const POP = [['Сонгинохайрхан', 'Songinokhairkhan', 392400], ['Баянзүрх', 'Bayanzürkh', 386900], ['Баянгол', 'Bayangol', 244300], ['Хан-Уул', 'Khan-Uul', 238600], ['Чингэлтэй', 'Chingeltei', 158200], ['Сүхбаатар', 'Sükhbaatar', 151700], ['Налайх', 'Nalaikh', 44900], ['Багануур', 'Baganuur', 29800], ['Багахангай', 'Bagakhangai', 5100]];
+export const BUDGET_Q = [[820, 790], [960, 941], [1010, 872], [1110, 0]];
+export const ROADS = [[['Энхтайвны өргөн чөлөө', 'Peace Avenue'], 8.2], [['Чингисийн өргөн чөлөө', 'Chinggis Avenue'], 7.4], [['Их тойруу', 'Ring Road'], 6.6]];
+export const FORECAST = [[6, -5, 'cloud-sun'], [3, -7, 'cloud'], [4, -6, 'sun'], [8, -3, 'sun'], [7, -4, 'cloud-snow']];
+

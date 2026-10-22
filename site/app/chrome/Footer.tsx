@@ -1,6 +1,6 @@
 'use client';
 /* Хөл: сүлд, лавлах утас, яаралтай дугаарууд | үйлчилгээ | мэдээлэл (үндсэн цэснээс) | мэдээ хүлээн авах (features/wiring.js digest) */
-import { Icon, LogoMark, itemAct, useUB, type MenuItem } from './ub';
+import { Icon, LogoMark, itemAct, useUB, type MenuItem } from '../ub';
 
 /** «Улаанбаатар» монгол бичгээр */
 const MONG = 'ᠤᠯᠠᠭᠠᠨᠪᠠᠭᠠᠲᠤᠷ';

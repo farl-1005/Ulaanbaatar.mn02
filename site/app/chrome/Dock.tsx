@@ -3,7 +3,7 @@
    доод ирмэгт уншилтын явцыг харуулах алхан хээ (src/core/header.js dockProgress). Загвар: src/styles/06-header-dock.css */
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
-import { Emblem, Icon, cssVars, itemAct, useUB, type UB } from './ub';
+import { Emblem, Icon, cssVars, itemAct, useUB, type UB } from '../ub';
 
 const NAV_EASE = 'cubic-bezier(.22, 1, .36, 1)';
 const reduced = () => typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;

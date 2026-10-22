@@ -2,22 +2,21 @@
 
 Төсөл 3 хэсгээс бүрдэнэ:
 
-1. **Сайт (frontend)**: Next.js руу үе шаттайгаар шилжиж байна.
-   - **`site/`**: [Next.js](https://nextjs.org) + React. Хуудсууд (нүүр, `/news`, `/news/<id>` …), мета, SEO, мэдээний текстийг сервер дээр бэлддэг.
-   - **`src/`**: хуудасны доторх хэсгүүд (header, мэдээ, үйлчилгээ …). Одоогоор энгийн JavaScript, сервер нэг `assets/app.js` болгон нийлүүлнэ. Дараагийн үе шатуудад хэсэг бүрийг `site/` руу React бүрэлдэхүүн болгон шилжүүлнэ.
-2. **Удирдлага (admin): `admin/`**. Тусдаа [Next.js](https://nextjs.org) + React төсөл, `/admin` хаягаар. Сайтын агуулгыг засна.
+1. **Сайт (frontend): `site/`**. [Next.js](https://nextjs.org) + React.
+   - `site/app/`: хуудсууд, мета, SEO (сервер дээр), бүх харагдац (React бүрэлдэхүүн).
+   - `site/lib/ub/`: сайтын логик (ES модулиуд): анхны агуулга, төлөв, admin-ы засварыг тусгах, чиглүүлэлт, товчны үйлдэл. Next.js React-тай хамт багцална.
+2. **Удирдлага (admin): `admin/`**. Тусдаа [Next.js](https://nextjs.org) + React төсөл, `/admin` хаягаар. Сайтын агуулгыг засна, урьдчилан харахдаа `site/lib/ub/`-ийг шууд ашиглана.
 3. **Сервер (backend): `server/`**. [Nest.js](https://nestjs.com) + TypeScript. Сайт, admin-ыг үйлчилж, `/api/...` хүсэлтэд хариулна.
 
 ```
    ulaanbaatar.mn API, ipiu.mn API
-             │  (бүтээх бүрд, 15 мин кэш)
+             │  (15 минут тутам, кэштэй)
              ▼
-   server/sources/ ──┐
-   src/*.js ─────────┼──▶ server/site/site-builder.ts ──▶ dist/site/ (index.html, assets/app.js, assets/style.css)
-   src/styles/*.css ─┘                         └──▶ assets/kit.js (admin-д: сайтын карт, чимэглэл, анхны агуулга)
-                                                               │
-   admin/ (Next.js) ──▶ admin/out/ ──────────────┐             ▼
-   хөтөч ◀──── server/main.ts (Nest.js) ──┬─ /, /news, /news/<id> ...  site/ (Next.js, Nest өөр дотроо ажиллуулна) + assets/app.js
+   server/sources/ ───┬──▶ server/site/site-builder.ts ──▶ dist/site/assets/live.json (бодит мэдээ, медиа, икон, лого)
+   site/styles/*.css ─┘                                └──▶ dist/site/assets/style.css (Tailwind)
+
+   хөтөч ◀──── server/main.ts (Nest.js) ──┬─ /, /news, /news/<id> ...  site/ (Next.js, Nest өөр дотроо ажиллуулна)
+                                          │      хуудас ачаалагдмагц site/lib/ub/ нь live.json-ийг уншиж сайтыг асаана
                                           ├─ /admin  удирдлага (admin/out, npm run dev үед next dev)
                                           ├─ pages/   хуудасны өгөгдөл (/api/pages), og зураг, sitemap
                                           ├─ cms/, auth/, forms/, events/   /api/...  ──▶ database/ (PostgreSQL эсвэл SQLite)
@@ -27,26 +26,30 @@
 ## Тушаалууд
 | Тушаал | Юу хийх |
 |---|---|
-| `npm run dev` | Хөгжүүлэлт: сайт http://localhost:8080, admin http://localhost:8080/admin. `src/`-ийн файл хадгалахад сайтыг дахин бүтээж хөтчийг refresh хийнэ, `server/`-ийн файл хадгалахад серверийг дахин асаана, `admin/`-ийн файл хадгалахад admin шууд шинэчлэгдэнэ (`next dev`, 3001 порт) |
-| `npm run build` | Бүгдийг бүтээнэ: сервер (`dist/server/`), `src/` (`dist/site/assets/`), сайтын хуудсууд (`site/.next/`), admin (`admin/out/`) |
-| `npm start` | Production сервер (эхлээд `npm run build`). Сайтыг 15 минут тутам дахин бүтээж шинэ мэдээ оруулна |
+| `npm run dev` | Хөгжүүлэлт: сайт http://localhost:8080, admin http://localhost:8080/admin. `site/`, `admin/`-ийн файл хадгалахад Next.js шууд шинэчилнэ; CSS ангилал, икон өөрчлөгдвөл `style.css`, `live.json`-ийг дахин бүтээж хөтчийг refresh хийнэ; `server/`-ийн файл хадгалахад серверийг дахин асаана |
+| `npm run build` | Бүгдийг бүтээнэ: сервер (`dist/server/`), `style.css` ба `live.json` (`dist/site/assets/`), сайт (`site/.next/`), admin (`admin/out/`) |
+| `npm start` | Production сервер (эхлээд `npm run build`). 15 минут тутам ulaanbaatar.mn-ээс шинэ мэдээ татаж `live.json`-ийг шинэчилнэ |
 | `npm run news` | ulaanbaatar.mn-ээс мэдээ, медиаг кэшийг үл хайхран одоо шууд татна |
 
 TypeScript-ийг `tsc` нь `dist/server/` руу хөрвүүлдэг (`server/tsconfig.json`).
 
-## `src/`: хөтчийн код
+## `site/lib/ub/`: сайтын логик
 
-`server/site/bundle-files.ts`-ийн жагсаалтын дарааллаар нийлнэ. Бүх файл нэг хүрээнд (scope) ажиллах тул нэг файлд зарласан функцыг дараагийн файлууд шууд дуудна. **Шинэ файл нэмбэл `server/site/bundle-files.ts`-д бичнэ.**
+ES модулиуд (JavaScript). Хуудас ачаалагдмагц `app/Boot.tsx` → `boot.js`: эхлээд `/assets/live.json`-ийг (`live.js`), дараа нь бүх модулийг (`main.js`) ачаалж `features/init.js`-ийн `init()` сайтыг асаана.
+React бүрэлдэхүүнүүд логикоос өгөгдлийг `core/bridge.js`-ийн `window.UB`-аар уншиж, `renderReact()` дуудагдах бүрд дахин зурагдана (`app/ub.tsx` `useUB`).
+Модуль бүр ачаалах үедээ өгөгдлөө бэлддэг (`data/*.js`) тул `main.js`-ийн импортын дараалал чухал. **Шинэ модуль нэмбэл `main.js`-д импортлоно.**
 
 | Хавтас | Агуулга |
 |---|---|
 | `data/` | Анхны агуулга (admin засаагүй үед харагдана): текст (МН/EN), мэдээ, медиа, үйлчилгээ, төсөл, арга хэмжээ, ил тод байдал, хотын тухай, Засаг дарга, баннер, чатын хариулт |
-| `core/` | Суурь: туслах функц, төлөв (`S`), цаг, хөдөлгөөн, цонх (modal), header-ийн өгөгдөл, React-д өгөх гүүр (`chrome.js` → `window.UB`), гүйдэг мөр, хайлт, чиглүүлэлт, тусдаа хуудсууд, admin-ы засварыг сайтад тусгах (`cms.js`) |
-| `sections/` | Нүүр хуудасны хэсэг бүр өөрийн файлд: hero, мэдээ (hub), амьдралын нөхцөл, медиа, газрын зураг, 24 мега төсөл, хотын тоо, арга хэмжээ, ил тод байдал, Засаг дарга, хотын тухай, баннер |
-| `features/` | Дэлгэрэнгүй цонх, үйлдлүүд: мэдээ унших, үйлчилгээ, ДАН нэвтрэлт, маягт, медиа тоглуулагч, баримт бичиг, Миний булан, AI туслах, цаг агаар, эхлүүлэх код (`init.js`) |
+| `core/` | Суурь: туслах функц, төлөв (`S`), цаг, хөдөлгөөн, цонх (`modal.js`), header-ийн өгөгдөл, React-д өгөх гүүр (`bridge.js`, `home.js`), яаралтай мэдээ, хайлт, чиглүүлэлт, тусдаа хуудсууд, admin-ы засварыг тусгах (`cms.js`) |
+| `sections/` | Нүүрний хэсэг бүрийн өгөгдөл (`xData()` → `HOME.x`), төлөв солих функц: hero, мэдээ (hub), амьдралын нөхцөл, медиа, газрын зураг, 24 мега төсөл, хотын тоо, арга хэмжээ, ил тод байдал, Засаг дарга, хотын тухай, баннер |
+| `features/` | Цонх, үйлдлүүдийн өгөгдөл: мэдээ унших, үйлчилгээ, ДАН нэвтрэлт, маягт, медиа тоглуулагч, баримт бичиг, Миний булан, AI туслах, цаг агаар, товчнууд (`wiring.js`), эхлүүлэх код (`init.js`) |
 | `art/` | Кодоор зурдаг зураг: мэдээний чимэглэл, лого (`scene.js`), header-ийн хотын зураг (`skyline.js`) |
-| `styles/` | CSS: нэрийн дарааллаар (01, 02 …) нийлж Tailwind-аар бүтээгдэнэ. Өнгөний токен `01-base.css`-д |
-| `kit.js` | Admin-д өгөх сайтын функцууд (урьдчилан харах карт, чимэглэл, икон, анхны агуулга) → `assets/kit.js` |
+| `live.js`, `boot.js`, `main.js` | Бодит өгөгдөл ачаалах, асаах дараалал |
+| `kit.js` | Admin-д өгөх сайтын функцууд (урьдчилан харах карт, чимэглэл, икон, анхны агуулга) → `window.UBKit` |
+
+`site/styles/`: CSS, нэрийн дарааллаар (01, 02 …) нийлж Tailwind-аар бүтээгдэнэ. Өнгөний токен `01-base.css`-д. `site/logo.webp`: хотын сүлд.
 
 ## `site/`: сайтын хуудсууд (Next.js + React)
 
@@ -54,9 +57,15 @@ Nest сервер (`server/site/next-app.ts`) Next.js-ийг өөр дотроо
 
 | Файл | Агуулга |
 |---|---|
-| `app/layout.tsx` | `<head>` (фонт, CSS, горим), `assets/app.js`-ийг ачаална |
-| `app/Shell.tsx` | Хуудасны хүрээ: хэсэг бүрийн байр (`#hero`, `#hub` …). Нүүрний хэсгүүдийг одоогоор `app.js` дүүргэнэ |
-| `app/chrome/` | Header (`Header.tsx`, `TopStrip.tsx`), dock цэс, мега цэс (`Dock.tsx`), гар утасны цэс ба доод мөр (`MobileMenu.tsx`), footer (`Footer.tsx`). Төлөв, текст, иконыг `src/core/chrome.js`-ийн `window.UB`-аас уншина (`ub.tsx`) |
+| `app/layout.tsx` | `<head>` (фонт, CSS, горим), сайтын логикийг асаана (`Boot.tsx`) |
+| `app/Shell.tsx` | Хуудасны хүрээ: header, хэсгүүд, харагдацууд, цонх, footer-ийг байрлуулна |
+| `app/chrome/` | Header (`Header.tsx`, `TopStrip.tsx`), яаралтай мэдээ (`Ticker.tsx`), dock цэс, мега цэс (`Dock.tsx`), гар утасны цэс ба доод мөр (`MobileMenu.tsx`), footer (`Footer.tsx`), AI туслах (`Chat.tsx`), дээш буцах (`ToTop.tsx`) |
+| `app/home/` | Нүүрний хэсгүүд ба тусдаа хуудсуудын агуулга: `Hero`, `Hub` (мэдээ, үйлчилгээ; `/news`, `/services`), `Gov` (Засаг даргын хуваарь), `Situations` (амьдралын нөхцөл), `Media`, `Projects` (24 мега төсөл, газрын зураг), `CityData`, `Events`, `Transparency`, `About`, `PageHero` (хуудасны толгой), `Rail` (босоо баннер); нийтлэг хэсгүүд `parts.tsx` (таб, chip, гарчиг, солигдох хөдөлгөөн). Өгөгдлийг `lib/ub/sections/<хэсэг>.js`-ийн `xData()` бэлдэж `HOME.<нэр>`-д бүртгэнэ |
+| `app/views/` | Бүтэн дэлгэцийн харагдацууд: `NewsView` (мэдээ унших), `MyView` (Миний булан), `NotFoundView` (404) |
+| `app/modals/` | Цонхнууд: хайлт, үйлчилгээ ба цаг захиалга, баримт бичиг, тендер, арга хэмжээ, мега төсөл, анхааруулга, санал өгөх, ДАН нэвтрэх, медиа тоглуулагч. Бүртгэл `index.tsx` (`MODALS`); `lib/ub/` код `openModal({ view, props })`-оор нээнэ |
+| `app/ui/` | Цонхны бүрхүүл (`Modal.tsx`), мэдэгдэл (`Toaster.tsx`) |
+| `app/ub.tsx` | React ба `lib/ub/` логикийн гүүр: төлөв, текст, икон, өгөгдлийг `lib/ub/core/bridge.js`-ийн `window.UB`-аас уншина (`useUB`) |
+| `app/Boot.tsx` | Хуудас ачаалагдмагц сайтын логикийг асаана (`lib/ub/boot.js`) |
 | `app/page.tsx` | Нүүр |
 | `app/[page]/page.tsx` | `/news`, `/services`, `/events` … (жагсаалт: `server/pages/pages.service.ts` `PAGES`) |
 | `app/news/[id]/page.tsx` | Мэдээний хуудас: гарчиг, текст, og:, JSON-LD (өгөгдөл: `/api/pages/news/<id>`) |
@@ -65,7 +74,7 @@ Nest сервер (`server/site/next-app.ts`) Next.js-ийг өөр дотроо
 
 ## `admin/`: удирдлага (Next.js + React)
 
-Тусдаа төсөл: өөрийн `package.json` (npm workspace), `next.config.ts`. `next build` нь статик файл (`admin/out/`) гаргаж, сервер `/admin` хаягаар үйлчилнэ. Загвар нь сайтын `/assets/style.css`, урьдчилан харах карт нь сайтын өөрийн функцууд (`/assets/kit.js`) тул сайт дээрхтэй яг адилхан харагдана.
+Тусдаа төсөл: өөрийн `package.json` (npm workspace), `next.config.ts`. `next build` нь статик файл (`admin/out/`) гаргаж, сервер `/admin` хаягаар үйлчилнэ. Загвар нь сайтын `/assets/style.css`, урьдчилан харах карт нь сайтын өөрийн модулиуд (`site/lib/ub/kit.js`) тул сайт дээрхтэй яг адилхан харагдана.
 
 | Файл | Агуулга |
 |---|---|
@@ -73,7 +82,7 @@ Nest сервер (`server/site/next-app.ts`) Next.js-ийг өөр дотроо
 | `src/App.tsx` | Үндсэн бүрэлдэхүүн: kit ачаалах, нэвтрэлт, хаягаар (`#news`, `#news/<id>`) хэсэг нээх |
 | `src/schema.ts` | Бүлэг бүрийн маягтын талбар (мэдээ, анхааруулга, арга хэмжээ ...), цэс, шинэ бичлэгийн анхны утга |
 | `src/cms.ts` | Засвар ачаалах, хадгалах, устгах, буцаах (`/api/cms`), шууд шинэчлэлт (`/api/events`) |
-| `src/kit.ts` | Сайтын хэрэгсэл (`/assets/kit.js`) ачаалах, төрөл |
+| `src/kit.ts` | Сайтын хэрэгсэл (`site/lib/ub/kit.js`) ачаалах, төрөл |
 | `src/api.ts` | Backend API дуудах |
 | `src/images.ts` | Зураг, лого оруулах (хөтөч дээр жижигрүүлнэ) |
 | `src/ui.tsx` | Икон, цонх, мэдэгдэл (toast), таб, устгахыг баталгаажуулах |
@@ -96,7 +105,7 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | `forms/` | Иргэдийн маягт (`/api/submit/...`), admin-ы «Ирсэн хүсэлт» (`/api/submissions`, `/uploads/...`) |
 | `events/` | Шууд мэдэгдэл (`/api/events`, Server-Sent Events): admin хадгалахад бүх хөтөч шинэчлэгдэнэ |
 | `live/` | Гадны бодит цагийн өгөгдөл: цаг агаар, агаарын чанар (IQAir, Open-Meteo), газрын зураг (hamuga.mn), зураг жижигрүүлэх (`/api/img`) |
-| `site/` | `src/`-ийг бүтээх (`site-builder.ts`), JS файлын дараалал (`bundle-files.ts`), dev горимд автоматаар дахин бүтээх, Next.js-ийг ажиллуулах (`next-app.ts`), admin-ыг үйлчлэх (`static-assets.ts`) |
+| `site/` | `style.css`, `live.json` бүтээх (`site-builder.ts`), dev горимд автоматаар дахин бүтээх, Next.js-ийг ажиллуулах (`next-app.ts`), admin-ыг үйлчлэх (`static-assets.ts`) |
 | `pages/` | Хуудасны өгөгдөл (`/api/pages`, `/api/pages/news/<id>` → `site/`), og зураг, `sitemap.xml`, `robots.txt` |
 | `sources/` | Бүтээх үед татах гадны өгөгдөл (доор) |
 
@@ -114,7 +123,7 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 
 ## Admin
 - Нэвтрэх: http://localhost:8080/admin. Нууц үг нь `.env`-ийн `ADMIN_PASSWORD` (анх асаахад `.env` байхгүй бол санамсаргүй нууц үг үүсгэнэ).
-- Admin-аас засагдах хэсгүүд: мэдээ, анхааруулга, арга хэмжээ, медиа, төсөл, үйлчилгээ, амьдралын нөхцөл, ил тод байдал, удирдлагын бүтэц, харьяа байгууллага, түүх, хотын статистик, цэс, ангилал, AI туслахын хариулт, сайтын бүх текст, тохиргоо. Засваргүй бол `src/data/`-ийн анхны агуулга харагдана, «Анхны хувилбарт буцаах» нь засварыг устгана.
+- Admin-аас засагдах хэсгүүд: мэдээ, анхааруулга, арга хэмжээ, медиа, төсөл, үйлчилгээ, амьдралын нөхцөл, ил тод байдал, удирдлагын бүтэц, харьяа байгууллага, түүх, хотын статистик, цэс, ангилал, AI туслахын хариулт, сайтын бүх текст, тохиргоо. Засваргүй бол `site/lib/ub/data/`-ийн анхны агуулга харагдана, «Анхны хувилбарт буцаах» нь засварыг устгана.
 - Admin хадгалах бүрд нээлттэй бүх хөтөч `/api/events`-ээр мэдэгдэл авч, дахин ачаалахгүйгээр шинэчлэгдэнэ.
 - Иргэдийн маягт (эрсдэл мэдээлэх (зурагтай), санал хүсэлт, имэйл бүртгэл) admin-ы **Ирсэн хүсэлт** хэсэгт харагдана. Иргэний зураг `data/uploads/`-д, зөвхөн admin-д харагдана.
 
@@ -149,11 +158,11 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 ## Юуг хаана засах вэ
 | Хүсэлт | Файл |
 |---|---|
-| Сайтын текст, орчуулга | `src/data/i18n.js` |
-| Нүүр хуудасны тодорхой хэсэг | `src/sections/<хэсэг>.js` + түүний CSS `src/styles/` |
-| Цэс, header, footer | `site/app/chrome/`, `src/styles/06-header-dock.css` (цэсний бүтэц: `src/core/header.js` `MENU`) |
-| Тусдаа хуудас (`/news`, `/services` …) | `src/core/pages.js` (сервер талд `server/pages/pages.service.ts`-ийн `PAGES`) |
-| Өнгө, үндсэн загвар | `src/styles/01-base.css`, `tailwind.config.js` |
+| Сайтын текст, орчуулга | `site/lib/ub/data/i18n.js` |
+| Нүүр хуудасны тодорхой хэсэг | `site/app/home/<Хэсэг>.tsx` (харагдац), `site/lib/ub/sections/<хэсэг>.js` (өгөгдөл), CSS `site/styles/` |
+| Цэс, header, footer | `site/app/chrome/`, `site/styles/06-header-dock.css` (цэсний бүтэц: `site/lib/ub/core/header.js` `MENU`) |
+| Тусдаа хуудас (`/news`, `/services` …) | `site/lib/ub/core/pages.js` (сервер талд `server/pages/pages.service.ts`-ийн `PAGES`) |
+| Өнгө, үндсэн загвар | `site/styles/01-base.css`, `tailwind.config.js` |
 | Admin-аас засагдах шинэ бүлэг | `admin/src/schema.ts` (`NAV`, `SCHEMA`), `src/core/cms.js` (`CMS_COLS`, `DEF`), `server/cms/cms.service.ts` (`CMS_COLS`) |
 | Admin-ы дэлгэц | `admin/src/views/` |
 | Шинэ API | `server/<модуль>/<нэр>.controller.ts` (шинэ модуль бол `app.module.ts`-д нэмнэ) |

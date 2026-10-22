@@ -1,8 +1,8 @@
 'use client';
-/* Гар утас: доод мөрний цэс ба бүтэн дэлгэцийн цэс (drawer). Цэсийг src/core/chrome.js openMenu() / closeMenu() нээж хаана. */
+/* Гар утас: доод мөрний цэс ба бүтэн дэлгэцийн цэс (drawer). Цэсийг src/core/bridge.js openMenu() / closeMenu() нээж хаана. */
 import { useEffect, useState } from 'react';
 import { A11yBtn, LangToggle, ThemeBtn } from './Header';
-import { Icon, LogoMark, itemAct, useUB, type UB } from './ub';
+import { Icon, LogoMark, itemAct, useUB, type UB } from '../ub';
 
 /** Доод мөр: идэвхтэйг (aria-current) src/core/header.js setActiveNav тэмдэглэнэ */
 export function BottomBar() {

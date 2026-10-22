@@ -11,7 +11,7 @@
 /site/node_modules/
 *.tsbuildinfo
 
-# Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг). Зөвхөн үндсэн хавтасны data/ (src/data/ бол сайтын агуулга)
+# Backend өгөгдөл (SQLite, иргэдийн оруулсан зураг). Зөвхөн үндсэн хавтасны data/ (site/lib/ub/data/ бол сайтын агуулга)
 /data/
 
 # macOS

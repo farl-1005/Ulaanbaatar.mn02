@@ -2,12 +2,13 @@ import { Injectable, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/com
 import type { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DEV, REFRESH_MIN, ROOT, SITE, SRC } from '../config';
-import { buildSite } from './site-builder';
+import { DEV, REFRESH_MIN, ROOT, SITE } from '../config';
+import { buildSite, builtHash } from './site-builder';
 
 /** Сайтыг бүтээх ажлыг удирдана:
     - production: сервер асахад, дараа нь REFRESH_MIN минут тутам (ulaanbaatar.mn-ийн шинэ мэдээ орно)
-    - npm run dev: src/-ийн файл хадгалах бүрд дахин бүтээж, нээлттэй хөтчийг refresh хийлгэнэ */
+    - npm run dev: CSS, икон ашигладаг файл хадгалах бүрд дахин бүтээж, үр дүн өөрчлөгдсөн бол нээлттэй хөтчийг refresh хийлгэнэ
+      (JavaScript-ийн өөрчлөлтийг Next.js өөрөө шинэчилнэ) */
 @Injectable()
 export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
   private building: Promise<void> | null = null;
@@ -29,9 +30,9 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
     this.watchers.forEach((w) => w.close());
   }
 
-  /** Сайт (assets/app.js) нэг ч удаа бүтээгдсэн эсэх */
+  /** Сайт (assets/live.json) нэг ч удаа бүтээгдсэн эсэх */
   get ready() {
-    return fs.existsSync(path.join(SITE, 'assets', 'app.js'));
+    return fs.existsSync(path.join(SITE, 'assets', 'live.json'));
   }
 
   /** Дахин бүтээнэ. Бүтээж байх үед дахин дуудвал (dev) дууссаны дараа нэг удаа давтана. */
@@ -63,7 +64,8 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
       this.send('fail', err);
     } else {
       this.lastError = '';
-      this.buildId = String(Date.now());
+      if (builtHash() === this.buildId) return;   // CSS, өгөгдөл өөрчлөгдөөгүй: хөтчийг шинэчлэх шаардлагагүй
+      this.buildId = builtHash();
       this.send('built', this.buildId);
     }
   }
@@ -72,11 +74,11 @@ export class SiteService implements OnApplicationBootstrap, OnModuleDestroy {
     for (const res of this.devClients) res.write(`event: ${ev}\ndata: ${data.replace(/\n/g, ' ')}\n\n`);
   }
 
-  /** src/, admin-ы эх код (CSS-ийн класс, икон) болон tailwind.config.js-ийг харж, өөрчлөгдвөл дахин бүтээнэ (хадгалах үед олон event ирдэг тул 200мс хүлээнэ) */
+  /** Сайт, admin-ы эх код (CSS-ийн класс, икон), CSS болон tailwind.config.js-ийг харж, өөрчлөгдвөл дахин бүтээнэ (хадгалах үед олон event ирдэг тул 200мс хүлээнэ) */
   private watchSources() {
     let wait: NodeJS.Timeout | undefined;
     const changed = () => { clearTimeout(wait); wait = setTimeout(() => void this.rebuild(), 200); };
-    const dirs = [SRC, path.join(ROOT, 'admin', 'src'), path.join(ROOT, 'admin', 'app'), path.join(ROOT, 'site', 'app')].filter((d) => fs.existsSync(d));
+    const dirs = ['site/lib/ub', 'site/app', 'site/styles', 'admin/src', 'admin/app'].map((d) => path.join(ROOT, d)).filter((d) => fs.existsSync(d));
     this.watchers.push(...dirs.map((d) => fs.watch(d, { recursive: true }, changed)), fs.watch(path.join(ROOT, 'tailwind.config.js'), changed));
   }
 }

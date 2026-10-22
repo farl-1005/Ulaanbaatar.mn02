@@ -5,7 +5,8 @@ import * as path from 'path';
 import * as vm from 'vm';
 import { CmsService } from '../cms/cms.service';
 import { sharp } from '../common/sharp';
-import { DIST, SITE, SRC } from '../config';
+import { DIST, LOGO_FILE, SITE, UB_LIB } from '../config';
+import { plainScript } from '../site/site-builder';
 import type { NewsItem } from './news-feed.service';
 
 export const OG_W = 1200, OG_H = 630;
@@ -77,7 +78,7 @@ export class OgImageService {
   private async siteBase() {
     const bg = this.sceneSvg('skyline:dusk:24');
     const shade = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${OG_W}" height="${OG_H}"><rect width="${OG_W}" height="${OG_H}" fill="#0B1D45" fill-opacity=".55"/><rect y="${OG_H - 16}" width="${OG_W}" height="16" fill="#D81E34"/></svg>`);
-    const logo = await sharp!(path.join(SRC, 'logo.webp')).resize({ height: 360 }).png().toBuffer();
+    const logo = await sharp!(LOGO_FILE).resize({ height: 360 }).png().toBuffer();
     const base = bg ? sharp!(bg).resize(OG_W, OG_H) : sharp!({ create: { width: OG_W, height: OG_H, channels: 3, background: '#0B1D45' } });
     return sharp!(await base.composite([{ input: shade }, { input: logo, gravity: 'centre' }]).png().toBuffer());
   }
@@ -85,7 +86,7 @@ export class OgImageService {
   private sceneSvg(key: string): Buffer | null {
     if (this.scene === undefined) {
       try {
-        const code = fs.readFileSync(path.join(SRC, 'art', 'scene.js'), 'utf8') + '\n;Scene';
+        const code = plainScript(fs.readFileSync(path.join(UB_LIB, 'art', 'scene.js'), 'utf8')) + '\n;Scene';
         // document: хөтчийн лого тохиргооны мөрийг алгасна
         this.scene = vm.runInNewContext(code, { CMS: { data: { media: {} } }, LOGO_SRC: '', document: { documentElement: { style: { setProperty() {} } } } });
       } catch (e) {

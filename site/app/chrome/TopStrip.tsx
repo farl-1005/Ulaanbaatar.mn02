@@ -2,7 +2,7 @@
 /* Хамгийн дээд бараан мөр: цаг агаар, агаарын чанар, түгжрэл (хулганаар заахад дэлгэрэнгүй), цаг, лавлах утас.
    Гар утсанд хэвтээ гүйлгэдэг карт хэлбэрээр. Утгыг features/weather.js шинэчилнэ. */
 import { Fragment, type ReactNode } from 'react';
-import { Icon, Live, useUB, type Pulse, type UB } from './ub';
+import { Icon, Live, useUB, type Pulse, type UB } from '../ub';
 
 const AQI_SCALE = 'linear-gradient(90deg,#10A36A 0 16.67%,#E5A800 16.67% 33.33%,#F08C1A 33.33% 50%,#D81E34 50% 66.67%,#8F3F97 66.67% 83.33%,#7E0023 83.33%)';
 

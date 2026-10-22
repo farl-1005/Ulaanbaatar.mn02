@@ -17,13 +17,17 @@ if (!process.env.ADMIN_PASSWORD && !fs.existsSync(ENV_FILE) && !PROD) {   // pro
 }
 try { process.loadEnvFile(ENV_FILE); } catch { /* .env байхгүй бол орчны хувьсагчийг ашиглана */ }
 
-/** Хөтчийн код */
-export const SRC = path.join(ROOT, 'src');
 export const DIST = path.join(ROOT, 'dist');
-/** src/-ээс бүтээсэн файлууд: assets/app.js, style.css, kit.js, мэдээний зураг, favicon.svg */
+/** Сервер бүтээдэг файлууд: assets/live.json (бодит өгөгдөл, икон, лого), style.css, мэдээний зураг, favicon.svg */
 export const SITE = path.join(DIST, 'site');
 /** Нийтийн сайтын хуудсууд (site/ — Next.js төсөл), Nest өөр дотроо ажиллуулна */
 export const SITE_APP = path.join(ROOT, 'site');
+/** Сайтын логик (ES модулиуд): site/lib/ub/ */
+export const UB_LIB = path.join(SITE_APP, 'lib', 'ub');
+/** CSS (Tailwind): site/styles/*.css → assets/style.css */
+export const STYLES = path.join(SITE_APP, 'styles');
+/** Хотын сүлд (лого, favicon, og зураг) */
+export const LOGO_FILE = path.join(SITE_APP, 'logo.webp');
 /** Admin (admin/ — Next.js төсөл): `next build`-ийн гаргасан статик файлууд, /admin хаягаар */
 export const ADMIN_OUT = path.join(ROOT, 'admin', 'out');
 /** npm run dev үед admin-ы `next dev` сервер */

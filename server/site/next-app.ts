@@ -14,6 +14,7 @@ export async function serveSite(app: NestExpressApplication) {
     console.error('  ✗ Сайтын хуудсууд бүтээгдээгүй байна (site/.next алга). «npm run build» хийнэ үү.');
     return;
   }
+  if (DEV) await waitDevLock();
   const createNext = require('next');
   const nextApp = (createNext.default || createNext)({ dev: DEV, dir: SITE_APP, quiet: !DEV });
   await nextApp.prepare();
@@ -22,5 +23,18 @@ export async function serveSite(app: NestExpressApplication) {
   if (DEV) {   // хөтчийн автомат шинэчлэлт (websocket): /_next/... нь Next.js-ийнх, /admin/... нь admin-ы proxy-д
     const upgrade = nextApp.getUpgradeHandler();
     app.getHttpServer().on('upgrade', (req: { url?: string }, socket: unknown, head: unknown) => { if (req.url?.startsWith('/_next/')) upgrade(req, socket, head); });
+  }
+}
+
+/** npm run dev: nodemon дахин асаахад хуучин процесс Next.js-ийн түгжээг (site/.next/dev/lock) хэсэг хугацаанд барьсан хэвээр байдаг.
+    Тэр процесс дуустал (5 секунд хүртэл) хүлээгээд үлдсэн түгжээг арилгана, эс бөгөөс «Another next dev server is already running» гэж унана. */
+async function waitDevLock() {
+  const file = path.join(SITE_APP, '.next', 'dev', 'lock');
+  for (let i = 0; i < 50; i++) {
+    let pid: number;
+    try { pid = JSON.parse(fs.readFileSync(file, 'utf8')).pid; } catch { return; }
+    if (pid === process.pid) return;
+    try { process.kill(pid, 0); } catch { fs.rmSync(file, { force: true }); return; }   // процесс алга: хуучин түгжээ
+    await new Promise((r) => setTimeout(r, 100));
   }
 }

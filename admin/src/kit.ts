@@ -1,6 +1,8 @@
-/* Сайтын хэрэгсэл: /assets/kit.js → window.UBKit (эх код: src/kit.js).
-   Урьдчилан харах картыг сайттай яг адил зурах, анхны агуулга (src/data/), ангилал, текст, икон, газрын зураг.
+/* Сайтын хэрэгсэл: сайтын өөрийн модулиуд (site/lib/ub/, kit.js → window.UBKit).
+   Урьдчилан харах картыг сайттай яг адил зурах, анхны агуулга (site/lib/ub/data/), ангилал, текст, икон, газрын зураг.
    Render функц бүр HTML мөр буцаана (<Html html={...} />). */
+
+import { bootKit } from '../../site/lib/ub/boot.js';
 
 /** [монгол, англи] */
 export type Bi = [string, string];
@@ -75,16 +77,11 @@ export function kit(): Kit {
   return loaded;
 }
 
-/** /assets/kit.js-ийг ачаална. Сайтыг бүтээгээгүй (npm run build) бол алдаа өгнө. */
-export function loadKit(): Promise<Kit> {
-  if (window.UBKit) return Promise.resolve((loaded = window.UBKit));
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = '/assets/kit.js';
-    s.onload = () => (window.UBKit ? resolve((loaded = window.UBKit)) : reject(new Error('UBKit алга')));
-    s.onerror = () => reject(new Error('/assets/kit.js ачаалсангүй'));
-    document.head.appendChild(s);
-  });
+/** Сайтын модулиудыг ачаална (эхлээд /assets/live.json — сервер бүтээгээгүй бол алдаа өгнө) */
+export async function loadKit(): Promise<Kit> {
+  if (!window.UBKit) await bootKit();
+  if (!window.UBKit) throw new Error('UBKit алга');
+  return (loaded = window.UBKit);
 }
 
 /** [монгол, англи] → одоогийн хэлээр */

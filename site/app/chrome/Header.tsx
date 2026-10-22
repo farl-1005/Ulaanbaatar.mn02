@@ -2,7 +2,7 @@
 /* Толгой: сүлд, нэр, уриа | тэнгэрийн шугам (зураг) | хайлт, хэл, a11y, горим, нэвтрэх, цэс.
    Товчнуудын үйлдлийг (data-act) features/wiring.js барина. */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Emblem, Icon, useUB, type UB } from './ub';
+import { Emblem, Icon, useUB, type UB } from '../ub';
 
 export function HeaderBand() {
   const ub = useUB();

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import { SITE_DESC, SITE_TITLE } from '../lib/server';
+import { Boot } from './Boot';
 
 export const metadata: Metadata = { title: SITE_TITLE, description: SITE_DESC };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#0B1D45' };
@@ -29,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         {children}
-        {/* Сайтын хэсгүүдийг (header, мэдээ, үйлчилгээ ...) одоогоор src/ доторх код зурна → assets/app.js */}
-        <Script src="/assets/app.js" strategy="afterInteractive" />
+        {/* Сайтын логик (lib/ub/): төлөв, өгөгдөл, товчны үйлдэл → window.UB → React */}
+        <Boot />
         {process.env.NODE_ENV === 'development' && <Script id="ubmn-dev-reload" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: DEV_RELOAD }} />}
       </body>
     </html>

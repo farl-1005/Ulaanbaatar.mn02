@@ -9,7 +9,7 @@ COPY site/package.json site/
 RUN npm ci --include=dev && npm cache clean --force
 COPY . .
 # Сервер (Nest.js) → dist/server, сайтын хуудсууд (Next.js) → site/.next, admin (Next.js) → admin/out.
-# src/-ийн app.js, style.css-ийг сервер асахдаа бүтээнэ (бодит мэдээ татна).
+# style.css, assets/live.json (бодит мэдээ, икон)-ийг сервер асахдаа бүтээнэ.
 RUN npx tsc -p server && npm run build -w site && npm run build -w admin && mkdir -p /data
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s CMD node -e "fetch('http://127.0.0.1:'+process.env.PORT+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
