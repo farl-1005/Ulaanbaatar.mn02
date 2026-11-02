@@ -48,8 +48,6 @@ export class SqliteDatabase extends Database {
       subList: P('SELECT id, kind, data, status, created_at, updated_at FROM submissions ORDER BY created_at DESC LIMIT 300'),
       subGet: P('SELECT id, data FROM submissions WHERE id = ?'),
       subStatus: P('UPDATE submissions SET status = ?, updated_at = ? WHERE id = ?'),
-      subRow: P('SELECT id, kind, data, status, created_at, updated_at FROM submissions WHERE id = ?'),
-      subUpdate: P('UPDATE submissions SET status = ?, data = ?, updated_at = ? WHERE id = ?'),
       subDel: P('DELETE FROM submissions WHERE id = ?'),
       subNew: P("SELECT COUNT(*) AS n FROM submissions WHERE status = 'new'"),
       emailExists: P("SELECT 1 FROM submissions WHERE kind = 'digest' AND json_extract(data, '$.email') = ?"),
@@ -77,8 +75,6 @@ export class SqliteDatabase extends Database {
   async subList() { return (this.q.subList.all() as any[]).map((r) => Object.assign(r, { data: json(r.data) })); }
   async subGet(id: string) { const r = this.q.subGet.get(id) as any; return r ? { id: r.id, data: json(r.data) } : null; }
   async subStatus(status: string, at: string, id: string) { this.q.subStatus.run(status, at, id); }
-  async subRow(id: string) { const r = this.q.subRow.get(id) as any; return r ? Object.assign(r, { data: json(r.data) }) : null; }
-  async subUpdate(id: string, status: string, data: object, at: string) { this.q.subUpdate.run(status, JSON.stringify(data), at, id); }
   async subDel(id: string) { this.q.subDel.run(id); }
   async subNew() { return (this.q.subNew.get() as { n: number }).n; }
   async emailExists(email: string) { return !!this.q.emailExists.get(email); }

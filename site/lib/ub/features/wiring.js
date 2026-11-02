@@ -10,7 +10,6 @@ import { SQ, openSearch, searchGo, sqAddRecent, sqMove, sqRecent, sqRender } fro
 import { ALL_SVC, NEWS_BY, S, t } from '../core/state.js';
 import { PROJECTS } from '../data/projects.js';
 import { Chat, autoGrow, chatSend, paintChat, runAct, toggleChat } from './assistant.js';
-import { openComplaint } from './complaint.js';
 import { openLogin } from './dan-login.js';
 import { openDoc, openEvent, toggleSave } from './documents.js';
 import { openReport, openVote, submitErr } from './forms.js';
@@ -70,7 +69,6 @@ export function wireEvents() {
       case 'go': go(Object.assign({}, d)); break;
       case 'report': closeMenu(); if (MODAL) closeModal(true); openReport(); break;
       case 'vote': closeMenu(); if (MODAL) closeModal(true); openVote(d.tab || 'poll', { topic: d.topic, gov: d.gov }); break;
-      case 'complaint': openComplaint(d.tab, d.id); break;   // өргөдөл, гомдол (features/complaint.js); data-tab="track" data-id: явцыг шалгах
       case 'ticker-close': { const tk = $('#ticker'); if (!reduced && tk.animate) tk.animate([{ height: tk.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 280, easing: 'ease-in' }).finished.then(() => { S.tickerOn = false; renderReact(); }); else { S.tickerOn = false; renderReact(); } break; }
       case 'alert': openAlert(d.id); break;
       case 'notify': closeModal(); toast(t('notifyOn'), 'bell-ring'); break;

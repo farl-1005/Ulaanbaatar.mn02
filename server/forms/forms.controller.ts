@@ -1,16 +1,16 @@
-import { Controller, Get, HttpCode, Param, Post, Query, Req } from '@nestjs/common';
+import { Controller, HttpCode, Param, Post, Req } from '@nestjs/common';
 import type { Request } from 'express';
 import { ApiError, clientIp, readJson } from '../common/http';
 import { RateLimiter } from '../common/rate-limiter';
 import { SubmissionsService } from './submissions.service';
 import { FORM_KINDS, FormKind, validate } from './validation';
 
-/** Иргэд маягт илгээх, өргөдөл гомдлын явц шалгах (нэвтрэлтгүй) */
+/** Иргэд маягт илгээх (нэвтрэлтгүй) */
 @Controller('api')
 export class FormsController {
   constructor(private readonly submissions: SubmissionsService, private readonly limiter: RateLimiter) {}
 
-  /** POST /api/submit/report | idea | digest | complaint. Өргөдөл, гомдолд явц шалгах түлхүүр (key) буцаана: зөвхөн энэ удаа харагдана. */
+  /** POST /api/submit/report | idea | digest */
   @Post('submit/:kind')
   @HttpCode(201)
   async submit(@Param('kind') kind: string, @Req() req: Request) {
@@ -19,18 +19,7 @@ export class FormsController {
     const b = await readJson(req, 4.5e6);   // зурагтай тул том
     const v = validate(kind as FormKind, b);
     if ('error' in v) throw new ApiError(400, v.error);
-    const r = await this.submissions.create(kind as FormKind, v.data, b.photo);
-    return r && r.key ? { ok: true, id: r.id, key: r.key } : { ok: true, id: r ? r.id : null };
-  }
-
-  /** GET /api/track/OG-2026-48501?key=ABCDE-FGHJK: өргөдөл, гомдлын төлөв, түүх, хариу. Дугаар эсвэл түлхүүр буруу бол 404. */
-  @Get('track/:id')
-  async track(@Param('id') id: string, @Query('key') key: unknown, @Req() req: Request) {
-    if (this.limiter.limited('track:' + clientIp(req), 120, 3600e3)) throw new ApiError(429, 'too_many_requests');
-    const nid = String(id || '').trim().toUpperCase();
-    if (!/^[A-Z]{2}-\d{4}-\d{1,8}$/.test(nid) || typeof key !== 'string' || !key) throw new ApiError(404, 'not_found');
-    const v = await this.submissions.track(nid, key);
-    if (!v) throw new ApiError(404, 'not_found');
-    return v;
+    const id = await this.submissions.create(kind as FormKind, v.data, b.photo);
+    return { ok: true, id };
   }
 }

@@ -34,10 +34,9 @@ const HELP: Topic[] = [
   { id: 'docs', icon: 'scroll-text', title: ['Ил тод байдал', 'Transparency'], steps: [
     ['«Ил тод байдал»: ИТХ-ын тогтоол, Засаг даргын захирамж, тендерийг дугаар, огноо, баримтын холбоостой нь оруулна.', '«Transparency»: add council resolutions, orders and tenders with their number, date and a link to the document.'],
   ] },
-  { id: 'inbox', icon: 'inbox', title: ['Ирсэн хүсэлт, өргөдөл гомдол', 'Submissions and complaints'], steps: [
-    ['Иргэдийн илгээсэн санал, имэйл бүртгэл, өргөдөл гомдол «Ирсэн хүсэлт»-д ирнэ. Шинэ хүсэлтийн тоо цэсэнд харагдана.', 'Feedback, newsletter sign-ups and complaints from residents arrive in «Submissions»; the menu shows how many are new.'],
-    ['Өргөдөл, гомдлын төлөвийг («Шинэ», «Шийдвэрлэж буй», «Шийдвэрлэсэн», «Татгалзсан») солиод «Иргэнд харагдах хариу»-г бичнэ.', 'Set a complaint\'s status (New, In progress, Resolved, Rejected) and write the «Public response to the citizen».'],
-    ['Иргэн бүртгэлийн дугаар, нууц түлхүүрээрээ сайтаас явц, хариугаа шалгана. Хувийн мэдээлэл нь зөвхөн танд харагдана.', 'Residents check progress and your reply on the site with their number and key. Their personal details are visible only to you.'],
+  { id: 'inbox', icon: 'inbox', title: ['Ирсэн хүсэлт', 'Submissions'], steps: [
+    ['Иргэдийн илгээсэн санал хүсэлт, имэйл бүртгэл «Ирсэн хүсэлт»-д ирнэ. Шинэ хүсэлтийн тоо цэсэнд харагдана.', 'Feedback and newsletter sign-ups from residents arrive in «Submissions»; the menu shows how many are new.'],
+    ['Хүсэлт бүрийн төлөвийг («Шинэ», «Шийдвэрлэж буй», «Шийдвэрлэсэн», «Татгалзсан») сольж явцыг тэмдэглэнэ.', 'Set each submission\'s status (New, In progress, Resolved, Rejected) to track it.'],
   ] },
   { id: 'menu', icon: 'menu', title: ['Цэс засах', 'Editing the menu'], steps: [
     ['«Үндсэн цэс»: цэсийн бүлгийн нэр, дарааллыг сольж, «Нэмэх»-ээр шинэ бүлэг үүсгэнэ.', '«Main menu»: rename and reorder menu groups; «Add» creates a new group.'],

@@ -48,7 +48,6 @@ import './features/notices.js';
 import './features/services.js';
 import './features/dan-login.js';
 import './features/forms.js';
-import './features/complaint.js';
 import './features/media-player.js';
 import './features/documents.js';
 import './features/my-page.js';

@@ -8,12 +8,11 @@ body { line-height: 1.6; }
 .h-section { font-size: clamp(26px, 2.5vw, 36px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .news-text { line-height: 1.9; }
 
-/* ---- #7 Чимэглэлийн тасралтгүй хөдөлгөөн: хотын зураг, медиа дэвсгэр, Засаг даргын туяа, гал, хуудасны толгой (улирлын эффектийг бүрэн хассан) ---- */
+/* ---- #7 Чимэглэлийн тасралтгүй хөдөлгөөн: хотын зураг, медиа дэвсгэр, Засаг даргын туяа, хуудасны толгой (улирлын эффектийг бүрэн хассан).
+   Иконы хөдөлгөөн (сирен, саналын хайрцаг, гал, тоглуулах товч, цаг агаар) хэвээр — хэрэглэгчийн хүсэлтээр. ---- */
 .sk-bc, .sk-ping, .sk-gl, .sk-glow, .sk-drift, .sk-birds, .sk-star,
-.mb-blob, .mb-line, .mb-rings i, .sky b, .sky-c1, .sky-c2, .wx-ic, .sky i.rd,
+.mb-blob, .mb-line, .mb-rings i, .sky b, .sky-c1, .sky-c2, .sky i.rd,
 .gov-aur-a, .gov-aur-b, .gov-ring-a, .gov-ring-b, .gov-next.is-live::after,
-.fire-ign, .fire-o, .fire-m, .fire-i, .fire-glow, .fire-ember,
-.ai *, .cta-ic::before, .mcard-tall .mcard-play::before, .mv-play i, .mv-vinyl,
 .pg-aur, .pg-big, .dsun-glow, .tk-stripes, .mp-hero-img { animation: none !important; }
 .mb-rings, .mb-waves { display: none; }
 
@@ -27,7 +26,6 @@ body { line-height: 1.6; }
 .lift:hover { transform: none !important; box-shadow: none !important; border-color: rgb(var(--c-ink) / .25) !important; }
 .lift:hover .zoom > svg, .zoom-on:hover .zoom > svg, .lift:hover .zoom > img, .zoom-on:hover .zoom > img, .rail-slide:hover .rail-img > svg, .rail-slide:hover .rail-img > img, .news-gal-th:hover img { transform: none !important; }
 .logo-btn:hover .logo-em::after, .logo-btn:focus-visible .logo-em::after, .mini-logo:hover .logo-em::after, .logo-em::after { animation: none !important; display: none; }
-.brk-head:hover .fire-body { transform: none; }
 .dock::before { display: none !important; }   /* хулганыг дагах гэрэл */
 
 /* ---- #3 Онцлох товч (Эрсдэл мэдээлэх, Санал өгөх): градиент, гялбаа, том дүрсгүй, энгийн ---- */
@@ -53,4 +51,3 @@ body { line-height: 1.6; }
 /* ---- #3, #5 Онцлох зүйлийн хэмжээ: гол мэдээний гарчиг, том CTA, түгээмэл үйлчилгээ ---- */
 #hero h1 { font-size: clamp(24px, 2.3vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
 .cta-card b { font-size: 16px; }
-.quick-rail .group:hover span { transform: none !important; }

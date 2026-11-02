@@ -1,17 +1,15 @@
 'use client';
 /* «Миний булан» (#view-my): толгой (нэр, хаяг, тоон үзүүлэлт), таб — тойм | хүсэлтүүд | миний хороо.
    Өгөгдөл: src/features/my-page.js myData() (нэвтрээгүй эсвэл өөр хуудсанд null). Хадгалсан арга хэмжээ нь evRow() HTML.
-   Таб (tab my), төлөх (pay), шинэ хүсэлт (report), өргөдөл гомдол (complaint), мэдэгдлийн холбоос (go, tab, vote), home-ыг features/wiring.js барина. */
+   Таб (tab my), төлөх (pay), шинэ хүсэлт (report), мэдэгдлийн холбоос (go, tab, vote), home-ыг features/wiring.js барина. */
 import { Icon, useUB, type UB } from '../ub';
 import { Raw, Swap, Tabs, type TabItem } from '../home/parts';
 
 interface ReqItem { id: string; i: string; title: string; place: string; date: string; st: number; stLabel: string; steps: string[]; note: string }
-/** Өргөдөл, гомдол (src/features/complaint.js myComplaintRows): st null бол төлөв хараахан ирээгүй, step -1 */
-interface CompItem { id: string; i: string; title: string; topic: string; date: string; st: string | null; gone: boolean; stLabel: string; step: number; steps: string[]; reply: string }
 interface MyData {
   tab: 'over' | 'req' | 'kh'; dir: number; home: string;
   ini: string; hello: string; addr: string; reg: string; stats: [number, string][]; tabs: TabItem[];
-  req?: { title: string; add: string; empty: string; list: ReqItem[]; comp: { title: string; add: string; empty: string; more: string; replyLbl: string; list: CompItem[] } };
+  req?: { title: string; add: string; empty: string; list: ReqItem[] };
   kh?: {
     addr: string; govLbl: string; gov: string; resLbl: string; res: string; hhLbl: string; hh: string; hoursLbl: string; hours: string;
     nearLbl: string; near: { n: string; i: string; d: string }[]; noticesLbl: string; notices: string[];
@@ -57,14 +55,9 @@ export function MyView() {
 const ST_CLS = ['b-mute', 'b-blue', 'b-off', 'b-on'];
 
 function Req({ ub, r }: { ub: UB; r: NonNullable<MyData['req']> }) {
-  const c = r.comp;
   return (
     <>
-      <div className="flex items-center justify-between gap-3 mb-5"><h2 className="font-extrabold text-[19px]">{c.title}</h2><button type="button" className="btn btn-sm btn-blue" data-act="complaint"><Icon ub={ub} n="file-pen-line" c="w-4 h-4" />{c.add}</button></div>
-      {c.list.length
-        ? <div className="space-y-3">{c.list.map((x) => <CompCard key={x.id} ub={ub} x={x} more={c.more} replyLbl={c.replyLbl} />)}</div>
-        : <div className="card p-6 text-center text-muted">{c.empty}</div>}
-      <div className="flex items-center justify-between gap-3 mb-5 mt-10"><h2 className="font-extrabold text-[19px]">{r.title}</h2><button type="button" className="btn btn-sm btn-red" data-act="report"><Icon ub={ub} n="plus" c="w-4 h-4" />{r.add}</button></div>
+      <div className="flex items-center justify-between gap-3 mb-5"><h2 className="font-extrabold text-[19px]">{r.title}</h2><button type="button" className="btn btn-sm btn-red" data-act="report"><Icon ub={ub} n="plus" c="w-4 h-4" />{r.add}</button></div>
       {r.list.length
         ? <div className="space-y-3">{r.list.map((x) => <ReqCard key={x.id} ub={ub} x={x} />)}</div>
         : <div className="card p-10 text-center text-muted">{r.empty}</div>}
@@ -86,30 +79,6 @@ function ReqCard({ ub, x }: { ub: UB; x: ReqItem }) {
         {x.steps.map((s, i) => <li key={i}><span className={`block h-1.5 rounded-full ${i <= x.st ? (x.st === 3 ? 'bg-ubgreen' : 'bg-ubblue') : 'bg-line'}`} /><span className={`block mt-2 text-[11.5px] sm:text-[12px] leading-tight ${i === x.st ? 'font-bold' : 'text-muted'}`}>{s}</span></li>)}
       </ol>
       <p className="mt-4 text-[13.5px] text-muted flex gap-2"><Icon ub={ub} n="info" c="w-4 h-4 mt-0.5" /><span>{x.note}</span></p>
-    </div>
-  );
-}
-
-const COMP_CLS: Record<string, string> = { new: 'b-mute', progress: 'b-blue', done: 'b-on', rejected: 'b-red' };
-
-function CompCard({ ub, x, more, replyLbl }: { ub: UB; x: CompItem; more: string; replyLbl: string }) {
-  const bar = (i: number) => (i > x.step ? 'bg-line' : x.st === 'rejected' && i === 2 ? 'bg-ubred' : x.st === 'done' ? 'bg-ubgreen' : 'bg-ubblue');
-  return (
-    <div className="card p-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <span className="w-11 h-11 rounded-xl bg-soft grid place-items-center text-ubblue shrink-0"><Icon ub={ub} n={x.i} c="w-5 h-5" /></span>
-          <div className="min-w-0"><b className="block text-[16px] leading-snug">{x.title}: {x.topic}</b><span className="block text-[12.5px] text-muted tnum mt-0.5">{x.id}, {x.date}</span></div>
-        </div>
-        <span className={`badge ${x.st ? COMP_CLS[x.st] || 'b-mute' : 'b-mute'}`}>{x.stLabel}</span>
-      </div>
-      {x.step >= 0 && (
-        <ol className="mt-5 grid grid-cols-3 gap-1.5">
-          {x.steps.map((s, i) => <li key={i}><span className={`block h-1.5 rounded-full ${bar(i)}`} /><span className={`block mt-2 text-[11.5px] sm:text-[12px] leading-tight ${i === x.step ? 'font-bold' : 'text-muted'}`}>{s}</span></li>)}
-        </ol>
-      )}
-      {x.reply && <p className="mt-4 rounded-xl bg-soft p-3 text-[13.5px] leading-relaxed whitespace-pre-wrap line-clamp-4"><b>{replyLbl}: </b>{x.reply}</p>}
-      {!x.gone && <button type="button" className="mt-4 text-[13.5px] font-bold text-ubblue inline-flex items-center gap-1" data-act="complaint" data-tab="track" data-id={x.id}>{more}<Icon ub={ub} n="chevron-right" c="w-4 h-4" /></button>}
     </div>
   );
 }
