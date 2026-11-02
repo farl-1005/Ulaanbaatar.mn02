@@ -19,7 +19,7 @@ export function serveStaticAssets(app: NestExpressApplication) {
 
 /** /admin: admin/ (Next.js) төсөл.
     - production: `next build`-ийн гаргасан admin/out/ статик файлууд
-    - npm run dev: `next dev` (3001 порт) руу дамжуулна (засвар хадгалахад хөтөч өөрөө шинэчлэгдэнэ) */
+    - npm run dev: `next dev` (3101 порт) руу дамжуулна (засвар хадгалахад хөтөч өөрөө шинэчлэгдэнэ) */
 export function serveAdmin(app: NestExpressApplication) {
   if (DEV) {
     const { createProxyMiddleware } = require('http-proxy-middleware') as typeof import('http-proxy-middleware');

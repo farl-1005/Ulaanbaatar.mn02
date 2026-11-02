@@ -1,7 +1,7 @@
 'use client';
 /* Хаб: нүүрэнд мэдээ / үйлчилгээ / арга хэмжээ таб; /news хуудсанд бүх мэдээ (хайлт, ангилал, эрэмбэ, «Цааш үзэх»); /services хуудсанд үйлчилгээний таб, хайлт.
    Өгөгдөл: src/sections/hub.js hubData(). Таб, ангилал (data-act="tab" | "news-cat"), хайлт (data-input="newsQ" | "svcQ"), «Цааш үзэх» (data-act="news-more")-ийг features/wiring.js барина. */
-import { useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Icon, cssVars, useUB, type UB } from '../ub';
 import { Chips, ModeBadge, Swap, Tabs, type ChipItem } from './parts';
 
@@ -9,7 +9,6 @@ interface HubNews { id: string; zar: boolean; title: string; lead: string; scene
 interface HubSvc { id: string; i: string; title: string; desc: string; m: string }
 interface HubData {
   hub: string; page: 'news' | 'services' | null; zarLabel: string;
-  season: { s: string; fx: boolean } | null;
   cats: ChipItem[]; newsCat: string; svcTab: string; svcQ: string; newsSort: string; newsQ: string;
   all?: { key: string; q: string; feat: boolean; cards: HubNews[]; more: boolean; type: string; summary: string; count: string; pct: number };
   news?: HubNews[]; newsTotal?: string;
@@ -47,7 +46,7 @@ function HubIn({ ub }: { ub: UB }) {
       </div>
       <Swap k={d.hub} dir={dir} id="hub-panel">
         {d.hub === 'news' ? (
-          <Season ub={ub} d={d}>
+          <>
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0" id="news-chips"><Chips act="news-cat" items={d.cats} active={d.newsCat} /></div>
             <Swap k={d.newsCat} id="news-grid">
               {d.news!.length
@@ -55,7 +54,7 @@ function HubIn({ ub }: { ub: UB }) {
                 : <p className="text-muted py-10 text-center">{t('noResults')}</p>}
             </Swap>
             {more('news', `${t('allNews')} (${d.newsTotal})`)}
-          </Season>
+          </>
         ) : d.hub === 'services' ? (
           <><SvcPanel ub={ub} d={d} />{more('services', L(['Бүх үйлчилгээ', 'All services']))}</>
         ) : (
@@ -66,24 +65,6 @@ function HubIn({ ub }: { ub: UB }) {
         )}
       </Swap>
     </div></div>
-  );
-}
-
-/** Улирлын хүрээ (features/season.js): картуудын ард унах тоосонцор + доод талд модтой ландшафт. Улиралгүй (унтраасан) үед хүрээгүй. */
-function Season({ ub, d, children }: { ub: UB; d: HubData; children: ReactNode }) {
-  return d.season ? <SeasonWrap ub={ub} s={d.season.s} fx={d.season.fx}>{children}</SeasonWrap> : <>{children}</>;
-}
-function SeasonWrap({ ub, s, fx, children }: { ub: UB; s: string; fx: boolean; children: ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const flakes = useMemo(() => (fx ? (ub.home.seasonFlakes(s) as string) : ''), [ub, s, fx]);   // санамсаргүй байрлал: дахин зурахад хөдөлгөөн тасрахгүй
-  const trees = useMemo(() => ub.home.seasonTrees(s) as string, [ub, s]);
-  useEffect(() => ub.home.seasonObserve(ref.current), [ub]);   // --fall, --k: хэсгийн өндрөөр
-  return (
-    <div ref={ref} className={`ssn-wrap season-${s}`} data-ssn="">
-      {fx && <div className="ssn-fx" aria-hidden="true" dangerouslySetInnerHTML={{ __html: flakes }} />}
-      <div className="ssn-body">{children}</div>
-      <div style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: trees }} />
-    </div>
   );
 }
 
@@ -142,7 +123,7 @@ function NewsAll({ ub, d }: { ub: UB; d: HubData }) {
       </div>
       <div className="flex gap-2 overflow-x-auto no-scrollbar mt-4 pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" id="news-chips"><Chips act="news-cat" items={d.cats} active={d.newsCat} /></div>
       <div className="mt-6">
-        <Season ub={ub} d={d}>
+        <>
           <Swap k={a.key} id="news-grid">
             {a.cards.length ? (
               <>
@@ -157,7 +138,7 @@ function NewsAll({ ub, d }: { ub: UB; d: HubData }) {
               </>
             ) : <div className="card p-12 text-center text-muted"><Icon ub={ub} n="search-x" c="w-8 h-8 mx-auto mb-3 opacity-60" />{t('noResults')}</div>}
           </Swap>
-        </Season>
+        </>
       </div>
     </div>
   );

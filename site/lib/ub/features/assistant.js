@@ -14,7 +14,7 @@ import { PROJECTS } from '../data/projects.js';
 import { SERVICES, SITS } from '../data/services.js';
 import { openLogin } from './dan-login.js';
 import { openReport, openVote } from './forms.js';
-import { openAlert } from './season.js';
+import { openAlert } from './notices.js';
 import { evSort } from '../sections/events.js';
 /* ================= AI assistant ================= */
 export const Chat = { fn: undefined, ready: null, ctl: null, busy: false, seen: false, tip: false, v: 0 };

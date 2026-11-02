@@ -31,10 +31,12 @@ export const LOGO_FILE = path.join(SITE_APP, 'logo.webp');
 /** Admin (admin/ — Next.js төсөл): `next build`-ийн гаргасан статик файлууд, /admin хаягаар */
 export const ADMIN_OUT = path.join(ROOT, 'admin', 'out');
 /** npm run dev үед admin-ы `next dev` сервер */
-export const ADMIN_DEV_URL = process.env.ADMIN_DEV_URL || 'http://localhost:3001';
+export const ADMIN_DEV_URL = process.env.ADMIN_DEV_URL || 'http://localhost:3101';
 /** Байнгын өгөгдөл: SQLite, иргэдийн зураг (Docker-т /data volume) */
 export const DATA = process.env.DATA_DIR || (PROD && fs.existsSync('/data') ? '/data' : path.join(ROOT, 'data'));
 export const UPLOADS = path.join(DATA, 'uploads');
+/** Admin-аас оруулсан видео, аудио (медиа, мэдээний бичлэг): нийтэд /media/<файл> хаягаар */
+export const MEDIA_FILES = path.join(DATA, 'media');
 /** Гадны эх сурвалжийн кэш: мэдээ, зураг (production-д байнгын диск дээр, Dockerfile: NEWS_CACHE_DIR) */
 export const NEWS_CACHE = process.env.NEWS_CACHE_DIR || path.join(DIST, '.news');
 /** Production-д сайтыг (мэдээг) хэдэн минут тутам дахин бүтээх */

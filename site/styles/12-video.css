@@ -1,0 +1,16 @@
+/* ================= Бичлэг: мэдээний видео (views/NewsView.tsx NewsVideo), медиа үзэгчийн файл тоглуулагч (modals/MediaPlayer.tsx) ================= */
+/* Мэдээ: оруулсан видео шууд <video>, YouTube / Facebook нь дарахад л ачаалагдана */
+.news-video { position: relative; margin: 0 0 28px; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; background: #000; }
+.news-video video, .news-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+.news-video-start { position: absolute; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; color: #fff; background: #0B1D45; }
+.news-video-start img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .72; transition: opacity .25s; }
+.news-video-start:hover img, .news-video-start:focus-visible img { opacity: .9; }
+.news-video-play { position: relative; width: 76px; height: 76px; border-radius: 99px; display: grid; place-items: center; background: rgb(255 255 255 / .95); color: #0B1D45; box-shadow: 0 22px 50px -14px rgb(0 0 0 / .85); }
+.news-video-cap { position: absolute; left: 14px; bottom: 12px; display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: rgb(255 255 255 / .9); text-shadow: 0 1px 6px rgb(0 0 0 / .6); }
+.news-audio { margin: 0 0 28px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; border: 1px solid rgb(var(--c-line)); border-radius: 8px; background: rgb(var(--c-soft)); }
+.news-audio audio { flex: 1; min-width: 0; height: 40px; }
+@media print { .news-video, .news-audio { display: none; } }
+/* Медиа үзэгч: оруулсан видео (тайзны 16:9 хүрээнд), аудио (пянзны доор). Аудио зогссон үед пянз, эквалайзер зогсоно. */
+.mv-video { object-fit: contain; background: #000; }
+.mv-audio { position: relative; z-index: 1; justify-self: center; width: min(440px, calc(100% - 40px)); height: 44px; }
+.mv-pod.is-paused .mv-vinyl, .mv-pod.is-paused .mv-eq i { animation-play-state: paused; }

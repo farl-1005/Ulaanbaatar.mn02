@@ -44,12 +44,12 @@ React бүрэлдэхүүнүүд логикоос өгөгдлийг `core/bri
 | `data/` | Анхны агуулга (admin засаагүй үед харагдана): текст (МН/EN), мэдээ, медиа, үйлчилгээ, төсөл, арга хэмжээ, ил тод байдал, хотын тухай, Засаг дарга, баннер, чатын хариулт |
 | `core/` | Суурь: туслах функц, төлөв (`S`), цаг, хөдөлгөөн, цонх (`modal.js`), header-ийн өгөгдөл, React-д өгөх гүүр (`bridge.js`, `home.js`), яаралтай мэдээ, хайлт, чиглүүлэлт, тусдаа хуудсууд, admin-ы засварыг тусгах (`cms.js`) |
 | `sections/` | Нүүрний хэсэг бүрийн өгөгдөл (`xData()` → `HOME.x`), төлөв солих функц: hero, мэдээ (hub), амьдралын нөхцөл, медиа, газрын зураг, 24 мега төсөл, хотын тоо, арга хэмжээ, ил тод байдал, Засаг дарга, хотын тухай, баннер |
-| `features/` | Цонх, үйлдлүүдийн өгөгдөл: мэдээ унших, үйлчилгээ, ДАН нэвтрэлт, маягт, медиа тоглуулагч, баримт бичиг, Миний булан, AI туслах, цаг агаар, товчнууд (`wiring.js`), эхлүүлэх код (`init.js`) |
+| `features/` | Цонх, үйлдлүүдийн өгөгдөл: мэдээ унших, үйлчилгээ, ДАН нэвтрэлт, маягт, өргөдөл гомдол ба явц шалгах (`complaint.js`), медиа тоглуулагч, баримт бичиг, Миний булан, AI туслах, цаг агаар, уншилтын явц ба Засаг даргын мэдээ, анхааруулгын цонх (`notices.js`), товчнууд (`wiring.js`), эхлүүлэх код (`init.js`) |
 | `art/` | Кодоор зурдаг зураг: мэдээний чимэглэл, лого (`scene.js`), header-ийн хотын зураг (`skyline.js`) |
 | `live.js`, `boot.js`, `main.js` | Бодит өгөгдөл ачаалах, асаах дараалал |
 | `kit.js` | Admin-д өгөх сайтын функцууд (урьдчилан харах карт, чимэглэл, икон, анхны агуулга) → `window.UBKit` |
 
-`site/styles/`: CSS, нэрийн дарааллаар (01, 02 …) нийлж Tailwind-аар бүтээгдэнэ. Өнгөний токен `01-base.css`-д. `site/logo.webp`: хотын сүлд.
+`site/styles/`: CSS, нэрийн дарааллаар (01, 02 …) нийлж Tailwind-аар бүтээгдэнэ. Өнгөний токен `01-base.css`-д. `13-calm.css` нь хэрэглэгчдийн саналаар хийсэн «тайван загвар» (чимэглэлийн хөдөлгөөн, гэрэлтэлтийг хасах, үсгийн тодрол, зай) — хамгийн сүүлд ачаалагдана. `site/logo.webp`: хотын сүлд.
 
 ## `site/`: сайтын хуудсууд (Next.js + React)
 
@@ -86,7 +86,7 @@ Nest сервер (`server/site/next-app.ts`) Next.js-ийг өөр дотроо
 | `src/api.ts` | Backend API дуудах |
 | `src/images.ts` | Зураг, лого оруулах (хөтөч дээр жижигрүүлнэ) |
 | `src/ui.tsx` | Икон, цонх, мэдэгдэл (toast), таб, устгахыг баталгаажуулах |
-| `src/views/` | Дэлгэцүүд: `Shell` (цэс), `Dashboard`, `ListView`, `Editor` + `fields` (талбарууд) + `preview`, `Inbox`, `Texts`, `Settings`, `Login` |
+| `src/views/` | Дэлгэцүүд: `Shell` (цэс), `Dashboard`, `ListView`, `Editor` + `fields` (талбарууд, зургийн цомог) + `Help` (гарын авлага) + `MediaUpload` (видео, аудио оруулах, хугацааг өөрөө уншина) + `RichText` (мэдээний форматтай текст, TipTap) + `preview`, `Inbox`, `Texts`, `Settings`, `Login` |
 
 ## `server/`: Nest.js backend
 
@@ -103,6 +103,7 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | `auth/` | Admin нэвтрэлт (`/api/login`, `/api/logout`), `AdminGuard` |
 | `cms/` | Admin-ы засвар (`/api/cms`) |
 | `forms/` | Иргэдийн маягт (`/api/submit/...`), admin-ы «Ирсэн хүсэлт» (`/api/submissions`, `/uploads/...`) |
+| `uploads/` | Admin-ы видео, аудио: `POST /api/upload/media` → `data/media/` (Docker-т `/data/media`), `GET /media/<файл>` (Range) |
 | `events/` | Шууд мэдэгдэл (`/api/events`, Server-Sent Events): admin хадгалахад бүх хөтөч шинэчлэгдэнэ |
 | `live/` | Гадны бодит цагийн өгөгдөл: цаг агаар, агаарын чанар (IQAir, Open-Meteo), газрын зураг (hamuga.mn), зураг жижигрүүлэх (`/api/img`) |
 | `site/` | `style.css`, `live.json` бүтээх (`site-builder.ts`), dev горимд автоматаар дахин бүтээх, Next.js-ийг ажиллуулах (`next-app.ts`), admin-ыг үйлчлэх (`static-assets.ts`) |
@@ -134,7 +135,10 @@ Nest.js-ийн дүрмээр: **модуль** (`*.module.ts`) бүр нэг ү
 | `PUT` / `DELETE /api/cms/:col/:id` | admin | Засвар хадгалах / буцаах | `cms/` |
 | `POST /api/cms-log` | admin | Өөрчлөлтийн түүх | `cms/` |
 | `POST /api/login`, `/api/logout` | бүгд | Нэвтрэх / гарах | `auth/` |
-| `POST /api/submit/report\|idea\|digest` | бүгд | Маягт илгээх | `forms/` |
+| `POST /api/submit/report\|idea\|digest\|complaint` | бүгд | Маягт илгээх (өргөдөл, гомдол: `{ id, key }` буцаана) | `forms/` |
+| `GET /api/track/:id?key=` | бүгд | Өргөдөл, гомдлын явц, хариу (хувийн мэдээлэлгүй) | `forms/` |
+| `POST /api/upload/media` | admin | Видео (≤500 МБ), аудио (≤100 МБ) оруулах | `uploads/` |
+| `GET /media/:file` | бүгд | Оруулсан видео, аудио (Range) | `uploads/` |
 | `GET /api/submissions`, `PATCH` / `DELETE /api/submissions/:id` | admin | Ирсэн хүсэлт, төлөв солих, устгах | `forms/` |
 | `GET /uploads/:file` | admin | Иргэний оруулсан зураг | `forms/` |
 | `GET /api/events` | бүгд | Шууд мэдэгдэл (SSE) | `events/` |

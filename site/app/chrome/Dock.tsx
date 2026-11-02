@@ -1,5 +1,5 @@
 'use client';
-/* Үндсэн цэс: хөвөгч «dock» капсул (том дэлгэцэнд). Шингэн тодруулга (pill), мега цэс, гэрэлтэх хүрээ,
+/* Үндсэн цэс: хөвөгч «dock» капсул (том дэлгэцэнд). Тодруулга (pill), мега цэс,
    доод ирмэгт уншилтын явцыг харуулах алхан хээ (src/core/header.js dockProgress). Загвар: src/styles/06-header-dock.css */
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { flushSync } from 'react-dom';
@@ -16,26 +16,14 @@ export function Dock() {
   const nav = useRef<NavEl>(null), mega = useRef<HTMLDivElement>(null), card = useRef<HTMLDivElement>(null), body = useRef<HTMLDivElement>(null), caret = useRef<HTMLSpanElement>(null), pill = useRef<HTMLLIElement>(null);
   const [open, setOpen] = useState(-1);         // нээлттэй мега цэс
   const [shown, setShown] = useState(-1);       // мега цэсний агуулга (хаагдах үед ч харагдсаар)
-  const st = useRef({ open: -1, hover: false, timer: 0 as unknown as ReturnType<typeof setTimeout>, pillOn: false });
+  const st = useRef({ open: -1, hover: false, timer: 0 as unknown as ReturnType<typeof setTimeout> });
 
-  /* Шингэн тодруулга: шинэ зүйл рүү шилжихдээ эхлээд хоёуланг нь хамрах хүртэл сунаж, дараа нь хумигдана */
+  /* Тодруулга: нээлттэй цэсний доор зөөлөн шилжинэ (тайван загвар: сунах хөдөлгөөнгүй) */
   const pillTo = (btn: HTMLElement | null) => {
-    const p = pill.current, s = st.current; if (!p) return;
-    if (!btn) { p.style.opacity = '0'; s.pillOn = false; return; }
-    const x = (btn.parentElement as HTMLElement).offsetLeft, w = btn.offsetWidth;
-    const cs = getComputedStyle(p), x0 = new DOMMatrixReadOnly(cs.transform === 'none' ? undefined : cs.transform).m41, w0 = parseFloat(cs.width) || w;
-    p.getAnimations().forEach((a) => a.cancel());
-    p.style.width = w + 'px'; p.style.transform = `translateX(${x}px)`;
-    if (s.pillOn && !reduced() && Math.abs(x0 - x) > 1) {
-      const l = Math.min(x0, x), r = Math.max(x0 + w0, x + w);
-      // 1) 200мс: хоёуланг нь бүрхтэл сунана  2) 280мс: шинэ байрлалдаа зөөлөн хумигдана
-      p.animate([
-        { transform: `translateX(${x0}px)`, width: w0 + 'px', easing: 'cubic-bezier(.45, 0, .25, 1)' },
-        { transform: `translateX(${l}px)`, width: r - l + 'px', offset: 0.42, easing: NAV_EASE },
-        { transform: `translateX(${x}px)`, width: w + 'px' },
-      ], { duration: 480 });
-    }
-    p.style.opacity = '1'; s.pillOn = true;
+    const p = pill.current; if (!p) return;
+    if (!btn) { p.style.opacity = '0'; return; }
+    p.style.width = btn.offsetWidth + 'px'; p.style.transform = `translateX(${(btn.parentElement as HTMLElement).offsetLeft}px)`;
+    p.style.opacity = '1';
   };
   const placeCaret = (btn: HTMLElement) => {
     const r = btn.getBoundingClientRect(), m = mega.current!.getBoundingClientRect();
@@ -96,8 +84,7 @@ export function Dock() {
       <nav className="dock" id="navbar" aria-label="Main" ref={nav}
         onMouseOver={onOver} onClick={onClick}
         onMouseLeave={() => { st.current.timer = setTimeout(close, 160); }}
-        onBlur={(e) => { if (!nav.current!.contains(e.relatedTarget as Node)) close(); }}
-        onPointerMove={(e) => { const n = nav.current!, r = n.getBoundingClientRect(); n.style.setProperty('--mx', Math.round(e.clientX - r.left) + 'px'); n.style.setProperty('--my', Math.round(e.clientY - r.top) + 'px'); }}>
+        onBlur={(e) => { if (!nav.current!.contains(e.relatedTarget as Node)) close(); }}>
         <span className="dock-glass" aria-hidden="true"><i /></span>
         <div className="dock-in">
           <button type="button" data-act="home" className="mini-logo shrink-0" tabIndex={-1} aria-hidden="true"><Emblem ub={ub} c="w-[34px] h-[34px]" /></button>

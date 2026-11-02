@@ -1,11 +1,13 @@
 'use client';
 /* Засварлах цонхны талбарууд: schema.ts-ийн талбар бүрийн төрлөөр (bi, chips, image, rows ...). */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { errMsg } from '../cms';
 import { uploadLogo, uploadPhoto } from '../images';
 import { Bi, kit, L, Lang, MapViewInstance } from '../kit';
 import { destinations, Field, ICON_SET, PALETTES, randomImage, RECIPES } from '../schema';
 import { Html, Icon, useToast } from '../ui';
+import { MediaFileField, VideoField } from './MediaUpload';
+import { RichTextBi } from './RichText';
 
 export type Doc = Record<string, any>;
 export interface FieldProps { f: Field; doc: Doc; patch: (p: Doc) => void; lang: Lang }
@@ -42,9 +44,14 @@ function DestSelect({ value, onChange, small }: { value: unknown; onChange: (v: 
 
 export function FieldView({ f, doc, patch, lang }: FieldProps) {
   const [k, type, , o = {}] = f, set = (v: unknown) => patch({ [k]: v });
+  if (o.when && !o.when(doc)) return null;   // тухайн төрөлд хамааралгүй талбар (медиа)
   switch (type) {
     case 'bi': return <label className="block"><Label f={f} /><BiInputs value={doc[k]} onChange={set} lang={lang} /></label>;
     case 'bitext': return <label className="block"><Label f={f} /><BiInputs value={doc[k]} onChange={set} lang={lang} multiline rows={o.rows} /></label>;
+    case 'richtext': return <div><Label f={f} /><RichTextBi value={doc[k]} onChange={set} lang={lang} /></div>;
+    case 'gallery': return <div><Label f={f} /><GalleryField value={doc[k] || []} onChange={set} cover={doc.img} onCover={(img) => patch({ img })} hint={o.hint} /></div>;
+    case 'mediafile': return <div><Label f={f} /><MediaFileField file={doc[k]} dur={doc.dur} onChange={(file, dur) => patch({ [k]: file, dur })} /></div>;
+    case 'video': return <div><Label f={f} /><VideoField value={doc[k] || ''} onChange={set} /></div>;
     case 'chips': return (
       <div><Label f={f} /><div className="flex flex-wrap gap-2">{(o.options ? o.options() : []).map(([v, l, c]) => (
         <button key={v} type="button" className="chip !h-9" aria-pressed={doc[k] === v} onClick={() => set(v)}>{c && <i className="w-2 h-2 rounded-full" style={{ background: c }} />}{l}</button>
@@ -176,6 +183,56 @@ function ImageField({ value, onChange }: { value: string; onChange: (v: string) 
           </label>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ---- Зургийн цомог: олон зураг нэг дор оруулах, дараалал солих, устгах, нүүр зураг болгох. Утга: ['media:<id>', ...] ---- */
+const GALLERY_MAX = 30;
+/** Цомгийн жижиг зураг: ulaanbaatar.mn-ийн эх зураг (2–5 МБ) бол /api/img-ээр жижигрүүлнэ (медиагийн фото сурвалжилга) */
+const galThumb = (key: string) => (/^https:\/\/ulaanbaatar\.mn\/files\//.test(key) ? `<img src="/api/img?w=240&u=${encodeURIComponent(key)}" alt="" loading="lazy">` : kit().Scene(key));
+function GalleryField({ value, onChange, cover, onCover, hint }: { value: string[]; onChange: (v: string[]) => void; cover?: string; onCover: (img: string) => void; hint?: Bi }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(0);
+  const upload = async (files: FileList | null) => {
+    const list = Array.from(files || []).filter((f) => f.type.startsWith('image/')).slice(0, Math.max(0, GALLERY_MAX - value.length));
+    if (!list.length) { if (value.length >= GALLERY_MAX) toast(L([`Хамгийн ихдээ ${GALLERY_MAX} зураг`, `At most ${GALLERY_MAX} photos`]), 'triangle-alert'); return; }
+    setBusy(list.length);
+    const keys: string[] = []; let big = 0;
+    for (const file of list) {   // нэг нэгээр: том зургийг жижигрүүлэхэд санах ой их ордог
+      try { const key = await uploadPhoto(file); if (key) keys.push(key); else big++; } catch (e) { toast(errMsg(e), 'triangle-alert'); }
+      setBusy((n) => n - 1);
+    }
+    setBusy(0);
+    if (keys.length) { onChange([...value, ...keys]); toast(L([`${keys.length} зураг орууллаа`, `${keys.length} photos uploaded`]), 'images'); }
+    if (big) toast(L([`${big} зураг хэт том байсан`, `${big} photos were too large`]), 'triangle-alert');
+  };
+  const move = (i: number, d: number) => { const a = [...value], j = i + d; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; onChange(a); };
+  const remove = (i: number) => onChange(value.filter((_, k) => k !== i));
+  return (
+    <div className="space-y-3">
+      {value.length > 0 && (
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {value.map((key, i) => (
+            <li key={key} className="adm-gal">
+              <Html className="scene rounded-lg aspect-[4/3]" html={galThumb(key)} />
+              {cover === key && <span className="adm-gal-cover"><Icon name="star" className="w-3.5 h-3.5" />{L(['Нүүр', 'Cover'])}</span>}
+              <div className="adm-gal-bar">
+                <button type="button" className="adm-gal-btn" title={L(['Урагш', 'Move left'])} aria-label={L(['Урагш', 'Move left'])} disabled={i === 0} onClick={() => move(i, -1)}><Icon name="arrow-left" className="w-4 h-4" /></button>
+                <button type="button" className="adm-gal-btn" title={L(['Хойш', 'Move right'])} aria-label={L(['Хойш', 'Move right'])} disabled={i === value.length - 1} onClick={() => move(i, 1)}><Icon name="arrow-right" className="w-4 h-4" /></button>
+                <button type="button" className="adm-gal-btn" title={L(['Нүүр зураг болгох', 'Use as cover'])} aria-label={L(['Нүүр зураг болгох', 'Use as cover'])} disabled={cover === key} onClick={() => onCover(key)}><Icon name="star" className="w-4 h-4" /></button>
+                <button type="button" className="adm-gal-btn ml-auto text-ubred" title={L(['Хасах', 'Remove'])} aria-label={L(['Хасах', 'Remove'])} onClick={() => remove(i)}><Icon name="trash-2" className="w-4 h-4" /></button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      <label className={`btn btn-sm btn-ghost cursor-pointer ${busy ? 'opacity-60 pointer-events-none' : ''}`}>
+        <Icon name="image-plus" className="w-4 h-4" />
+        {busy ? L([`Оруулж байна… (${busy})`, `Uploading… (${busy})`]) : L(['Зураг нэмэх (олныг нэг дор сонгож болно)', 'Add photos (select several at once)'])}
+        <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ''; }} />
+      </label>
+      <p className="text-[12.5px] text-muted">{L([`${value.length} / ${GALLERY_MAX} зураг.`, `${value.length} / ${GALLERY_MAX} photos.`])} {L(hint || ['Мэдээний доор цомог болж харагдана.', 'Shown as a gallery below the story.'])}</p>
     </div>
   );
 }

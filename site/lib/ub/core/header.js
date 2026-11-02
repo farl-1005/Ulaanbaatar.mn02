@@ -14,7 +14,11 @@ export const MENU = [
   { id: 'menu6', k: 'nav_about', sec: 'about', items: [
     { i: 'info', t: ['Хотын тухай', 'About the city'], d: ['Нийслэлийн товч танилцуулга, үндсэн баримт', 'The capital at a glance'], go: { sec: 'about' } },
     { i: 'network', t: ['Удирдлагын бүтэц', 'How the city is governed'], d: ['ИТХ, Засаг дарга, Тамгын газар, дүүргүүд', 'Council, Governor, City Hall, districts'], go: { sec: 'about', hl: 'leadership' } },
-    { i: 'history', t: ['Засаг захиргааны нэрийн түүх', 'A century of city administration'], d: ['1924 оноос хойших нэрийн өөрчлөлт', 'Every name since 1924'], go: { sec: 'about', hl: 'adminhist' } } ] },
+    { i: 'history', t: ['Засаг захиргааны нэрийн түүх', 'A century of city administration'], d: ['1924 оноос хойших нэрийн өөрчлөлт', 'Every name since 1924'], go: { sec: 'about', hl: 'adminhist' } },
+    { i: 'building-2', t: ['Харьяа байгууллагууд', 'City agencies'], d: ['Нийслэлийн харьяа газар, агентлагууд', 'Departments and agencies of the city'], go: { sec: 'about', hl: 'orgs' } },
+    // ulaanbaatar.mn-ийн «Хотын тухай» цэсний бусад хэсэг (хэрэглэгчдийн санал #20)
+    { i: 'users-round', t: ['Хотын дарга нар', 'Mayors of the city'], d: ['Нийслэлийн удирдлагууд түүхэнд', 'City leaders through history'], href: 'https://ulaanbaatar.mn/about/#MAYORS' },
+    { i: 'globe', t: ['Гадаад харилцаа', 'International relations'], d: ['Ах дүү хотууд, хамтын ажиллагаа', 'Sister cities and partnerships'], href: 'https://ulaanbaatar.mn/about/#INTERNATIONAL' } ] },
   { id: 'menu2', k: 'nav_news', sec: 'hub', items: [
     { i: 'newspaper', t: ['Бүх мэдээ', 'All news'], d: ['Хотын захиргаа, дүүрэг, байгууллагын мэдээ', 'From City Hall, districts and agencies'], go: { sec: 'hub', hub: 'news', cat: 'all', nt: 'all' } },
     { i: 'clock-3', t: ['Цаг үеийн мэдээ', 'Current news'], d: ['Нийслэлийн удирдлага, хотын өдөр тутмын мэдээ', 'Daily news from City Hall'], go: { sec: 'hub', hub: 'news', nt: 'time' } },
@@ -22,7 +26,8 @@ export const MENU = [
     { i: 'book-open', t: ['Хэвлэлийн тойм', 'Press review'], d: ['Ярилцлага, нийтлэл, хэвлэлд гарсан тойм', 'Interviews and articles from the press'], go: { sec: 'hub', hub: 'news', nt: 'review' } },
     { i: 'megaphone', t: ['Зар', 'Notices'], d: ['Хуваарь, хаалт, ажлын байр, мэдэгдэл', 'Schedules, closures, jobs, announcements'], go: { sec: 'hub', hub: 'news', cat: 'zar' } },
     { i: 'calendar-days', t: ['Арга хэмжээ', 'Events'], d: ['Хотод болох соёл, спорт, иргэний арга хэмжээ', 'Culture, sport and civic events'], go: { sec: 'events' } },
-    { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Live, фото сурвалжилга, постер, подкаст', 'Live, photo reports, posters, podcasts'], go: { sec: 'media' } } ] },
+    { i: 'clapperboard', t: ['Медиа', 'Media'], d: ['Live, фото сурвалжилга, постер, подкаст', 'Live, photo reports, posters, podcasts'], go: { sec: 'media' } },
+    { i: 'mic', t: ['Ярилцлага', 'Interviews'], d: ['Удирдлагууд, мэргэжилтнүүдтэй хийсэн ярилцлага', 'Conversations with officials and experts'], href: 'https://ulaanbaatar.mn/news-type/TALK' } ] },
   { id: 'menu3', k: 'nav_build', sec: 'projects', items: [
     { i: 'hard-hat', t: ['24 мега төсөл', '24 flagship projects'], d: ['Төсөл бүрийн гүйцэтгэл, төсөв, хугацаа', 'Progress, budget and timeline for each'], go: { sec: 'projects' } },
     { i: 'map-pinned', t: ['Газрын зураг', 'Map'], d: ['Бүх төслийг газрын зураг дээр', 'Every project on the map'], go: { sec: 'projects', focus: 'map' } } ] },
@@ -30,11 +35,18 @@ export const MENU = [
     { i: 'route', t: ['Амьдралын нөхцөл', 'Life events'], d: ['Хүүхэд төрөх, гэрлэх, бизнес эхлүүлэх үед хэрэгтэй бүх алхам', 'Every step for a new baby, marriage or a new business'], go: { sec: 'situations' } },
     { i: 'user-round', t: ['Иргэн', 'Residents'], d: ['Лавлагаа, тэтгэмж, төлбөр, бүртгэл', 'Certificates, benefits, payments, registration'], go: { sec: 'hub', hub: 'services', svc: 'citizen' } },
     { i: 'briefcase', t: ['Аж ахуйн нэгж', 'Businesses'], d: ['Зөвшөөрөл, тендер, газар эзэмшил', 'Permits, tenders, land use'], go: { sec: 'hub', hub: 'services', svc: 'business' } },
-    { i: 'monitor-smartphone', t: ['Цахим системүүд', 'E-services'], d: ['Хотын бүх цахим үйлчилгээ нэг дор', 'All city e-services in one place'], go: { sec: 'hub', hub: 'services', svc: 'esys' } } ] },
+    { i: 'monitor-smartphone', t: ['Цахим системүүд', 'E-services'], d: ['Хотын бүх цахим үйлчилгээ нэг дор', 'All city e-services in one place'], go: { sec: 'hub', hub: 'services', svc: 'esys' } },
+    { i: 'store', t: ['Үйлчилгээ эрхлэх бүртгэл', 'Business service registry'], d: ['Үйлчилгээ эрхлэгчийн цахим бүртгэл', 'Online registry for service providers'], href: 'https://service.ulaanbaatar.mn/home' },
+    { i: 'badge-dollar-sign', t: ['Нийслэлийн бонд', 'City bonds'], d: ['Улаанбаатар хотын бондын мэдээлэл', 'Ulaanbaatar municipal bonds'], href: 'https://ubbond.bdsec.mn/' },
+    { i: 'vote', t: ['Санал асуулга', 'Public consultation'], d: ['Иргэдийн санал асуулга (e-zasag.mn)', 'Citizen consultations (e-zasag.mn)'], href: 'https://e-zasag.mn' } ] },
   { id: 'menu5', k: 'nav_open', sec: 'transparency', items: [
     { i: 'scroll-text', t: ['Тогтоол', 'Resolutions'], d: ['Нийслэлийн ИТХ-ын тогтоолууд', 'City Council resolutions'], go: { sec: 'transparency', tr: 'res' } },
     { i: 'stamp', t: ['Захирамж, шийдвэр', 'Orders and decisions'], d: ['Засаг даргын захирамж, шийдвэрүүд', "The Governor's orders"], go: { sec: 'transparency', tr: 'ord' } },
-    { i: 'gavel', t: ['Тендер', 'Tenders'], d: ['Нээлттэй тендер, гэрээ, үр дүн', 'Open tenders, contracts, results'], go: { sec: 'transparency', tr: 'tender' } } ] },
+    { i: 'gavel', t: ['Тендер', 'Tenders'], d: ['Нээлттэй тендер, гэрээ, үр дүн', 'Open tenders, contracts, results'], go: { sec: 'transparency', tr: 'tender' } },
+    { i: 'zap', t: ['Нийслэлийн шуурхай', 'City operations meeting'], d: ['Шуурхай хуралдааны шийдвэр, үүрэг даалгавар', 'Decisions of the weekly operations meeting'], href: 'https://ulaanbaatar.mn/alert/#TASK' },
+    { i: 'wallet', t: ['Шилэн данс', 'Open budget'], d: ['Нийслэлийн төсвийн гүйцэтгэл, мэдээлэл', 'City budget execution and data'], href: 'https://ulaanbaatar.mn/shilenDans/budget-executive' },
+    { i: 'hand-coins', t: ['Иргэдийн төсөв', "Citizens' budget"], d: ['Төсвийг иргэдэд ойлгомжтойгоор', 'The budget explained for residents'], href: 'https://ulaanbaatar.mn/shilenDans/people-budget' },
+    { i: 'shield-check', t: ['Авлигын эсрэг шинэтгэл', 'Anti-corruption'], d: ['Хууль тогтоомж, сургалт, мэдээлэл', 'Laws, training and updates'], href: 'https://ulaanbaatar.mn/anti_corruption/#LEGAL' } ] },
   { id: 'menu4', k: 'nav_data', sec: 'data', items: [
     { i: 'activity', t: ['Бодит цагийн самбар', 'Live dashboard'], d: ['Агаар, түгжрэл, цаг агаар', 'Air, traffic and weather'], go: { sec: 'data' } },
     { i: 'chart-column', t: ['Статистик', 'Statistics'], d: ['Хүн ам, төсөв, нийгмийн үзүүлэлт', 'Population, budget, social indicators'], go: { sec: 'data', hl: 'pop' } } ] },

@@ -2,7 +2,7 @@
 /* Гар утас: доод мөрний цэс ба бүтэн дэлгэцийн цэс (drawer). Цэсийг src/core/bridge.js openMenu() / closeMenu() нээж хаана. */
 import { useEffect, useState } from 'react';
 import { A11yBtn, LangToggle, ThemeBtn } from './Header';
-import { Icon, LogoMark, itemAct, useUB, type UB } from '../ub';
+import { Icon, LogoMark, cssVars, itemAct, useUB, type UB } from '../ub';
 
 /** Доод мөр: идэвхтэйг (aria-current) src/core/header.js setActiveNav тэмдэглэнэ */
 export function BottomBar() {
@@ -63,6 +63,7 @@ function Drawer({ ub }: { ub: UB }) {
         <div className="grid grid-cols-1 gap-2">
           <button type="button" className="cta-pill cta-red !h-12 justify-center" data-act="report"><span className="cta-pill-ic" dangerouslySetInnerHTML={{ __html: ub.animIcon('siren', 'w-5 h-5') }} />{t('cta_report')}</button>
           <button type="button" className="cta-pill cta-blue !h-12 justify-center" data-act="vote"><span className="cta-pill-ic" dangerouslySetInnerHTML={{ __html: ub.animIcon('vote', 'w-5 h-5') }} />{t('cta_vote')}</button>
+          <button type="button" className="cta-pill !h-12 justify-center" style={cssVars({ '--cta': '8 122 78' })} data-act="complaint"><span className="cta-pill-ic"><Icon ub={ub} n="file-pen-line" c="w-5 h-5" /></span>{t('cta_complaint')}</button>
         </div>
         <div className="divide-y divide-line border-y border-line">
           {ub.menu().map((m, i) => {

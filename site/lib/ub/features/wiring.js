@@ -10,6 +10,7 @@ import { SQ, openSearch, searchGo, sqAddRecent, sqMove, sqRecent, sqRender } fro
 import { ALL_SVC, NEWS_BY, S, t } from '../core/state.js';
 import { PROJECTS } from '../data/projects.js';
 import { Chat, autoGrow, chatSend, paintChat, runAct, toggleChat } from './assistant.js';
+import { openComplaint } from './complaint.js';
 import { openLogin } from './dan-login.js';
 import { openDoc, openEvent, toggleSave } from './documents.js';
 import { openReport, openVote, submitErr } from './forms.js';
@@ -17,7 +18,7 @@ import { setLang } from './init.js';
 import { openMedia } from './media-player.js';
 import { renderMy, setMyTab } from './my-page.js';
 import { newsBack, openNews } from './news-reader.js';
-import { openAlert, openGov } from './season.js';
+import { openAlert, openGov } from './notices.js';
 import { openBooking, openService, stepApply, svcApply } from './services.js';
 import { MS, currentSec } from './shared.js';
 import { selectEv, setEvF, setEvView } from '../sections/events.js';
@@ -56,7 +57,6 @@ export function wireEvents() {
         break; }
       case 'search': openSearch(); break;
       case 'sq': SQ.q = d.v; SQ.idx = 0; $('#sq').value = d.v; sqRender(); $('#sq').focus(); break;
-      case 'sq-scope': SQ.scope = d.v; SQ.idx = 0; sqRender(); $('#sq').focus(); break;
       case 'sq-clear': SQ.q = ''; SQ.idx = 0; $('#sq').value = ''; sqRender(); $('#sq').focus(); break;
       case 'sq-recent-del': store.set('recentQ', sqRecent().filter((x) => x !== d.v)); sqRender(); break;
       case 'sq-ai': { const q = SQ.q.trim(); sqAddRecent(q); closeModal(true); toggleChat(true); if (q) setTimeout(() => chatSend(q), 420); break; }
@@ -70,6 +70,7 @@ export function wireEvents() {
       case 'go': go(Object.assign({}, d)); break;
       case 'report': closeMenu(); if (MODAL) closeModal(true); openReport(); break;
       case 'vote': closeMenu(); if (MODAL) closeModal(true); openVote(d.tab || 'poll', { topic: d.topic, gov: d.gov }); break;
+      case 'complaint': openComplaint(d.tab, d.id); break;   // өргөдөл, гомдол (features/complaint.js); data-tab="track" data-id: явцыг шалгах
       case 'ticker-close': { const tk = $('#ticker'); if (!reduced && tk.animate) tk.animate([{ height: tk.offsetHeight + 'px', opacity: 1 }, { height: '0px', opacity: 0 }], { duration: 280, easing: 'ease-in' }).finished.then(() => { S.tickerOn = false; renderReact(); }); else { S.tickerOn = false; renderReact(); } break; }
       case 'alert': openAlert(d.id); break;
       case 'notify': closeModal(); toast(t('notifyOn'), 'bell-ring'); break;

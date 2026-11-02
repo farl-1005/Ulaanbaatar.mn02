@@ -14,7 +14,7 @@ else
   docker compose exec -T app node -e "require('better-sqlite3')('/data/ub.sqlite').backup('/data/backup.sqlite').then(()=>console.log('db ok (SQLite)'))"
   docker compose exec -T app cat /data/backup.sqlite > "$TMP/backup.sqlite"; docker compose exec -T app rm -f /data/backup.sqlite
 fi
-docker compose exec -T app tar czf - -C /data uploads > "$TMP/uploads.tgz"
+docker compose exec -T app sh -c 'mkdir -p /data/uploads /data/media && tar czf - -C /data uploads media' > "$TMP/uploads.tgz"   # иргэдийн зураг, admin-ы видео, аудио
 tar czf "backups/ub-$STAMP.tgz" -C "$TMP" .
 rm -rf "$TMP"
 find backups -name 'ub-*.tgz' -mtime +30 -delete   # 30 хоногоос хуучныг устгана

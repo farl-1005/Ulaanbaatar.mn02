@@ -5,7 +5,7 @@
      cms          admin-ы засвар (col, id, body JSON)
      cms_log      admin-ы үйлдлийн түүх
      sessions     admin нэвтрэлт (token-ий sha256)
-     submissions  иргэдийн маягт (эрсдэл, санал, имэйл бүртгэл)
+     submissions  иргэдийн маягт (эрсдэл, санал, өргөдөл гомдол, имэйл бүртгэл)
      air_log      агаарын чанарын хэмжилт (IQAir) */
 import { OnModuleDestroy } from '@nestjs/common';
 
@@ -38,6 +38,10 @@ export abstract class Database implements OnModuleDestroy {
   abstract subList(): Promise<SubmissionRow[]>;
   abstract subGet(id: string): Promise<{ id: string; data: any } | null>;
   abstract subStatus(status: string, at: string, id: string): Promise<void>;
+  /** Бүтэн мөр (өргөдөл, гомдлын явц шалгах, admin-ы хариу) */
+  abstract subRow(id: string): Promise<SubmissionRow | null>;
+  /** Төлөв ба өгөгдлийг (хариу, төлвийн түүх) нэг дор шинэчилнэ */
+  abstract subUpdate(id: string, status: string, data: object, at: string): Promise<void>;
   abstract subDel(id: string): Promise<void>;
   abstract subNew(): Promise<number>;
   abstract emailExists(email: string): Promise<boolean>;

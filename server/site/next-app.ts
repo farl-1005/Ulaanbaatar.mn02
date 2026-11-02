@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DEV, SITE_APP } from '../config';
 
-/** Эдгээрийг Nest хариулна, бусдыг Next.js */
-const NEST_PATHS = /^\/(api|assets|admin|uploads|og|__dev)(\/|$)|^\/(sitemap\.xml|robots\.txt|favicon\.svg)$/;
+/** Эдгээрийг Nest хариулна, бусдыг Next.js. /media/<файл> (оруулсан видео, аудио) Nest-д, /media хуудас өөрөө Next.js-д. */
+const NEST_PATHS = /^\/(api|assets|admin|uploads|og|__dev)(\/|$)|^\/media\/.|^\/(sitemap\.xml|robots\.txt|favicon\.svg)$/;
 
 export async function serveSite(app: NestExpressApplication) {
   if (!DEV && !fs.existsSync(path.join(SITE_APP, '.next', 'BUILD_ID'))) {

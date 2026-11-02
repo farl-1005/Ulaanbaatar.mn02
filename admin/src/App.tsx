@@ -9,6 +9,7 @@ import { NAV, SCHEMA, View } from './schema';
 import { Spinner, Toaster } from './ui';
 import { Dashboard } from './views/Dashboard';
 import { Editor } from './views/Editor';
+import { Help } from './views/Help';
 import { Inbox } from './views/Inbox';
 import { ListView } from './views/ListView';
 import { Login } from './views/Login';
@@ -78,6 +79,7 @@ function Admin() {
   const content = view === 'inbox' ? <Inbox />
     : view === 'texts' ? <Texts />
     : view === 'settings' ? <Settings />
+    : view === 'help' ? <Help />
     : SCHEMA[view] ? <ListView key={view} col={view} onEdit={(id) => edit(view, id)} />
     : <Dashboard go={go} add={add} edit={edit} />;
   return (

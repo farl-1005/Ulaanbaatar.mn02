@@ -1,16 +1,19 @@
 import { Scene } from '../art/scene.js';
 import { closeMenu, renderReact } from '../core/bridge.js';
+import { mediaSrc } from '../core/cms.js';
 import { MENU, PRETTY, newsHref, newsUrl, urlNewsId } from '../core/header.js';
 import { HOME } from '../core/home.js';
 import { MODAL, closeModal } from '../core/modal.js';
 import { pageOf, urlPage } from '../core/pages.js';
+import { cleanHtml, hasText } from '../core/richtext.js';
 import { setRoute } from '../core/router.js';
 import { EN, L, NEWS_BY, S, t } from '../core/state.js';
 import { Lf, ago, fDate, hhmm, num } from '../core/time.js';
 import { NEWS, NEWS_SRC, RUB } from '../data/news.js';
 import { PROJECTS } from '../data/projects.js';
-import { newsProgress, renderSeason } from './season.js';
+import { newsProgress } from './notices.js';
 import { newsCard } from '../sections/hub.js';
+import { isAudioFile, mediaFile, videoEmbed, videoHost } from '../sections/media.js';
 /* ================= Мэдээ унших хуудас, 404 =================
    Харагдацыг React зурна: site/app/views/NewsView.tsx (#view-news), site/app/views/NotFoundView.tsx (#view-404).
    Өгөгдөл: newsPageData() (HOME.newsPage), notFoundData() (HOME.notFound). Товчнуудыг (news, news-back, nfb, print, copy-link ...) features/wiring.js барина. */
@@ -25,6 +28,12 @@ export function newsAction(n) {
   if (n.act === 'idea') return b('vote', 'message-square-plus', t('cta_vote'), { 'data-tab': 'idea', 'data-topic': 'plan' });
   if (n.act === 'poll') return b('vote', 'vote', t('vPoll'), { 'data-tab': 'poll' });
   return null;
+}
+/* Мэдээний бичлэг (admin): оруулсан файл (/media/<файл>) эсвэл YouTube / Facebook холбоос. Бусад холбоосыг товчоор нээнэ. */
+export function newsVideo(n) {
+  const file = mediaFile(n.video), href = !file && /^https?:\/\//.test(n.video || '') ? n.video : '';
+  if (!file && !href) return null;
+  return { file, audio: isAudioFile(file), embed: videoEmbed(href), href, host: videoHost(href), poster: mediaSrc(n.img) || (/^(assets|https:)/.test(n.img || '') ? n.img : '') };
 }
 /* ---- Мэдээний дэлгэрэнгүй хуудас (/news/<id>, сервергүй үед #news/<id>) ---- */
 export function openNews(id) {
@@ -77,7 +86,6 @@ export function renderNewsPage() {
   document.title = L(n.t) + ' · ulaanbaatar.mn';
   renderReact();
   newsProgress();
-  renderSeason(true);
 }
 /* React-д (site/app/views/NewsView.tsx): S.newsId мэдээг сонгосон хэлээр бэлэн текст болгоно. Мэдээ олдохгүй бол null. */
 export function newsPageData() {
@@ -92,18 +100,24 @@ export function newsPageData() {
   const latest = list.filter((x) => x.id !== n.id && !rel.includes(x)).slice(0, 4);
   const enOnlyMn = EN() && n.live;   // бодит мэдээний бүтэн текст зөвхөн монголоор байдаг
   const paras = (enOnlyMn ? (n.sumEn || []).map((x) => [x, x]) : (n.b || [])).map((p) => Lf(p));
+  // Admin-ы засварлагчаар бичсэн (форматтай) текст: сонгосон хэлнийх, хоосон бол нөгөө хэлнийх
+  const rich = Array.isArray(n.html) ? (EN() ? [n.html[1], n.html[0]] : [n.html[0], n.html[1]]).find(hasText) : '';
   const url = encodeURIComponent(newsUrl(n));
   const side = (x) => ({ id: x.id, title: L(x.t), ago: ago(x.ago || 0), views: num(x.views || 0), scene: x.img ? Scene(x.img) : '' });
   const nav = (x) => (x ? { id: x.id, title: L(x.t) } : null);
   return {
     id: n.id, cat: n.cat, title: L(n.t), lead: Lf(n.l), rub: L(r.t), rubColor: r.c, br: !!n.br, zar: n.zar ? L(RUB.zar.t) : '',
     when: n.ts ? fDate(n.ts, true) + ', ' + hhmm(n.ts) : ago(n.ago || 0), mins: String(newsMins(n)), views: num(n.views || 0),
-    img: n.img ? Scene(n.img) : '', photo: /^(assets|https:)/.test(n.img || ''),
+    img: n.img ? Scene(n.img) : '', photo: /^(assets|https:)/.test(n.img || '') ? 'site' : /^media:/.test(n.img || '') ? 'own' : '',
     enOnlyMn: !!enOnlyMn, sumEn: !!(n.sumEn && n.sumEn.length),
     // Эхний догол мөр: онцлох оршил (standfirst), бусад нь үндсэн текст. Ганц догол мөртэй бол энгийн текст.
-    intro: paras.length > 1 ? paras[0] : '', paras: paras.length > 1 ? paras.slice(1) : paras,
+    intro: rich ? '' : paras.length > 1 ? paras[0] : '', paras: rich ? [] : paras.length > 1 ? paras.slice(1) : paras,
+    html: rich ? cleanHtml(rich) : '',
+    gallery: (n.gallery || []).map((k) => mediaSrc(k)).filter(Boolean),
+    video: newsVideo(n),
     action: newsAction(n),
-    src: n.d ? { live: !!n.live, href: NEWS_SRC + n.id.slice(1) } : null,
+    // Эх сурвалж: ulaanbaatar.mn-ийн мэдээ (n<дугаар>) эсвэл admin-д оруулсан холбоос; admin-аас бичсэн мэдээнд байхгүй
+    src: /^n\d+$/.test(n.id) && n.d ? { live: !!n.live, href: NEWS_SRC + n.id.slice(1) } : /^https?:\/\//.test(n.src || '') ? { live: false, own: true, href: n.src } : null,
     fb: !!S.newsFb,
     share: { fb: 'https://www.facebook.com/sharer/sharer.php?u=' + url, x: 'https://x.com/intent/post?url=' + url + '&text=' + encodeURIComponent(L(n.t)) },
     older: nav(older), newer: nav(newer),

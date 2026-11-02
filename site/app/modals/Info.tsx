@@ -1,5 +1,5 @@
 'use client';
-/* Засаг даргын мэдээ (Gov) ба яаралтай мэдээлэл (Alert) цонх. Нээх: src/features/season.js openGov(i), openAlert(id).
+/* Засаг даргын мэдээ (Gov) ба яаралтай мэдээлэл (Alert) цонх. Нээх: lib/ub/features/notices.js openGov(i), openAlert(id).
    Өгөгдөл: ub.home.govModal(i), ub.home.alertModal(id). Товчнууд (data-act="vote" | "notify" | "modal-close")-ыг features/wiring.js барина. */
 import { Icon, type UB } from '../ub';
 import { ModalHead } from './parts';

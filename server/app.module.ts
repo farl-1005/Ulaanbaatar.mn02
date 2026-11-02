@@ -13,14 +13,16 @@ import { HealthController } from './health.controller';
 import { LiveModule } from './live/live.module';
 import { PagesModule } from './pages/pages.module';
 import { SiteModule } from './site/site.module';
+import { UploadsModule } from './uploads/uploads.module';
 
 /** Бүх модуль. Модуль бүр нэг үүрэгтэй:
      auth    admin нэвтрэлт            cms     admin-ы засвар          forms   иргэдийн маягт, ирсэн хүсэлт
      events  шууд мэдэгдэл (SSE)       live    цаг агаар, агаар, газрын зураг, зураг
      site    сайтыг бүтээх (src/)      pages   нүүр, /news/<id>, og зураг, sitemap
+     uploads видео, аудио оруулах, /media/<файл>
      database  PostgreSQL / SQLite     common  хурдны хязгаар, CSRF, алдааны хариу */
 @Module({
-  imports: [CommonModule, DatabaseModule, AuthModule, EventsModule, CmsModule, FormsModule, LiveModule, SiteModule, PagesModule],
+  imports: [CommonModule, DatabaseModule, AuthModule, EventsModule, CmsModule, FormsModule, LiveModule, UploadsModule, SiteModule, PagesModule],
   controllers: [HealthController],
   providers: [
     { provide: APP_GUARD, useClass: SameOriginGuard },

@@ -71,6 +71,10 @@ export class PostgresDatabase extends Database {
   async subList() { return this.all('SELECT id, kind, data, status, created_at, updated_at FROM submissions ORDER BY created_at DESC LIMIT 300'); }
   async subGet(id: string) { return this.one('SELECT id, data FROM submissions WHERE id = $1', [id]); }
   async subStatus(status: string, at: string, id: string) { await this.run('UPDATE submissions SET status = $1, updated_at = $2 WHERE id = $3', [status, at, id]); }
+  async subRow(id: string) { return this.one('SELECT id, kind, data, status, created_at, updated_at FROM submissions WHERE id = $1', [id]); }
+  async subUpdate(id: string, status: string, data: object, at: string) {
+    await this.run('UPDATE submissions SET status = $1, data = $2, updated_at = $3 WHERE id = $4', [status, JSON.stringify(data), at, id]);
+  }
   async subDel(id: string) { await this.run('DELETE FROM submissions WHERE id = $1', [id]); }
   async subNew() { return (await this.one("SELECT COUNT(*) AS n FROM submissions WHERE status = 'new'")).n; }
   async emailExists(email: string) { return !!(await this.one("SELECT 1 FROM submissions WHERE kind = 'digest' AND data->>'email' = $1", [email])); }

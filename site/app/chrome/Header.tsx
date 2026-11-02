@@ -43,12 +43,10 @@ function Actions({ ub }: { ub: UB }) {
   return (
     <>
       <button type="button" data-act="search" className="w-10 h-10 rounded-lg btn-navy grid place-items-center" aria-label={t('search')} title={`${t('search')} (Ctrl K)`}><Icon ub={ub} n="search" c="w-[18px] h-[18px]" /></button>
-      <div className="hidden sm:flex h-10 px-3 rounded-lg border border-line items-center gap-2.5 text-[13px] font-bold" role="group" aria-label="Language">
-        <button type="button" data-act="lang" data-v="mn" aria-pressed={s.lang === 'mn'} className={`transition-colors ${s.lang === 'mn' ? 'text-ink' : 'text-muted hover:text-ink'}`}>МН</button>
-        <span className="w-px h-4 bg-line" />
-        <button type="button" data-act="lang" data-v="en" aria-pressed={s.lang === 'en'} className={`transition-colors ${s.lang === 'en' ? 'text-ink' : 'text-muted hover:text-ink'}`}>EN</button>
-      </div>
-      <button type="button" className="sm:hidden h-10 min-w-[40px] px-2 rounded-lg border border-line text-[13px] font-bold" data-act="lang" data-v={other} aria-label={other === 'en' ? 'English' : 'Монгол'}>{other === 'en' ? 'EN' : 'МН'}</button>
+      {/* Хэл солих: гадаад иргэдэд тод харагдахуйц (хэрэглэгчдийн санал #1) — дэлхийн бөмбөрцөг + нөгөө хэлний нэр */}
+      <button type="button" className="h-10 px-2.5 sm:px-3 rounded-lg border border-line hover:bg-soft inline-flex items-center gap-1.5 text-[13.5px] font-semibold" data-act="lang" data-v={other} lang={other} aria-label={other === 'en' ? 'Switch to English' : 'Монгол хэл рүү шилжих'}>
+        <Icon ub={ub} n="globe" c="w-[18px] h-[18px] text-ubblue" /><span className="hidden sm:inline">{other === 'en' ? 'English' : 'Монгол'}</span><span className="sm:hidden">{other === 'en' ? 'EN' : 'МН'}</span>
+      </button>
       <span className="hidden md:inline-flex"><A11yBtn ub={ub} /></span>
       <span className="hidden md:inline-flex"><ThemeBtn ub={ub} /></span>
       <span className="hidden md:block"><UserBtn ub={ub} /></span>

@@ -87,7 +87,7 @@ function Breaking({ ub, d }: { ub: UB; d: HeroData }) {
   );
 }
 
-/** Засаг даргын мэдээ ба хоёр том товч (эрсдэл мэдээлэх, санал өгөх) */
+/** Засаг даргын мэдээ ба том товчнууд (эрсдэл мэдээлэх, санал өгөх, өргөдөл гомдол) */
 function Gov({ ub, d }: { ub: UB; d: HeroData }) {
   const { t, L } = ub;
   const anim = useMemo(() => ({ siren: { __html: ub.animIcon('siren', 'w-[26px] h-[26px]') }, vote: { __html: ub.animIcon('vote', 'w-[26px] h-[26px]') } }), [ub]);
@@ -119,6 +119,12 @@ function Gov({ ub, d }: { ub: UB; d: HeroData }) {
       <div className="grid gap-3 mt-4">
         {cta('report', 'cta-red', 'siren', t('cta_report'), t('reportDesc'), L(['24/7 · ~1 минут', '24/7 · ~1 min']))}
         {cta('vote', 'cta-blue', 'vote', t('cta_vote'), t('voteDesc'), L(['Таны санал хотыг өөрчилнө', 'Your voice shapes the city']))}
+        {/* Өргөдөл, гомдол (lib/ub/features/complaint.js): нам өндөртэй, ногоон (#087A4E бүх горимд) */}
+        <button type="button" className="cta-card group !flex-row !items-center gap-3 !p-4" style={cssVars({ '--cta': '8 122 78' })} data-act="complaint">
+          <span className="cta-ic !w-11 !h-11"><Icon ub={ub} n="file-pen-line" c="w-[22px] h-[22px]" /></span>
+          <span className="flex-1 min-w-0"><b className="block text-[16px] leading-tight tracking-[-0.01em]">{t('cta_complaint')}</b><span className="block mt-1 text-[12.5px] text-white/80 leading-snug">{t('complaintDesc')}</span></span>
+          <span className="cta-arrow"><Icon ub={ub} n="arrow-up-right" c="w-[18px] h-[18px]" /></span>
+        </button>
       </div>
     </>
   );

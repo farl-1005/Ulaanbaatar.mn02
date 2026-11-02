@@ -24,7 +24,6 @@ import { CMS, CMS_COLS, DEF, SET, applyOverlay, dayOffset, linesOf, mediaSrc, pa
 import { applyTheme } from './core/header.js';
 import { esc, ic, store } from './core/helpers.js';
 import { ALL_SVC, EN, L, S, parseUB, t } from './core/state.js';
-import { SEASON_IC, SEASON_L, seasonByDate } from './features/season.js';
 /* ================= Admin-д зориулсан сайтын хэрэгсэл (assets/kit.js) =================
    /admin (admin/ — тусдаа Next.js төсөл) урьдчилан харах карт, чимэглэл, иконыг сайттай яг адилхан зурахын тулд
    сайтын өөрийн функцуудыг ашиглана. Энэ файл зөвхөн kit.js-д орно (сайтын app.js-д биш): server/site/bundle-files.ts KIT_FILES.
@@ -44,7 +43,7 @@ window.UBKit = {
   /** Сайтын одоогийн төлөв (apply()-ын дараа засвартай нь) */
   state: () => ({
     RUB, ECAT, PCAT, NEWS_NT, GOV_TYPES, RAIL_THEMES, RAIL_THEME_L, ORG_CATS, RCAT, TOPICS, SITS, PROJECTS, ALL_SVC, QUICK, GOV,
-    HERO_ID, FEATURED_ID, SET, CHAT_CHIPS, SQ_POP, I, EVDESC, MEDIA_MAX, SEASON_L, SEASON_IC, season: seasonByDate(),
+    HERO_ID, FEATURED_ID, SET, CHAT_CHIPS, SQ_POP, I, EVDESC, MEDIA_MAX,
   }),
 
   /* ---- Сайтын карт, хэсэг (урьдчилан харах) ---- */

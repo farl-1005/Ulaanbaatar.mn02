@@ -1,7 +1,8 @@
 'use client';
 /* Медиа үзэгч (openMedia → openModal({ view: 'MediaPlayer', props: { i } })).
-   Бодит бичлэг (ulaanbaatar.mn): зүүн талд бараан «тайз» (Live видео / фото цомог / подкаст / постер), баруун талд мэдээлэл + «Бусад ...».
-   Жишээ бичлэг: тоглуулагч (Live, постер), цомог, подкаст — цаг гүйдэг.
+   Бодит бичлэг (ulaanbaatar.mn) ба admin-аас оруулсан бичлэг (файл, YouTube/Facebook холбоос, фото цомог):
+   зүүн талд бараан «тайз» (видео / фото цомог / аудио / подкаст / постер), баруун талд мэдээлэл + «Бусад ...». Файлыг <video> / <audio>-оор тоглуулна.
+   Жишээ бичлэг (файл, холбоосгүй): тоглуулагч (Live, постер), цомог, подкаст — цаг гүйдэг.
    Өгөгдөл: src/features/media-player.js mediaViewData(). Үзэгчийн төлөв (зураг, тоглуулж буй эсэх, томруулалт, цаг) энд. Хаах (modal-close)-ыг features/wiring.js барина. */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
 import { flushSync } from 'react-dom';
@@ -9,9 +10,14 @@ import { Icon, cssVars, type UB } from '../ub';
 
 interface Tx { close: string; play: string; pause: string; prev: string; next: string; live: string }
 interface LiveData {
-  i: number; live: true; type: string; color: string; icon: string; chip: string; title: string; date: string; views: string; photosN: string;
+  /** own: admin-аас оруулсан бичлэг (огноо, үзсэн тоо, ulaanbaatar.mn холбоосгүй) */
+  i: number; live: true; own: boolean; type: string; color: string; icon: string; chip: string; title: string; date: string; views: string; dur: string; photosN: string;
+  /** Тайз: video (файл / YouTube / Facebook), photo (цомог), audio (аудио файл), podcast (чимэглэл), poster */
+  stage: 'video' | 'photo' | 'audio' | 'podcast' | 'poster';
   body: string[]; empty: string; img: string; cover: string; amb: string; photos: { big: string; th: string }[];
-  embed: string; video: string; capIcon: string; cap: string; src: string; primary: { href: string; icon: string; label: string };
+  /** file: оруулсан видео / аудио (/media/<файл>), embed: YouTube / Facebook тоглуулагч, video: холбоос */
+  file: string; embed: string; video: string; capIcon: string; cap: string; src: string;
+  primary: { href: string; icon: string; label: string; download?: boolean } | null;
   rel: { i: number; scene: string; title: string; meta: string }[]; relHead: string;
   tx: Tx & { fs: string; zoomIn: string; zoomOut: string; hintIn: string; hintOut: string; copy: string; podCap: string };
 }
@@ -56,7 +62,7 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
   const s = ub.state(), lang = s.lang;
   const d = useMemo(() => ub.home.mediaView(i) as LiveData, [ub, i, lang]);
   const root = useRef<HTMLDivElement>(null), stage = useRef<HTMLDivElement>(null), strip = useRef<HTMLDivElement>(null), swapped = useRef(false);
-  const n = d.photos.length, isPhoto = d.type === 'photo' && n > 0;
+  const n = d.photos.length, isPhoto = d.stage === 'photo' && n > 0;
 
   /* «Бусад ...»: хуучныг бүдгэрүүлээд шинийг доороос гаргана (.mv key-гээр шинэ элемент болно) */
   const go = (k: number) => {
@@ -72,8 +78,8 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
     if (v && v.animate && !ub.state().reduced) v.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: EASE });
   }, [i, ub]);
 
-  const step = (dl: number) => { if (d.type === 'photo' && n > 1) setPh((p) => (p + dl + n) % n); };
-  useArrows(d.type === 'photo' && n > 1, step);
+  const step = (dl: number) => { if (isPhoto && n > 1) setPh((p) => (p + dl + n) % n); };
+  useArrows(isPhoto && n > 1, step);
   /* Зураг солигдоход: идэвхтэй жижиг зургийг голлуулж, дараагийнхыг урьдчилан ачаална */
   const phPrev = useRef(ph);
   useEffect(() => {
@@ -86,7 +92,7 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
     if (d.photos[ph + 1]) { const pre = new Image(); pre.src = d.photos[ph + 1].big; }
   }, [ph, isPhoto, d, ub]);
 
-  const mpToggle = () => { if (!d.embed) { if (d.video) window.open(d.video, '_blank', 'noopener'); return; } setPlaying(true); };
+  const mpToggle = () => { if (!d.embed && !d.file) { if (d.video) window.open(d.video, '_blank', 'noopener'); return; } setPlaying(true); };
   const fs = () => { const sg = stage.current; if (!sg) return; if (document.fullscreenElement) document.exitFullscreen(); else if (sg.requestFullscreen) sg.requestFullscreen().catch(() => {}); };
   /* Фото: хуруугаар гүйлгэх */
   const x0 = useRef<number | null>(null);
@@ -100,14 +106,17 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
   const ambImg = amb ? <img className="mv-amb" src={amb} alt="" aria-hidden="true" /> : null;
 
   let stageEl;
-  if (d.type === 'live') stageEl = (
+  if (d.stage === 'video') stageEl = (
     <div className="mv-stage" id="mv-stage" ref={stage}>{ambImg}{close}
       <div className="mv-frame">
-        {playing && d.embed
+        {playing && d.file
+          ? <video src={d.file} className="mv-iframe mv-video" controls autoPlay playsInline preload="metadata" poster={d.img || undefined} title={d.title} />
+          : playing && d.embed
           ? <iframe src={d.embed} className="mv-iframe" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen title={d.title} />
           : <>
             <div className="scene !absolute inset-0" dangerouslySetInnerHTML={{ __html: d.cover }} /><span className="mv-shade" />{d.img ? null : <span className="mcard-livebg" />}
-            <span className="mv-live"><span className="live" style={cssVars({ '--dot': '#fff' })} />{tx.live}</span>
+            {d.type === 'live' ? <span className="mv-live"><span className="live" style={cssVars({ '--dot': '#fff' })} />{tx.live}</span>
+              : <span className="mv-live"><Icon ub={ub} n={d.icon} c="w-4 h-4" />{d.chip}</span>}
             <button type="button" className="mv-play" onClick={mpToggle} aria-label={tx.play}><i /><i /><Icon ub={ub} n="play" c="w-9 h-9 ml-1" /></button>
             <span className="mv-cap"><Icon ub={ub} n={d.capIcon} c="w-4 h-4" />{d.cap}</span>
           </>}
@@ -130,11 +139,12 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
       </> : null}
     </div>
   );
-  else if (d.type === 'podcast') stageEl = (
-    <div className="mv-stage mv-pod" id="mv-stage" ref={stage}>{ambImg}{close}
+  else if (d.stage === 'audio' || d.stage === 'podcast') stageEl = (   // аудио файлтай бол пянз, эквалайзер зөвхөн тоглож байхад хөдөлнө
+    <div className={`mv-stage mv-pod ${d.stage === 'audio' && !playing ? 'is-paused' : ''}`} id="mv-stage" ref={stage}>{ambImg}{close}
       <div className="mv-disc"><span className="mv-vinyl" /><div className="scene mv-art" dangerouslySetInnerHTML={{ __html: d.cover }} /></div>
-      <p className="mv-pod-cap">{tx.podCap}</p>
+      <p className="mv-pod-cap">{d.type === 'podcast' ? tx.podCap : d.chip}</p>
       <div className="mv-eq" aria-hidden="true">{Array.from({ length: 24 }, (_, k) => <i key={k} style={cssVars({ '--k': k })} />)}</div>
+      {d.stage === 'audio' ? <audio className="mv-audio" src={d.file} controls preload="metadata" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} /> : null}
     </div>
   );
   else stageEl = (   // постер: дарж томруулна, курсорын байрлалаар гүйлгэнэ
@@ -162,17 +172,18 @@ function MediaLive({ ub, i0 }: { ub: UB; i0: number }) {
         </div>
         <h2 className="mv-t">{d.title}</h2>
         <div className="mv-meta">
-          <span><Icon ub={ub} n="calendar" c="w-4 h-4" />{d.date}</span>
-          <span className="tnum"><Icon ub={ub} n="eye" c="w-4 h-4" />{d.views}</span>
+          {d.date ? <span><Icon ub={ub} n="calendar" c="w-4 h-4" />{d.date}</span> : null}
+          {d.views ? <span className="tnum"><Icon ub={ub} n="eye" c="w-4 h-4" />{d.views}</span> : null}
+          {d.dur ? <span className="tnum"><Icon ub={ub} n={d.stage === 'audio' ? 'headphones' : 'clock-3'} c="w-4 h-4" />{d.dur}</span> : null}
           {isPhoto && d.photosN ? <span className="tnum"><Icon ub={ub} n="images" c="w-4 h-4" />{d.photosN}</span> : null}
         </div>
         <div className="mv-body thin-scroll">
           {d.body.length ? d.body.map((p, k) => <p key={k}>{p}</p>) : <p className="mv-empty">{d.empty}</p>}
         </div>
         <div className="mv-acts">
-          <a href={d.primary.href} target="_blank" rel="noopener" className="mv-btn mv-btn-p"><Icon ub={ub} n={d.primary.icon} c="w-[18px] h-[18px]" />{d.primary.label}</a>
+          {d.primary ? <a href={d.primary.href} target="_blank" rel="noopener" download={d.primary.download ? '' : undefined} className="mv-btn mv-btn-p"><Icon ub={ub} n={d.primary.icon} c="w-[18px] h-[18px]" />{d.primary.label}</a> : null}
           <button type="button" className="mv-btn mv-btn-i" onClick={() => ub.home.mediaCopy(d.i)} title={tx.copy} aria-label={tx.copy}><Icon ub={ub} n="link" c="w-[18px] h-[18px]" /></button>
-          {d.type === 'live' ? <a href={d.src} target="_blank" rel="noopener" className="mv-btn mv-btn-i" title="ulaanbaatar.mn" aria-label="ulaanbaatar.mn"><Icon ub={ub} n="external-link" c="w-[18px] h-[18px]" /></a> : null}
+          {d.type === 'live' && d.src ? <a href={d.src} target="_blank" rel="noopener" className="mv-btn mv-btn-i" title="ulaanbaatar.mn" aria-label="ulaanbaatar.mn"><Icon ub={ub} n="external-link" c="w-[18px] h-[18px]" /></a> : null}
         </div>
         {d.rel.length ? (
           <div className="mv-rel">

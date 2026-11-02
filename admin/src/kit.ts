@@ -17,7 +17,6 @@ export interface KitState {
   ORG_CATS: { id: string; t: Bi }[]; RCAT: Record<string, { t: Bi; i: string }>; TOPICS: [string, string, string][];
   SITS: any[]; PROJECTS: any[]; ALL_SVC: any[]; QUICK: string[]; GOV: string[]; HERO_ID: string; FEATURED_ID: string;
   SET: Record<string, any>; CHAT_CHIPS: Bi[]; SQ_POP: Bi[]; I: Record<string, Bi>; EVDESC: Record<string, Bi>; MEDIA_MAX: number;
-  SEASON_L: Record<string, Bi>; SEASON_IC: Record<string, string>; season: string;
 }
 export interface MapViewInstance { destroy(): void; recluster(keep?: boolean): void }
 

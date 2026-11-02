@@ -7,7 +7,6 @@ import { ALL_SVC, L, NEWS_BY, S, t } from '../core/state.js';
 import { Lf, ago, evDate, num } from '../core/time.js';
 import { EVENTS } from '../data/events.js';
 import { FEATURED_ID, HERO_ID, NEWS, RUB } from '../data/news.js';
-import { SEASON_L, seasonNow } from '../features/season.js';
 import { currentSec } from '../features/shared.js';
 import { evCard, evSort } from './events.js';
 import { rubTag } from './hero.js';
@@ -23,10 +22,8 @@ export const NEWS_STEP = 12;
 export function hubData() {
   const pg = S.route === 'page' ? S.page : null;
   const card = (n) => { const r = RUB[n.cat] || RUB.city; return { id: n.id, zar: !!n.zar, title: L(n.t), lead: Lf(n.l), scene: n.zar ? '' : Scene(n.img), rub: L(r.t), rubColor: r.c, ago: ago(n.ago), views: num(n.views) }; };
-  const s = seasonNow();
   const d = {
     hub: S.hub, page: pg === 'news' || pg === 'services' ? pg : null, zarLabel: L(RUB.zar.t),
-    season: SEASON_L[s] && s !== 'off' ? { s, fx: !reduced && !S.a11y } : null,   // улирлын мод, тоосонцор (features/season.js)
     cats: NEWS_CATS.map((c) => [c, c === 'all' ? t('f_all') : L(RUB[c].t), c === 'all' ? '' : RUB[c].c]), newsCat: S.newsCat,
     svcTab: S.svcTab, svcQ: S.svcQ, newsSort: S.newsSort, newsQ: S.newsQ,
   };

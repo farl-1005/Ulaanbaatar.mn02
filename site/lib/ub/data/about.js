@@ -21,11 +21,16 @@ export const ORGS = [
   { i: 'shield', t: ['Цагдаагийн газар', 'City Police'] },
   { i: 'hand-heart', t: ['Нийгмийн халамжийн газар', 'Social Welfare Department'] },
 ];
-/* Бодит харьяа байгууллагууд (build үед ulaanbaatar.mn/government-оос, server/sources/orgs.ts): ангилал, нэр, вэб сайт, лого */
+/* Бодит харьяа байгууллагууд (build үед ulaanbaatar.mn/government-оос, server/sources/orgs.ts): ангилал, нэр, вэб сайт, лого.
+   Эх сурвалж зөвхөн монголоор өгдөг тул ангилал, дүүргийн нэрсийн англи орчуулгыг энд нэмнэ (бусад нь монголоор харагдана). */
+const ORG_CAT_EN = { 'Монгол Улсын Нийслэл': 'Capital City', 'Дүүрэг': 'Districts', 'Хэрэгжүүлэгч агентлаг': 'Implementing agencies', 'Харьяа байгууллага': 'Affiliated organisations',
+  'ЗАА Харьяа байгууллага': 'Organisations under the Governor', 'Нийслэлийн өмчит төсөвт байгууллагууд': 'City-owned budget entities' };
+const DISTRICT_EN = { 'Багануур': 'Baganuur', 'Багахангай': 'Bagakhangai', 'Баянгол': 'Bayangol', 'Баянзүрх': 'Bayanzürkh', 'Налайх': 'Nalaikh', 'Сонгинохайрхан': 'Songinokhairkhan', 'Сүхбаатар': 'Sükhbaatar', 'Хан-Уул': 'Khan-Uul', 'Чингэлтэй': 'Chingeltei' };
+const orgEn = (t) => { const m = /^(\S+) дүүрэг$/.exec(String(t).trim()); return m && DISTRICT_EN[m[1]] ? DISTRICT_EN[m[1]] + ' District' : ''; };
 export const ORG_CATS = [];
 (function () {
   if (typeof LIVE_ORGS === 'undefined' || !LIVE_ORGS.orgs || !LIVE_ORGS.orgs.length) return;
-  ORG_CATS.push(...LIVE_ORGS.cats.map((c) => ({ id: c.id, t: [c.t, ''] })));
-  ORGS.splice(0, ORGS.length, ...LIVE_ORGS.orgs.map((o) => ({ id: 'org' + o.id, cat: o.cat, t: [o.t, ''], url: o.url, logo: o.logo, i: 'building-2' })));
+  ORG_CATS.push(...LIVE_ORGS.cats.map((c) => ({ id: c.id, t: [c.t, ORG_CAT_EN[String(c.t).trim()] || ''] })));
+  ORGS.splice(0, ORGS.length, ...LIVE_ORGS.orgs.map((o) => ({ id: 'org' + o.id, cat: o.cat, t: [o.t, orgEn(o.t)], url: o.url, logo: o.logo, i: 'building-2' })));
 })();
 

@@ -8,7 +8,6 @@ import { openLogin } from '../features/dan-login.js';
 import { siteTitle } from '../features/init.js';
 import { renderMy } from '../features/my-page.js';
 import { render404, renderNewsPage } from '../features/news-reader.js';
-import { renderSeason } from '../features/season.js';
 /* ================= Routing & scroll ================= */
 export function setRoute(r) {
   if (r === 'my' && !S.user) { openLogin(() => setRoute('my')); return; }
@@ -34,6 +33,5 @@ export function setRoute(r) {
     initTabs($('#view-home'));   // хуудсанд өөр хэлбэртэй байсан хэсгүүдийг нүүрнийх нь болгоно
     if ((was === 'news' || was === 'page') && S.homeY != null) window.scrollTo(0, S.homeY);   // нүүрний байрлалаа сэргээнэ
   }
-  if (r !== 'news') renderSeason(false);   // улирлын эффект зөвхөн мэдээ унших хуудсанд (if/else гинжийн ГАДНА)
   setActiveNav(r === 'my' ? 'my' : r === 'news' ? 'hub' : r === 'page' ? 'page' : 'hero');
 }

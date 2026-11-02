@@ -15,8 +15,7 @@ import { openReport, openVote } from '../features/forms.js';
 import { openNews } from '../features/news-reader.js';
 import { openService } from '../features/services.js';
 /* ================= Search (command palette) ================= */
-export let SQ = { q: '', idx: 0, items: [], scope: 'all', n: 0 };   // n: дахин зурах тоолуур (хөдөлгөөн)
-export const SQ_SCOPES = [['all', ['Бүгд', 'All'], 'search'], ['svc', ['Үйлчилгээ', 'Services'], 'layout-grid'], ['sit', ['Амьдралын нөхцөл', 'Life events'], 'route'], ['news', ['Мэдээ', 'News'], 'newspaper'], ['proj', ['Төсөл', 'Projects'], 'hard-hat'], ['ev', ['Арга хэмжээ', 'Events'], 'calendar-days']];
+export let SQ = { q: '', idx: 0, items: [], n: 0 };   // n: дахин зурах тоолуур (хөдөлгөөн)
 export const SQ_TYPE = { act: ['bg-ubred/10 text-ubred', ['Шуурхай үйлдэл', 'Quick actions']], svc: ['bg-ubblue/10 text-ubblue', ['Үйлчилгээ', 'Services']], sit: ['bg-ubred/10 text-ubred', ['Амьдралын нөхцөл', 'Life events']], news: ['bg-ubamber/15 text-amberink', ['Мэдээ', 'News']], proj: ['bg-ubgreen/15 text-greenink', ['Төсөл', 'Projects']], ev: ['bg-soft text-ink', ['Арга хэмжээ', 'Events']] };
 export const SQ_ACTS = [['report', ['Эрсдэл мэдээлэх', 'Report a hazard'], 'siren', 'эрсдэл мэдээлэх нүх эвдрэл гэрэлтүүлэг хог гоожсон аюул report hazard pothole'], ['vote', ['Санал өгөх', 'Have your say'], 'vote', 'санал асуулга хүсэлт vote poll suggestion'], ['my', ['Миний булан', 'My page'], 'circle-user-round', 'миний булан хүсэлт төлбөр хороо my page requests payments'], ['chat', ['AI туслахаас асуух', 'Ask the AI assistant'], 'sparkles', 'ai туслах асуух чат chat assistant help'], ['data', ['Агаарын чанар, түгжрэл', 'Air quality and traffic'], 'activity', 'агаар aqi утаа түгжрэл цаг агаар air traffic weather']];
 export const SQ_POP = [['Хүүхдийн мөнгө', 'Child benefit'], ['Халуун ус', 'Hot water'], ['Тендер', 'Tender'], ['Цэцэрлэг', 'Kindergarten'], ['Дүүжин зам', 'Cable car']];
@@ -59,27 +58,20 @@ export function searchData() {
   all.forEach((x) => { cnt[x.type] = (cnt[x.type] || 0) + 1; });
   const d = {
     q: SQ.q, idx: SQ.idx, n: SQ.n, ph: t('searchPh'), label: t('search'), close: t('close'),
-    scopes: SQ_SCOPES.map(([v, l, i]) => ({ v, i, label: L(l), on: SQ.scope === v, n: q ? String(v === 'all' ? all.length : cnt[v] || 0) : '' })),
     home: null, groups: [], none: null,
   };
   if (!q) {
     SQ.items = [];
-    const top = ['c2', 'c3', 'c4', 'c8'].map((id) => ALL_SVC.find((s) => s.id === id)).filter(Boolean);
-    d.home = {
-      recent: sqRecent(),
-      top: top.map((s) => ({ id: s.id, i: s.i, title: L(s.t), mode: s.m === 'off' ? t('inperson') : s.m === 'sys' ? t('system') : t('online') })),
-      pop: SQ_POP.map((p) => L(p)),
-      acts: SQ_ACTS.slice(0, 4).map(([v, l, i]) => ({ v, i, label: L(l) })),
-    };
+    d.home = { recent: sqRecent(), pop: SQ_POP.map((p) => L(p)) };   // энгийн: сүүлийн ба түгээмэл хайлт л
     return d;
   }
-  const list = (SQ.scope === 'all' ? all : all.filter((x) => x.type === SQ.scope)).slice(0, 24);
+  const list = all.slice(0, 24);
   SQ.items = list; if (SQ.idx >= list.length) SQ.idx = 0;
   d.idx = SQ.idx;
   if (!list.length) {
     d.none = {
       title: L([`«${q}» гэсэн хайлтаар илэрц олдсонгүй`, `No results for "${q}"`]),
-      hint: all.length && SQ.scope !== 'all' ? L(['Бусад ангилалд илэрц байна, «Бүгд»-ийг сонгоно уу.', 'There are matches in other categories; choose "All".']) : L(['Өөр үгээр хайх эсвэл AI туслахаас асууж болно.', 'Try other words, or ask the AI assistant.']),
+      hint: L(['Өөр үгээр хайх эсвэл AI туслахаас асууж болно.', 'Try other words, or ask the AI assistant.']),
     };
     return d;
   }
@@ -95,7 +87,7 @@ HOME.search = searchData;
 HOME.searchInput = (v) => { SQ.q = v; SQ.idx = 0; sqRender(); };
 /** Хулганаар мөр сонгох */
 HOME.searchHover = (k) => { if (k !== SQ.idx) { SQ.idx = k; renderReact(); } };
-/* Илэрцийг дахин зурна (features/wiring.js 'sq', 'sq-scope', 'sq-clear' ... дууддаг): мөрүүдийн sq-in хөдөлгөөн дахин тоглож, жагсаалт дээш гүйлгэгдэнэ */
+/* Илэрцийг дахин зурна (features/wiring.js 'sq', 'sq-clear' ... дууддаг): мөрүүдийн sq-in хөдөлгөөн дахин тоглож, жагсаалт дээш гүйлгэгдэнэ */
 export function sqRender() { SQ.n++; renderReact(); const rs = $('#sres'); if (rs) rs.scrollTop = 0; }
 export function sqMove(d) {
   const n = SQ.items.length; if (!n) return;
@@ -104,7 +96,7 @@ export function sqMove(d) {
 }
 export function openSearch(q = '') {
   closeMenu();
-  SQ = { q, idx: 0, items: [], scope: 'all', n: 0 };
+  SQ = { q, idx: 0, items: [], n: 0 };
   openModal({ size: 'search', top: true, label: t('search'), view: 'Search' });
 }
 export function sqAct(v) {

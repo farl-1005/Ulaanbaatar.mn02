@@ -39,7 +39,11 @@ export function Meta({ col, x }: { col: string; x: any }) {
     case 'projects': { const c = s.PCAT[x.c] || s.PCAT.transport; return <><span>{L(c.t)}</span><span>{k.bn(+x.bud || 0)}</span><span>{x.due || ''}</span></>; }
     case 'mediaitems': {
       const types: Record<string, Bi> = { video: ['Видео', 'Video'], live: ['Шууд', 'Live'], photo: ['Фото', 'Photo'], podcast: ['Подкаст', 'Podcast'], poster: ['Постер', 'Poster'] };
-      return <><span>{types[x.type] ? L(types[x.type]) : ''}</span>{x.url && <span className="inline-flex items-center gap-1"><Icon name="link" className="w-3.5 h-3.5" />{L(['холбоостой', 'linked'])}</span>}</>;
+      const dur = typeof x.dur === 'number' && x.dur > 0 ? `${Math.floor(x.dur / 60)}:${String(Math.round(x.dur % 60)).padStart(2, '0')}` : '';
+      return <><span>{types[x.type] ? L(types[x.type]) : ''}</span>
+        {x.file ? <span className="inline-flex items-center gap-1"><Icon name="file-video" className="w-3.5 h-3.5" />{L(['файлтай', 'uploaded'])}{dur && <span className="tnum">· {dur}</span>}</span>
+          : x.url ? <span className="inline-flex items-center gap-1"><Icon name="link" className="w-3.5 h-3.5" />{L(['холбоостой', 'linked'])}</span> : null}
+        {Array.isArray(x.photos) && x.photos.length > 0 && <span className="inline-flex items-center gap-1"><Icon name="images" className="w-3.5 h-3.5" />{x.photos.length}</span>}</>;
     }
     case 'sits': return <span>{(x.steps || []).length} {L(['алхам', 'steps'])}</span>;
     case 'govsched': {
@@ -74,7 +78,7 @@ export function Badges({ col, x }: { col: string; x: any }) {
     if (x.zar) b.push(['b-off', ['Зар', 'Notice']]);
     if (x.draft) b.push(['b-off', ['Ноорог', 'Draft']]);
   }
-  if (col === 'alerts') b.push(x.off ? ['b-mute', ['Нуусан', 'Hidden']] : ['b-on', ['Идэвхтэй', 'Active']]);
+  if (col === 'alerts') { const end = kit().parseUB(x.to); b.push(x.off ? ['b-mute', ['Нуусан', 'Hidden']] : end && end < kit().ubNow() ? ['b-mute', ['Дууссан', 'Ended']] : ['b-on', ['Идэвхтэй', 'Active']]); }
   if (x._new) b.push(['b-on', ['Шинэ', 'New']]);
   else if (x._edited) b.push(['b-blue', ['Засварласан', 'Edited']]);
   return <>{b.map(([c, l]) => <span key={l[0]} className={`badge ${c}`}>{L(l)}</span>)}</>;

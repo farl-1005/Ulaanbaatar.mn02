@@ -2,18 +2,25 @@
 /* Мэдээ унших хуудас (#view-news). Өгөгдөл: src/features/news-reader.js newsPageData() (HOME.newsPage).
    app.js ачаалагдахаас өмнө (useUB() === null) эсвэл мэдээний хуудас нээгдээгүй үед сервер бэлдсэн текстийг (children — JS-гүй робот уншина) хэвээр харуулна:
    сервер ба анхны client зураг ижил тул hydration зөрөхгүй. Товчнуудыг (news, news-back, nfb, print, copy-link, go, vote, report ...) features/wiring.js барина.
-   Уншилтын явц (#nprog, #nbody): features/season.js newsProgress(). */
-import type { ReactNode } from 'react';
+   Уншилтын явц (#nprog, #nbody): features/notices.js newsProgress(). */
+import { useEffect, useState, type ReactNode } from 'react';
 import { Icon, cssVars, useUB, type UB } from '../ub';
 import { Raw } from '../home/parts';
 
 interface Side { id: string; title: string; ago: string; views: string; scene: string }
+interface NewsVideoData { file: string; audio: boolean; embed: string; href: string; host: string; poster: string }
 interface NewsPage {
   id: string; cat: string; title: string; lead: string; rub: string; rubColor: string; br: boolean; zar: string;
-  when: string; mins: string; views: string; img: string; photo: boolean; enOnlyMn: boolean; sumEn: boolean;
+  when: string; mins: string; views: string; img: string; photo: '' | 'site' | 'own'; enOnlyMn: boolean; sumEn: boolean;
   intro: string; paras: string[];
+  /** Admin-ы засварлагчаар бичсэн, шүүсэн HTML (lib/ub/core/richtext.js) */
+  html: string;
+  /** Зургийн цомог (data URL) */
+  gallery: string[];
+  /** Бичлэг (admin): оруулсан файл (/media/<файл>) эсвэл YouTube / Facebook (news-reader.js newsVideo) */
+  video: NewsVideoData | null;
   action: { icon: string; label: string; attrs: Record<string, string> } | null;
-  src: { live: boolean; href: string } | null;
+  src: { live: boolean; own?: boolean; href: string } | null;
   fb: boolean;
   share: { fb: string; x: string };
   older: { id: string; title: string } | null; newer: { id: string; title: string } | null;
@@ -61,19 +68,22 @@ function NewsIn({ ub, d }: { ub: UB; d: NewsPage }) {
             </div>
             <Share ub={ub} d={d} />
           </div></div>
-          {d.img && <figure className="news-head-fig"><Raw className="scene aspect-[16/9] lg:aspect-[21/9]" html={d.img} /><figcaption className="news-cap"><Icon ub={ub} n="camera" c="w-3.5 h-3.5" />{d.photo ? L(['Зураг: ulaanbaatar.mn', 'Photo: ulaanbaatar.mn']) : L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>}
+          {d.img && <figure className="news-head-fig"><Raw className="scene aspect-[16/9] lg:aspect-[21/9]" html={d.img} /><figcaption className="news-cap"><Icon ub={ub} n="camera" c="w-3.5 h-3.5" />{d.photo === 'site' ? L(['Зураг: ulaanbaatar.mn', 'Photo: ulaanbaatar.mn']) : d.photo === 'own' ? L(['Зураг', 'Photo']) : L(['Зураг: чимэглэл', 'Image: illustration'])}</figcaption></figure>}
         </header>
 
         <div className="mt-6 lg:mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px] gap-6 lg:gap-10 xl:gap-12">
           <article id="nbody" className="min-w-0 w-full max-w-[760px] mx-auto lg:max-w-none lg:mx-0">
             {d.enOnlyMn && <p className="mb-6 rounded-xl bg-soft px-4 py-3 text-[14px] text-muted flex gap-2.5"><Icon ub={ub} n="languages" c="w-5 h-5 shrink-0" /><span>The full article is published in Mongolian only.{d.sumEn ? ' Below is an English summary.' : ''} <button type="button" className="font-semibold text-ink underline underline-offset-2" data-act="lang" data-v="mn">Read in Mongolian</button></span></p>}
             <div className="news-paper">
+              {d.video && <NewsVideo ub={ub} v={d.video} title={d.title} />}
               {d.intro && <p className="news-intro">{d.intro}</p>}
               {(d.intro || d.paras.length > 0) && <div className="news-text">{d.paras.map((p, i) => <p key={i}>{p}</p>)}</div>}
+              {d.html && <div className="news-text" dangerouslySetInnerHTML={{ __html: d.html }} />}
+              {d.gallery.length > 0 && <Gallery ub={ub} photos={d.gallery} title={d.title} />}
               {d.action && <button type="button" className="btn btn-ghost mt-6" {...d.action.attrs}><Icon ub={ub} n={d.action.icon} c="w-[18px] h-[18px]" />{d.action.label}</button>}
               {d.src && (
                 <div className="mt-8 rounded-[8px] border border-line p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <p className="flex gap-3 text-[14px] text-muted leading-relaxed"><Icon ub={ub} n="info" c="w-5 h-5 shrink-0" /><span>{d.src.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p>
+                  <p className="flex gap-3 text-[14px] text-muted leading-relaxed"><Icon ub={ub} n="info" c="w-5 h-5 shrink-0" /><span>{d.src.own ? L(['Энэ мэдээний эх сурвалж', 'Original source of this story']) : d.src.live ? L(['Эх сурвалж: Нийслэлийн Засаг даргын Тамгын газар, ulaanbaatar.mn', "Source: Capital City Governor's Office, ulaanbaatar.mn"]) : t('srcNote')}</span></p>
                   <a className="btn btn-sm btn-ghost shrink-0" href={d.src.href} target="_blank" rel="noopener"><Icon ub={ub} n="external-link" c="w-4 h-4" />{t('srcLink')}</a>
                 </div>
               )}
@@ -161,4 +171,66 @@ function SideItem({ ub, x, i }: { ub: UB; x: Side; i?: number }) {
       </button>
     </li>
   );
+}
+
+/** Мэдээний зургийн цомог: жижиг зургууд, дарахад бүтэн дэлгэцээр (сум, ←/→ товч, Esc) */
+function Gallery({ ub, photos, title }: { ub: UB; photos: string[]; title: string }) {
+  const { L } = ub;
+  const [open, setOpen] = useState<number | null>(null);
+  const n = photos.length, go = (d: number) => setOpen((i) => (i == null ? i : (i + d + n) % n));
+  useEffect(() => {
+    if (open == null) return;
+    const key = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.stopPropagation(); setOpen(null); }
+      else if (e.key === 'ArrowRight') go(1);
+      else if (e.key === 'ArrowLeft') go(-1);
+    };
+    document.addEventListener('keydown', key, true);   // capture: сайтын Esc (цонх хаах г.м.) ажиллахаас өмнө
+    const ov = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { document.removeEventListener('keydown', key, true); document.body.style.overflow = ov; };
+  }, [open]);   // eslint-disable-line react-hooks/exhaustive-deps
+  return (
+    <section className="news-gal mt-8" aria-label={L(['Зургийн цомог', 'Photo gallery'])}>
+      <h2 className="text-[15px] font-extrabold flex items-center gap-2"><Icon ub={ub} n="images" c="w-[18px] h-[18px] text-ubred" />{L(['Зургийн цомог', 'Photos'])} <span className="text-muted font-semibold tnum">{n}</span></h2>
+      <ul className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {photos.map((src, i) => (
+          <li key={i}><button type="button" className="news-gal-th" onClick={() => setOpen(i)} aria-label={L([`Зураг ${i + 1} / ${n}`, `Photo ${i + 1} of ${n}`])}>
+            <img src={src} alt="" loading="lazy" decoding="async" />
+          </button></li>
+        ))}
+      </ul>
+      {open != null && (
+        <div className="news-lb" role="dialog" aria-modal="true" aria-label={title} onMouseDown={(e) => { if (e.target === e.currentTarget) setOpen(null); }}>
+          <img src={photos[open]} alt={`${title} (${open + 1}/${n})`} />
+          <span className="news-lb-count tnum">{open + 1} / {n}</span>
+          <button type="button" className="news-lb-btn news-lb-x" onClick={() => setOpen(null)} aria-label={ub.t('close')} autoFocus><Icon ub={ub} n="x" /></button>
+          {n > 1 && <>
+            <button type="button" className="news-lb-btn news-lb-prev" onClick={() => go(-1)} aria-label={L(['Өмнөх', 'Previous'])}><Icon ub={ub} n="chevron-left" c="w-6 h-6" /></button>
+            <button type="button" className="news-lb-btn news-lb-next" onClick={() => go(1)} aria-label={L(['Дараах', 'Next'])}><Icon ub={ub} n="chevron-right" c="w-6 h-6" /></button>
+          </>}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** Мэдээний бичлэг: оруулсан файлыг шууд <video> / <audio>-оор, YouTube / Facebook-ийг дарахад л ачаална (хурд, гуравдагч талын cookie) */
+function NewsVideo({ ub, v, title }: { ub: UB; v: NewsVideoData; title: string }) {
+  const { L } = ub;
+  const [on, setOn] = useState(false);
+  if (v.file && v.audio) return (
+    <div className="news-audio"><Icon ub={ub} n="headphones" c="w-5 h-5 shrink-0 text-ubred" /><audio src={v.file} controls preload="metadata" title={title} /></div>
+  );
+  if (v.file) return <figure className="news-video"><video src={v.file} controls playsInline preload="metadata" poster={v.poster || undefined} title={title} /></figure>;
+  if (v.embed) return (
+    <figure className="news-video">
+      {on ? <iframe src={v.embed} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen title={title} />
+        : <button type="button" className="news-video-start" onClick={() => setOn(true)} aria-label={L(['Бичлэг тоглуулах', 'Play the video'])}>
+          {v.poster ? <img src={v.poster} alt="" loading="lazy" decoding="async" /> : null}
+          <span className="news-video-play"><Icon ub={ub} n="play" c="w-8 h-8 ml-1" /></span>
+          <span className="news-video-cap"><Icon ub={ub} n={v.host === 'YouTube' ? 'youtube' : 'facebook'} c="w-4 h-4" />{v.host} {L(['бичлэг', 'video'])}</span>
+        </button>}
+    </figure>
+  );
+  return <a className="btn btn-ghost mb-7" href={v.href} target="_blank" rel="noopener"><Icon ub={ub} n="circle-play" c="w-[18px] h-[18px]" />{L(['Бичлэг үзэх', 'Watch the video'])}</a>;
 }

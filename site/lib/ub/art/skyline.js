@@ -1,5 +1,4 @@
-import { $, $$, reduced } from '../core/helpers.js';
-import { S } from '../core/state.js';
+import { $ } from '../core/helpers.js';
 /* ================= Header skyline: monoline Ulaanbaatar =================
    Editorial line drawing in three weights: --sk-ink landmarks > --sk-ink2 ridges/blocks > --sk-ink3 hatching.
    Bogd Khan ridge, ger hills, Gandan temple, Blue Sky Tower, Government Palace, Zaisan ring.
@@ -76,9 +75,4 @@ export function watchSky(el) { if (el && 'IntersectionObserver' in window) new I
 export function setupSkyline() {
   const m = $('#hdr-scene');
   if (m && !m.dataset.built) { m.innerHTML = skylineSVG('skm'); m.dataset.built = '1'; watchSky(m); }
-  if (reduced || setupSkyline.bound) return;
-  setupSkyline.bound = true;
-  let tx = 0, cx = 0, raf = 0;
-  const loop = () => { cx += (tx - cx) * 0.06; $$('#hb-sky [data-depth]').forEach((l) => { l.style.transform = `translateX(${(cx * +l.dataset.depth).toFixed(2)}px)`; }); raf = Math.abs(tx - cx) > 0.03 ? requestAnimationFrame(loop) : 0; };
-  addEventListener('pointermove', (e) => { if (e.pointerType !== 'mouse' || scrollY > 220 || S.a11y) return; tx = (e.clientX / innerWidth - 0.5) * -16; if (!raf) raf = requestAnimationFrame(loop); }, { passive: true });
 }

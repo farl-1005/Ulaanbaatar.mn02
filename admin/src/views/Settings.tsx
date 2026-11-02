@@ -1,16 +1,20 @@
 'use client';
-/* Тохиргоо: нүүрний гол мэдээ, Засаг даргын мэдээ, улирлын эффект, түгээмэл үйлчилгээ, хайлт, AI туслахын санал. */
+/* Тохиргоо: нүүрний гол мэдээ, Засаг даргын мэдээ, түгээмэл үйлчилгээ, хайлт, AI туслахын санал, удирдлагын системийн нэр. */
 import { useState } from 'react';
 import { cms, errMsg, useCms } from '../cms';
 import { kit, L, st } from '../kit';
 import { Icon, useArmed, useToast } from '../ui';
 
+/** Удирдлагын системийн анхны нэр (Тохиргоо → «Удирдлагын системийн нэр»-ээр солино) */
+export const SYS_NAME: [string, string] = ['Удирдлагын систем', 'Content admin'];
+
 export function Settings() {
   const { data } = useCms(), toast = useToast(), { armed, confirm } = useArmed(), k = kit(), s = st();
   const news = cms.merged('news').filter((n) => !n.draft).sort((a, b) => (+(k.parseUB(b.d) || 0)) - (+(k.parseUB(a.d) || 0)));
   const [form, setForm] = useState(() => ({
-    heroId: s.HERO_ID, featuredId: s.FEATURED_ID, gov: s.GOV.slice(), tickerOn: s.SET.tickerOn !== false, season: s.SET.season || 'auto',
+    heroId: s.SET.heroId || '', featuredId: s.SET.featuredId || '', gov: s.GOV.slice(), tickerOn: s.SET.tickerOn !== false,
     quick: s.QUICK.slice(), chatChips: k.linesOf(s.CHAT_CHIPS), popSearch: k.linesOf(s.SQ_POP),
+    sysName: (s.SET.sysName as [string, string] | undefined) || SYS_NAME,
   }));
   const set = (p: Partial<typeof form>) => setForm((f) => ({ ...f, ...p }));
   const changed = Object.values(data).reduce((a, c) => a + Object.keys(c || {}).length, 0);
@@ -34,7 +38,8 @@ export function Settings() {
       toast(L(['Сайт анхны агуулгадаа буцлаа', 'The site is back to its original content']), 'rotate-ccw');
     } catch (e) { toast(errMsg(e), 'triangle-alert'); }
   };
-  const storyOptions = news.filter((n) => !n.zar).map((n) => <option key={n.id} value={n.id}>{L(n.t)}</option>);   // зар биш мэдээ
+  const storyOptions = [<option key="" value="">{L(['Автомат: хамгийн сүүлд нийтэлсэн мэдээ', 'Automatic: the most recently published story'])}</option>]
+    .concat(news.filter((n) => !n.zar).map((n) => <option key={n.id} value={n.id}>{L(n.t)}</option>));   // зар биш мэдээ
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
@@ -51,13 +56,6 @@ export function Settings() {
               <span className="text-[14px] leading-snug">{L(n.t)}</span>
             </label>
           ))}</div></div>
-        <div><span className="adm-label">{L(['Улирлын эффект (мэдээ унших хуудсанд)', 'Seasonal effect (news pages)'])}</span>
-          <div className="flex flex-wrap gap-2">{Object.keys(s.SEASON_L).map((v) => (
-            <button key={v} type="button" className="chip !h-9" aria-pressed={form.season === v} onClick={() => set({ season: v })}>
-              <Icon name={s.SEASON_IC[v]} className="w-4 h-4" />{L(s.SEASON_L[v])}{v === 'auto' && <span className="text-muted font-medium">· {L(s.SEASON_L[s.season])}</span>}
-            </button>
-          ))}</div>
-          <p className="mt-2 text-[12.5px] text-muted">{L(['«Автомат» нь огноогоор: 3–5 сар хавар, 6–8 зун, 9–11 намар, 12–2 өвөл.', '"Auto" follows the date: Mar–May spring, Jun–Aug summer, Sep–Nov autumn, Dec–Feb winter.'])}</p></div>
         <label className="flex items-center justify-between gap-4 rounded-xl border border-line px-4 py-3">
           <span><b className="block text-[14.5px]">{L(['Яаралтай анхааруулгын мөр', 'Urgent alert ticker'])}</b><span className="text-[13px] text-muted">{L(['Шар гүйдэг мөрийг сайт дээр харуулах', 'Show the yellow ticker on the site'])}</span></span>
           <input type="checkbox" className="adm-switch" checked={form.tickerOn} onChange={(e) => set({ tickerOn: e.target.checked })} />
@@ -78,6 +76,15 @@ export function Settings() {
       </div>
 
       <div className="lg:col-span-2 space-y-5">
+        <div className="card p-6 space-y-3">
+          <h2 className="text-[18px] font-extrabold">{L(['Удирдлагын системийн нэр', 'Admin system name'])}</h2>
+          <p className="text-[13px] text-muted">{L(['Зүүн талын цэс болон хөтчийн таб дээр харагдана.', 'Shown in the side menu and the browser tab.'])}</p>
+          {(['Монгол', 'English'] as const).map((ph, i) => (
+            <input key={ph} className="field" value={form.sysName[i]} placeholder={`${SYS_NAME[i]} (${ph})`}
+              onChange={(e) => { const v: [string, string] = [...form.sysName]; v[i] = e.target.value; set({ sysName: v }); }} />
+          ))}
+          <div className="flex justify-end"><button type="button" className="btn btn-sm btn-blue" onClick={save}><Icon name="check" className="w-4 h-4" />{L(['Хадгалах', 'Save'])}</button></div>
+        </div>
         <div className="card p-6">
           <h2 className="text-[18px] font-extrabold">{L(['Систем', 'System'])}</h2>
           <dl className="mt-4 space-y-3 text-[14px]">

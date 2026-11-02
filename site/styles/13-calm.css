@@ -1,0 +1,56 @@
+/* ================= Тайван загвар (хэрэглэгчдийн санал, 2026.11) =================
+   Мэдээлэл хүргэх сайт учир хэрэглэгч мэдээлэлдээ төвлөрөх ёстой: чимэглэлийн хөдөлгөөн, гэрэлтэлт, хулгана дагах эффектийг хасна,
+   онцлох зүйлийг цөөлж, үсгийн тодролыг бууруулж, мөр ба хайрцгийн хоорондох зайг нэмнэ.
+   Хэрэгтэй хөдөлгөөн (цонх нээгдэх/хаагдах, мэдэгдэл, яаралтай мэдээний мөр солигдох, таб солигдох) хэвээр. Энэ файл хамгийн сүүлд ачаалагдана. */
+
+/* ---- #4 Бичиглэл: мөр хоорондын зай, гарчгийн тодрол ---- */
+body { line-height: 1.6; }
+.h-section { font-size: clamp(26px, 2.5vw, 36px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.news-text { line-height: 1.9; }
+
+/* ---- #7 Чимэглэлийн тасралтгүй хөдөлгөөн: хотын зураг, медиа дэвсгэр, Засаг даргын туяа, гал, хуудасны толгой (улирлын эффектийг бүрэн хассан) ---- */
+.sk-bc, .sk-ping, .sk-gl, .sk-glow, .sk-drift, .sk-birds, .sk-star,
+.mb-blob, .mb-line, .mb-rings i, .sky b, .sky-c1, .sky-c2, .wx-ic, .sky i.rd,
+.gov-aur-a, .gov-aur-b, .gov-ring-a, .gov-ring-b, .gov-next.is-live::after,
+.fire-ign, .fire-o, .fire-m, .fire-i, .fire-glow, .fire-ember,
+.ai *, .cta-ic::before, .mcard-tall .mcard-play::before, .mv-play i, .mv-vinyl,
+.pg-aur, .pg-big, .dsun-glow, .tk-stripes, .mp-hero-img { animation: none !important; }
+.mb-rings, .mb-waves { display: none; }
+
+/* ---- #7 Гарч ирэх (entrance) хөдөлгөөн: хуудас ачаалахад бүх зүйл хөдлөхгүй ---- */
+.intro .hero-img, .intro .hero-fade, .logo-intro .logo-em > img, .logo-intro .logo-em::before, .logo-intro .logo-word, .logo-intro .logo-slogan,
+.gov-in .gov-rv, .gov-in .gov-mix-bar i, .media-in .mcard, .tr-in .tr-kpi, .tr-in .tr-row, .rail-intro,
+.pg-crumbs, .pg-main > div:first-child, .pg-links, .pg-stats > div, .pg-ic, .dclock, .mp-hero-in, .mp-kpis > div, #mp-cards .mpc, #org-grid .org-li,
+.na-grid > [data-na="1"], .mega-feat, .mega-item, .mv-info > *, .mv-ri { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
+
+/* ---- #7 Hover: өргөгдөх, томрох, гялбах, гэрэлтэхийн оронд зөвхөн хүрээ ба өнгө ---- */
+.lift:hover { transform: none !important; box-shadow: none !important; border-color: rgb(var(--c-ink) / .25) !important; }
+.lift:hover .zoom > svg, .zoom-on:hover .zoom > svg, .lift:hover .zoom > img, .zoom-on:hover .zoom > img, .rail-slide:hover .rail-img > svg, .rail-slide:hover .rail-img > img, .news-gal-th:hover img { transform: none !important; }
+.logo-btn:hover .logo-em::after, .logo-btn:focus-visible .logo-em::after, .mini-logo:hover .logo-em::after, .logo-em::after { animation: none !important; display: none; }
+.brk-head:hover .fire-body { transform: none; }
+.dock::before { display: none !important; }   /* хулганыг дагах гэрэл */
+
+/* ---- #3 Онцлох товч (Эрсдэл мэдээлэх, Санал өгөх): градиент, гялбаа, том дүрсгүй, энгийн ---- */
+.cta-card { padding: 16px; box-shadow: none !important; transform: none !important; }
+.cta-card::before, .cta-card::after, .cta-bg { display: none; }
+.cta-card:hover { filter: brightness(1.06); }
+.cta-ic { width: 44px; height: 44px; }
+.cta-pill::after { display: none; }
+.cta-pill:hover { transform: none; box-shadow: none; filter: brightness(1.06); }
+.btn-red, .btn-blue { box-shadow: none; }
+.btn:active, .icon-btn:active, .btn-navy:active { transform: none; }
+
+/* ---- #6 Шуурхай мэдээ: цагийн хэлхээ (timeline) биш энгийн жагсаалт ---- */
+.brk-item { padding-left: 0; border-bottom: 1px solid rgb(var(--c-line)); }
+.brk-item:last-child { border-bottom: 0; }
+.brk-item::before, .brk-dot { display: none; }
+.brk-time { position: static; display: block; width: auto; text-align: left; padding: 10px 10px 0; font-size: 12px; font-weight: 600; }
+.brk { padding-top: 2px; }
+
+/* ---- #5, #4 Хэсэг хоорондын зай ---- */
+#view-home > section + section { margin-top: 8px; }
+
+/* ---- #3, #5 Онцлох зүйлийн хэмжээ: гол мэдээний гарчиг, том CTA, түгээмэл үйлчилгээ ---- */
+#hero h1 { font-size: clamp(24px, 2.3vw, 32px); font-weight: 700; line-height: 1.2; letter-spacing: -0.015em; }
+.cta-card b { font-size: 16px; }
+.quick-rail .group:hover span { transform: none !important; }

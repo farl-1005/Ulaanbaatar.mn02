@@ -31,6 +31,7 @@ export const NAV: [View, string, Bi, string][] = [
   ['faq', 'bot', ['AI туслахын хариулт', 'Assistant answers'], 'struct'],
   ['texts', 'type', ['Гарчиг, текст', 'Headings & text'], 'sys'],
   ['settings', 'settings', ['Тохиргоо', 'Settings'], 'sys'],
+  ['help', 'circle-help', ['Гарын авлага', 'Guide'], 'sys'],
 ];
 export const NAV_GROUPS: Record<string, Bi> = { content: ['Агуулга', 'Content'], about: ['Хотын тухай', 'About the city'], struct: ['Бүтэц, ангилал', 'Structure'], sys: ['Систем', 'System'] };
 export const navLabel = (v: View) => (NAV.find((n) => n[0] === v) || NAV[0])[2];
@@ -42,6 +43,9 @@ export const RECIPES: Record<string, Bi> = { skyline: ['Хот', 'City'], road: 
 /** Чимэглэлийн өнгөний хослол */
 export const PALETTES: Record<string, [string, string]> = { day: ['#9FD0FF', '#E9F5FF'], dawn: ['#FFD3BD', '#9A6274'], dusk: ['#1A2768', '#F28A66'], night: ['#060D29', '#FFCF6B'], winter: ['#CADDF2', '#F6FAFE'], green: ['#BDE7D6', '#2D7859'], civic: ['#F6CAC4', '#78293A'], navy: ['#0B1D45', '#27428A'], smog: ['#B9AE9C', '#5C554D'] };
 /** Сайтын хэсгүүд (цэс, баннерын очих газар) */
+/** Хугацааны нэгж (амьдралын нөхцөлийн алхам): тоо + нэгж (хэрэглэгчдийн санал #12: хугацааг текстээр биш) */
+export const TIME_UNITS: [string, Bi][] = [['min', ['минут', 'min']], ['hour', ['цаг', 'hours']], ['day', ['хоног', 'days']], ['wday', ['ажлын өдөр', 'working days']]];
+
 export const SECTIONS: [string, Bi][] = [['hero', ['Нүүр', 'Home']], ['hub', ['Мэдээ, үйлчилгээ', 'News & services']], ['situations', ['Амьдралын нөхцөл', 'Life events']], ['media', ['Медиа', 'Media']], ['projects', ['Бүтээн байгуулалт', 'Development']], ['data', ['Хотын өгөгдөл', 'City data']], ['events', ['Арга хэмжээ', 'Events']], ['transparency', ['Ил тод байдал', 'Transparency']], ['about', ['Хотын тухай', 'About']], ['gov', ['Засаг дарга', 'The Governor']]];
 
 /** Холбоосын очих газрууд: сайтын хэсэг, анхны цэсний холбоос, амьдралын нөхцөл, ил тод байдлын таб. [JSON, нэр] */
@@ -58,7 +62,7 @@ export function destinations(): [string, string][] {
 
 /* ---- Маягтын талбар ---- */
 export type FieldType = 'bi' | 'bitext' | 'chips' | 'select' | 'number' | 'range' | 'date' | 'time' | 'datetime' | 'url' | 'text' | 'dest'
-  | 'color' | 'rows' | 'flags' | 'icon' | 'iconsel' | 'image' | 'logo' | 'mappos';
+  | 'color' | 'rows' | 'flags' | 'icon' | 'iconsel' | 'image' | 'logo' | 'mappos' | 'richtext' | 'gallery' | 'mediafile' | 'video';
 export interface FieldOpts {
   req?: boolean; rows?: number; empty?: boolean; def?: string;
   /** chips, select: [утга, нэр, өнгө?] */
@@ -67,6 +71,10 @@ export interface FieldOpts {
   flags?: [string, Bi][];
   /** rows: давтагдах мөрийн талбарууд */
   sub?: Field[]; add?: Bi; blank?: () => Record<string, unknown>;
+  /** Энэ нөхцөлд л талбарыг харуулна (жишээ нь медиагийн төрлөөр) */
+  when?: (doc: Record<string, any>) => boolean;
+  /** Талбарын доорх тайлбар (gallery) */
+  hint?: Bi;
 }
 /** [түлхүүр, төрөл, нэр, тохиргоо] */
 export type Field = [string, FieldType, Bi, FieldOpts?];
@@ -90,18 +98,20 @@ export const SCHEMA: Record<string, Collection> = {
   news: { icon: 'newspaper', one: ['мэдээ', 'story'], idp: 'n', title: (x) => L(x.t), fields: [
     ['t', 'bi', ['Гарчиг', 'Headline'], { req: true }],
     ['l', 'bitext', ['Товч агуулга', 'Summary'], { rows: 3 }],
-    ['bt', 'bitext', ['Үндсэн текст (догол мөрийг хоосон мөрөөр тусгаарлана)', 'Body (separate paragraphs with a blank line)'], { rows: 6 }],
+    ['html', 'richtext', ['Үндсэн текст', 'Body']],
     ['cat', 'chips', ['Ангилал', 'Category'], { options: () => Object.entries(st().RUB).map(([k, r]) => [k, L(r.t), r.c]) }],
     ['nt', 'chips', ['Мэдээний төрөл', 'News type'], { options: () => Object.entries(st().NEWS_NT).map(([k, l]) => [k, L(l)]) }],
-    ['img', 'image', ['Зураг', 'Image']],
+    ['img', 'image', ['Нүүр зураг', 'Cover image']],
+    ['gallery', 'gallery', ['Зургийн цомог', 'Photo gallery']],
+    ['video', 'video', ['Бичлэг (видео файл эсвэл YouTube, Facebook холбоос)', 'Video (file or YouTube, Facebook link)']],
     ['d', 'datetime', ['Нийтэлсэн огноо', 'Published']],
     ['flags', 'flags', ['Байршил ба төлөв', 'Placement and status'], { flags: [['br', ['Шуурхай мэдээнд харуулах', 'Show in the latest feed']], ['zar', ['Зар хэлбэрээр харуулах', 'Show as a notice']], ['draft', ['Ноорог (сайтад гарахгүй)', 'Draft (hidden from the site)']]] }],
     ['src', 'url', ['Эх сурвалжийн холбоос', 'Source link']],
-    ['views', 'number', ['Үзэлт', 'Views']],
   ] },
   alerts: { icon: 'siren', one: ['анхааруулга', 'alert'], idp: 'a', title: (x) => L(x.k), fields: [
     ['k', 'bi', ['Гарчиг', 'Label'], { req: true }], ['t', 'bi', ['Гүйдэг мөрийн текст', 'Ticker text'], { req: true }],
-    ['area', 'bi', ['Хамрах хүрээ', 'Affected area']], ['when', 'bi', ['Хугацаа', 'When']], ['adv', 'bitext', ['Зөвлөмж', 'Advice'], { rows: 2 }],
+    ['area', 'bi', ['Хамрах хүрээ', 'Affected area']],
+    ['from', 'datetime', ['Эхлэх хугацаа', 'Starts']], ['to', 'datetime', ['Дуусах хугацаа (өнгөрмөгц сайтаас автоматаар алга болно)', 'Ends (hidden from the site automatically afterwards)']], ['adv', 'bitext', ['Зөвлөмж', 'Advice'], { rows: 2 }],
     ['i', 'icon', ['Тэмдэг', 'Icon']], ['flags', 'flags', ['Төлөв', 'Status'], { flags: [['off', ['Түр нуух', 'Hide for now']]] }],
   ] },
   events: { icon: 'calendar-days', one: ['арга хэмжээ', 'event'], idp: 'e', title: (x) => L(x.t), fields: [
@@ -119,19 +129,21 @@ export const SCHEMA: Record<string, Collection> = {
     ['m', 'chips', ['Хэлбэр', 'Mode'], { options: modes }], ['i', 'icon', ['Тэмдэг', 'Icon']],
   ] },
   mediaitems: { icon: 'clapperboard', one: ['медиа', 'media item'], idp: 'm', title: (x) => L(x.t), fields: [
-    ['t', 'bi', ['Гарчиг', 'Title'], { req: true }], ['d', 'bi', ['Дэд гарчиг', 'Subtitle']],
-    ['type', 'chips', ['Төрөл', 'Type'], { options: () => [['live', 'Live'], ['photo', L(['Фото сурвалжилга', 'Photo report'])], ['poster', L(['Постер', 'Poster'])], ['podcast', L(['Подкаст', 'Podcast'])]], def: 'live' }],
+    // Үргэлжлэх хугацааг оруулсан файлаас автоматаар (dur, секунд), зургийн тоог цомгоос авна. Төрөлд хамааралгүй талбар нуугдана.
+    ['t', 'bi', ['Гарчиг', 'Title'], { req: true }], ['d', 'bi', ['Дэд гарчиг (заавал биш)', 'Subtitle (optional)']],
+    ['type', 'chips', ['Төрөл', 'Type'], { options: () => [['live', L(['Live, видео', 'Live, video'])], ['photo', L(['Фото сурвалжилга', 'Photo report'])], ['poster', L(['Постер', 'Poster'])], ['podcast', L(['Подкаст', 'Podcast'])]], def: 'live' }],
     ['img', 'image', ['Нүүр зураг', 'Cover image']],
-    ['url', 'url', ['Бичлэгийн холбоос (YouTube, Facebook г.м.). Бөглөвөл дарахад тэр рүү шилжинэ.', 'Link to the video or audio (YouTube etc.). If set, clicking opens it.']],
-    ['dur', 'text', ['Үргэлжлэх хугацаа (видео, подкаст), жишээ 12:34', 'Duration (video, podcast), e.g. 12:34']],
-    ['n', 'number', ['Зургийн тоо (фото)', 'Number of photos (photo)']], ['ep', 'text', ['Дугаар (подкаст), жишээ #25', 'Episode (podcast), e.g. #25']], ['viewers', 'number', ['Үзэгчдийн тоо (шууд)', 'Viewers (live)']],
+    ['photos', 'gallery', ['Зургууд', 'Photos'], { when: (x) => x.type === 'photo', hint: ['Сайт дээр цомог болж харагдана, зургийн тоо автоматаар.', 'Shown as a gallery on the site; the photo count is automatic.'] }],
+    ['file', 'mediafile', ['Бичлэг оруулах (видео, аудио)', 'Upload a recording (video, audio)'], { when: (x) => x.type !== 'photo' }],
+    ['url', 'url', ['Эсвэл бичлэгийн холбоос (YouTube, Facebook г.м.)', 'Or a link to the recording (YouTube, Facebook etc.)'], { when: (x) => x.type !== 'photo' }],
+    ['ep', 'text', ['Дугаар, жишээ #25', 'Episode, e.g. #25'], { when: (x) => x.type === 'podcast' }],
     ORD,
   ] },
   sits: { icon: 'route', one: ['амьдралын нөхцөл', 'life event'], idp: 'sit', title: (x) => L(x.t), fields: [
     ['t', 'bi', ['Нэр', 'Name'], { req: true }], ['i', 'icon', ['Тэмдэг', 'Icon']],
-    ['steps', 'rows', ['Алхмууд', 'Steps'], { add: ['Алхам нэмэх', 'Add a step'], blank: () => ({ m: 'on', t: ['', ''], d: ['', ''], tm: ['', ''] }), sub: [
+    ['steps', 'rows', ['Алхмууд', 'Steps'], { add: ['Алхам нэмэх', 'Add a step'], blank: () => ({ m: 'on', t: ['', ''], d: ['', ''], tmN: 10, tmU: 'min' }), sub: [
       ['t', 'bi', ['Алхмын нэр', 'Step name']], ['d', 'bitext', ['Тайлбар', 'Description']],
-      ['m', 'select', ['Хэлбэр', 'Mode'], { options: modes }], ['tm', 'bi', ['Хугацаа, жишээ 10 минут', 'Time, e.g. 10 min']]] }],
+      ['m', 'select', ['Хэлбэр', 'Mode'], { options: modes }], ['tmN', 'number', ['Хугацаа', 'Duration']], ['tmU', 'select', ['Нэгж', 'Unit'], { options: () => TIME_UNITS.map(([v, l]) => [v, L(l)]) }]] }],
     ORD,
   ] },
   docs: { icon: 'scroll-text', one: ['баримт бичиг', 'document'], idp: 'doc', title: (x) => L(x.t), fields: [
@@ -174,7 +186,7 @@ export const SCHEMA: Record<string, Collection> = {
   ] },
   menu: { icon: 'menu', one: ['цэсийн бүлэг', 'menu group'], idp: 'menu', title: (x) => (x.lbl && L(x.lbl)) || (x.k ? kit().t(x.k, { n: st().PROJECTS.length }) : ''), fields: [
     ['lbl', 'bi', ['Цэсийн нэр (хоосон бол «Гарчиг, текст» хэсгийн утгыг ашиглана)', 'Menu label (empty = the value from "Headings & text")']],
-    ['sec', 'chips', ['Дарахад очих хэсэг', 'Section it scrolls to'], { options: () => SECTIONS.map(([v, l]) => [v, L(l)]), def: 'hub' }],
+    ['sec', 'chips', ['Цэс дээр дарахад нээгдэх хуудас', 'Page opened when the menu is clicked'], { options: () => [['hero', L(['Хуудасгүй (зөвхөн холбоосууд)', 'None (links only)'])] as [string, string]].concat(SECTIONS.filter(([v]) => v !== 'hero').map(([v, l]) => [v, L(l)])), def: 'hero' }],
     ['items', 'rows', ['Холбоосууд', 'Links'], { add: ['Холбоос нэмэх', 'Add a link'], blank: () => ({ i: 'file-text', t: ['', ''], d: ['', ''], go: { sec: 'hub' } }), sub: [
       ['t', 'bi', ['Нэр', 'Name']], ['d', 'bi', ['Тайлбар', 'Description']], ['i', 'iconsel', ['Тэмдэг', 'Icon']],
       ['go', 'dest', ['Сайт доторх хэсэг', 'Page section']], ['href', 'url', ['Эсвэл гадаад холбоос (бөглөвөл түүнийг ашиглана)', 'Or an external link (used if set)']]] }],
@@ -210,8 +222,8 @@ export const ubStamp = (d: Date) => `${isoDay(d)} ${kit().hhmm(d)}`;
 export function blankDoc(col: string): Record<string, any> {
   const k = kit(), now = k.ubNow(), tomorrow = isoDay(k.addDays(k.today(), 1));
   const special: Record<string, Record<string, any>> = {
-    news: { t: ['', ''], l: ['', ''], bt: ['', ''], cat: 'city', d: ubStamp(now), img: randomImage(), br: 1, views: 0 },
-    alerts: { k: ['', ''], t: ['', ''], area: ['', ''], when: ['', ''], adv: ['', ''], i: 'triangle-alert' },
+    news: { t: ['', ''], l: ['', ''], html: ['', ''], gallery: [], cat: 'city', d: ubStamp(now), img: randomImage(), br: 1, views: 0 },
+    alerts: { k: ['', ''], t: ['', ''], area: ['', ''], from: '', to: '', adv: ['', ''], i: 'triangle-alert' },
     events: { t: ['', ''], c: 'civic', date: tomorrow, tm: '18:00', v: ['', ''], price: 0, desc: ['', ''], img: randomImage('civic'), x: 560, y: 285 },
     projects: { n: ['', ''], c: 'transport', p: 0, bud: 0, due: now.getFullYear() + 1, x: 560, y: 300 },
     services: { t: ['', ''], d: ['', ''], g: 'citizen', m: 'on', i: 'file-text' },
@@ -229,10 +241,23 @@ export function blankDoc(col: string): Record<string, any> {
     else if (type === 'image') d.img = randomImage();
     else if (type === 'date') d[key] = o.empty ? '' : isoDay(k.today());
     else if (type === 'dest') d[key] = { sec: 'hub' };
-    else if (key === 'ord') d.ord = cms.merged(col).reduce((m, x) => Math.max(m, +x.ord || 0), 0) + 10;
+    // Дараалал: медиа хамгийн эхэнд (шинэ бичлэг эхэнд харагдана, хэрэглэгчдийн санал #10), бусад нь хамгийн сүүлд
+    else if (key === 'ord') d.ord = col === 'mediaitems' ? cms.merged(col).reduce((m, x) => Math.min(m, +x.ord || 0), 10) - 10 : cms.merged(col).reduce((m, x) => Math.max(m, +x.ord || 0), 0) + 10;
   });
   if (col === 'rubrics') d.chip = 1;
   return d;
+}
+
+const escHtml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+/** Хуучин энгийн текст (догол мөрийг хоосон мөрөөр тусгаарласан) → засварлагчийн HTML */
+function parasToHtml(text: unknown): string {
+  return String(text || '').split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${escHtml(p).replace(/\n/g, '<br>')}</p>`).join('');
+}
+/** Засварлагчийн HTML → энгийн текст: догол мөр, гарчиг, жагсаалтын мөр бүр хоосон мөрөөр тусгаарлагдана */
+function htmlToParas(html: unknown): string {
+  const root = new DOMParser().parseFromString(`<div>${String(html || '')}</div>`, 'text/html').body.firstElementChild!;
+  return Array.from(root.querySelectorAll('p, h2, h3'))
+    .map((el) => { const t = (el.textContent || '').trim(); return t && (el.parentElement?.tagName === 'LI' ? '• ' : '') + t; }).filter(Boolean).join('\n\n');
 }
 
 /** Жагсаалтын бичлэгийг засахад бэлдэнэ (мэдээний догол мөрийг нэг текст болгох г.м.) */
@@ -241,6 +266,8 @@ export function docForEdit(col: string, x: any): Record<string, any> {
   delete d._edited; delete d._new;
   if (col === 'news') {
     if (!d.bt && Array.isArray(d.b)) d.bt = [d.b.map((p: Bi) => p[0]).join('\n\n'), d.b.map((p: Bi) => p[1]).join('\n\n')];
+    if (!Array.isArray(d.html)) d.html = [parasToHtml(d.bt?.[0]), parasToHtml(d.bt?.[1])];   // хуучин энгийн текстийг засварлагчид
+    if (!Array.isArray(d.gallery)) d.gallery = [];
     delete d.b;
   }
   if (col === 'events' && !d.date) d.date = isoDay(kit().evDate(d.w));
@@ -254,7 +281,11 @@ export function prepareSave(col: string, d: Record<string, any>): string[] {
   const missing = SCHEMA[col].fields.filter((f) => f[3] && f[3].req && empty(d[f[0]])).map((f) => L(f[2]));
   if (missing.length) return missing;
   if (col === 'projects') d.p = d.p == null || d.p === '' ? null : Math.max(0, Math.min(100, Math.round(+d.p || 0)));
-  if (col === 'news') { d.views = +d.views || 0; if (!d.d) d.d = ubStamp(kit().ubNow()); }
+  if (col === 'news') {
+    d.views = +d.views || 0; if (!d.d) d.d = ubStamp(kit().ubNow());
+    // Энгийн текстийн хувилбар: хайлт, унших хугацаа, мэдээний хуудасны сервер талын текст (server/pages/news-feed.service.ts)
+    if (Array.isArray(d.html)) d.bt = [htmlToParas(d.html[0]), htmlToParas(d.html[1])];
+  }
   if (col === 'events') d.price = Math.max(0, +d.price || 0);
   return [];
 }

@@ -7,6 +7,9 @@ import { SITS } from '../data/services.js';
 /* «Амьдралын нөхцөл» хэсгийг site/app/home/Situations.tsx зурна (нүүрэнд товч сүлжээ, /services хуудсанд жагсаалт + алхмууд).
    Төлөв: S.sit (сонгосон нөхцөл), S.sitDone (хийсэн алхмууд, хөтчид хадгална). SIT: сүүлийн өөрчлөлтийн хөдөлгөөнд хэрэгтэй мэдээлэл. */
 export const SIT = { dir: 0, pop: null };
+/** Алхмын хугацаа: admin-д тоо + нэгжээр (tmN, tmU) эсвэл хуучин текст (tm) */
+const TIME_UNIT_L = { min: ['минут', 'min'], hour: ['цаг', 'h'], day: ['хоног', 'days'], wday: ['ажлын өдөр', 'working days'] };
+export function stepTime(x) { return x.tmN > 0 && TIME_UNIT_L[x.tmU] ? `${x.tmN} ${L(TIME_UNIT_L[x.tmU])}` : L(x.tm) || ''; }
 export function sitsData() {
   const d = S.sitDone[S.sit] || [];
   return {
@@ -15,7 +18,7 @@ export function sitsData() {
       id: s.id, i: s.i, title: L(s.t), done: (S.sitDone[s.id] || []).length, n: s.steps.length,
       sub: t('stepsOnline', { n: s.steps.length, o: s.steps.filter((x) => x.m === 'on').length }),
     })),
-    steps: (SITS.find((x) => x.id === S.sit) || { steps: [] }).steps.map((x, i) => ({ title: L(x.t), desc: L(x.d), time: L(x.tm), m: x.m, done: d.includes(i) })),
+    steps: (SITS.find((x) => x.id === S.sit) || { steps: [] }).steps.map((x, i) => ({ title: L(x.t), desc: L(x.d), time: stepTime(x), m: x.m, done: d.includes(i) })),
   };
 }
 HOME.sits = sitsData;

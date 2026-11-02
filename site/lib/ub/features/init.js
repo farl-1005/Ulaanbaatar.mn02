@@ -13,7 +13,7 @@ import { NEWS } from '../data/news.js';
 import { initChatCapability, showChatTip } from './assistant.js';
 import { renderMy } from './my-page.js';
 import { openAdmin, render404, renderNewsPage, watchHistory } from './news-reader.js';
-import { newsProgress } from './season.js';
+import { newsProgress } from './notices.js';
 import { currentSec, debounce, setCurrentSec } from './shared.js';
 import { AIR_AT, WX_AT, loadAir, loadWeather, startLive } from './weather.js';
 import { wireEvents } from './wiring.js';
@@ -51,14 +51,13 @@ export function init() {
   }, { passive: true });
   applyTheme(false);
   applyA11y();
-  S.intro = !reduced;
+  S.intro = false;   // ачаалахад «орох» хөдөлгөөнгүй (хэрэглэгчдийн санал: тайван загвар, styles/13-calm.css)
   const now = ubNow();
   S.breaking = NEWS.filter((n) => n.br).map((n) => ({ id: n.id, ts: n.ts || new Date(now.getTime() - n.ago * 60000) })).sort((a, b) => b.ts - a.ts);
   if (S.user && !S.user.on) S.user = { on: 1 };
   renderAll();
   setupSkyline();
   initCMS();
-  setTimeout(() => { S.intro = false; }, 2300);   // нүүрний «орох» хөдөлгөөн (site/app/home/Hero.tsx)
   setupObservers(); startLive(); initChatCapability();
   loadWeather(); loadAir(); setInterval(() => { if (!document.hidden) { loadWeather(); loadAir(); } }, 600e3);
   document.addEventListener('visibilitychange', () => { if (document.hidden) return; if (Date.now() - WX_AT > 600e3) loadWeather(); if (Date.now() - AIR_AT > 600e3) loadAir(); });

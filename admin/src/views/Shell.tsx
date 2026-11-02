@@ -1,10 +1,11 @@
 'use client';
 /* Admin-ы хүрээ: зүүн талын цэс (том дэлгэц), толгой (гарчиг, «Нэмэх», сайт руу), гар утсанд хэвтээ цэс. */
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { cms, useCms } from '../cms';
 import { kit, L, Lang } from '../kit';
 import { NAV, NAV_GROUPS, navLabel, SCHEMA, View } from '../schema';
 import { Html, Icon } from '../ui';
+import { SYS_NAME } from './Settings';
 
 interface Props { view: View; go: (v: View) => void; add: (col: string) => void; lang: Lang; setLang: (l: Lang) => void; children: ReactNode }
 
@@ -12,6 +13,8 @@ export function Shell({ view, go, add, lang, setLang, children }: Props) {
   const { data, inboxNew } = useCms();
   const count = (v: View) => (v === 'inbox' ? inboxNew || '' : SCHEMA[v] ? cms.merged(v).length : v === 'texts' ? Object.keys(data.texts || {}).length : '');
   const sc = SCHEMA[view];
+  const sys = (kit().state().SET.sysName as [string, string] | undefined) || SYS_NAME, sysName = L([sys[0] || SYS_NAME[0], sys[1] || sys[0] || SYS_NAME[1]]);
+  useEffect(() => { document.title = `${sysName} · ulaanbaatar.mn`; }, [sysName]);
   const primary = sc && !sc.single
     ? <button type="button" className="btn btn-sm btn-blue" onClick={() => add(view)}><Icon name="plus" className="w-4 h-4" />{L(['Нэмэх', 'Add'])} {L(sc.one)}</button>
     : view === 'dash' ? <button type="button" className="btn btn-sm btn-blue" onClick={() => add('news')}><Icon name="plus" className="w-4 h-4" />{L(['Мэдээ нэмэх', 'New story'])}</button> : null;
@@ -21,7 +24,7 @@ export function Shell({ view, go, add, lang, setLang, children }: Props) {
       <aside className="hidden lg:flex flex-col bg-navy text-white sticky top-0 h-[100dvh] p-4">
         <a href="/" className="flex items-center gap-3 px-2 py-2">
           <Html as="span" className="contents" html={kit().logoMark('w-10 h-10')} />
-          <span className="text-left leading-tight"><b className="block text-[16px]">{kit().t('brand')}</b><span className="text-[12px] text-white/60">{L(['Удирдлагын систем', 'Content admin'])}</span></span>
+          <span className="text-left leading-tight"><b className="block text-[16px]">{kit().t('brand')}</b><span className="text-[12px] text-white/60">{sysName}</span></span>
         </a>
         <nav className="mt-4 space-y-0.5 overflow-y-auto thin-scroll min-h-0 flex-1 -mr-2 pr-2">
           {NAV.map(([v, icon, label, group], i) => (

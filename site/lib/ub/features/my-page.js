@@ -4,15 +4,18 @@ import { EN, L, S, t } from '../core/state.js';
 import { Lf, addDays, ago, fDate, money, num, today } from '../core/time.js';
 import { EVENTS } from '../data/events.js';
 import { KHOROO, ME, PAYMENTS, RCAT } from '../data/my-page.js';
+import { myComplaintRows } from './complaint.js';
 import { endOfMonth } from './shared.js';
 import { evRow } from '../sections/events.js';
 /* ================= My page =================
    «Миний булан» (#view-my) хуудсыг site/app/views/MyView.tsx зурна. Энэ функц түүнд хэрэгтэй өгөгдлийг (текст нь сонгосон хэлээр) бэлдэнэ.
-   Таб (tab my → setMyTab), төлөх (pay), шинэ хүсэлт (report), мэдэгдлийн холбоосуудыг features/wiring.js барина. */
+   Таб (tab my → setMyTab), төлөх (pay), шинэ хүсэлт (report), өргөдөл гомдол (complaint), мэдэгдлийн холбоосуудыг features/wiring.js барина.
+   «Миний хүсэлтүүд» табын өргөдөл, гомдол нь энэ хөтчөөс илгээсэн бодит хүсэлтүүд (features/complaint.js, төлөв нь серверээс). */
 export let MY_DIR = 0;
 export function myData() {
   if (S.route !== 'my' || !S.user) return null;
-  const open = S.requests.filter((r) => r.st < 3).length, due = PAYMENTS.filter((p) => !p.paid && !S.paid.includes(p.id)).length;
+  const comp = myComplaintRows();
+  const open = S.requests.filter((r) => r.st < 3).length + comp.filter((r) => !r.gone && r.st !== 'done' && r.st !== 'rejected').length, due = PAYMENTS.filter((p) => !p.paid && !S.paid.includes(p.id)).length;
   const d = {
     tab: S.myTab, dir: MY_DIR, home: t('home'),
     ini: L(ME.ini), hello: t('hello', { n: L(ME.n) }), addr: L(ME.addr), reg: ME.reg,
@@ -21,6 +24,7 @@ export function myData() {
   };
   if (S.myTab === 'req') {
     d.req = {
+      comp: { title: t('myComplaints'), add: t('cta_complaint'), empty: t('cNoMine'), more: t('cTrackIt'), replyLbl: t('cReply'), list: comp },
       title: t('my_req'), add: t('newReq'), empty: t('noReq'),
       list: S.requests.map((r) => {
         const c = RCAT[r.cat] || RCAT.other;

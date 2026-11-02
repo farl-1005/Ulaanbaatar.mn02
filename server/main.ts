@@ -19,6 +19,9 @@ async function bootstrap() {
   });
   app.disable('x-powered-by');
   app.enableShutdownHooks();
+  // Унтрах дохио (pm2, nodemon дахин асаах, Ctrl+C): нээлттэй SSE холболт (/api/events, /__dev) хаагдахыг хязгааргүй хүлээхгүй,
+  // 3 секундын дараа заавал гарна. Эс бөгөөс хуучин процесс Next.js-ийн түгжээг барьсаар шинэ процесс асахгүй.
+  for (const sig of ['SIGTERM', 'SIGINT', 'SIGUSR2'] as const) process.once(sig, () => { setTimeout(() => process.exit(0), 3000).unref(); });
   serveStaticAssets(app);
   serveAdmin(app);
   await serveSite(app);   // нүүр, /news, /news/<id> ... (site/ — Next.js)

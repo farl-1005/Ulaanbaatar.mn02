@@ -28,6 +28,8 @@ import { NEWS_CATS } from '../sections/hub.js';
    Сайтын анхны агуулга нь src/data/, admin-ы засвар нь серверт (GET /api/cms). Хоёрыг энд нийлүүлнэ (applyOverlay).
    Засварыг /admin хийнэ (admin/ — тусдаа Next.js төсөл). Тэр нь анхны агуулга (DEF), applyOverlay-г assets/kit.js-ээр ашиглана.
    Сервергүй (нэг файлт хувилбар) үед анхны агуулга харагдана. */
+/** Date → 'YYYY.MM.DD HH:MM' (state.js parseUB уншдаг хэлбэр) */
+const ubStampOf = (d) => `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 export const CMS_COLS = ['news', 'alerts', 'events', 'projects', 'services', 'texts', 'settings', 'media',
   'mediaitems', 'sits', 'docs', 'struct', 'orgs', 'history', 'citydata', 'menu', 'rubrics', 'ecats', 'pcats', 'topics', 'faq', 'banners', 'govsched'];
 export const cloneJ = (x) => JSON.parse(JSON.stringify(x));
@@ -44,9 +46,11 @@ export function setTaxonomy(obj, items, keep, extra) {
 }
 export const DEF_TAX = { city: cloneJ(RUB.city), zar: cloneJ(RUB.zar), civic: cloneJ(ECAT.civic), transport: cloneJ(PCAT.transport) };
 export const DEF = {
-  news: NEWS.map((n) => { const c = cloneJ(n); delete c.ts; delete c.ago; return c; }),
+  // Огноогүй жишээ мэдээнд (data/news.js ago) огноо онооно: эс бөгөөс «одоо» гэж тооцогдоод бодит шинэ мэдээнээс дээр эрэмбэлэгдэнэ
+  news: NEWS.map((n) => { const c = cloneJ(n); if (!c.d) c.d = ubStampOf(n.ts || new Date(ubNow() - (n.ago || 0) * 60000)); delete c.ts; delete c.ago; return c; }),
   alerts: cloneJ(ALERTS), events: cloneJ(EVENTS), projects: cloneJ(PROJECTS), services: cloneJ(ALL_SVC), texts: cloneJ(I),
-  settings: { heroId: HERO_ID, featuredId: FEATURED_ID, gov: GOV.slice(), tickerOn: true, season: 'auto', quick: QUICK.slice(), chatChips: linesOf(CHAT_CHIPS), popSearch: linesOf(SQ_POP) },
+  settings: { heroId: '', featuredId: '',   // хоосон = автомат: хамгийн сүүлд нийтэлсэн мэдээ (хэрэглэгчдийн санал #10)
+    gov: GOV.slice(), tickerOn: true, quick: QUICK.slice(), chatChips: linesOf(CHAT_CHIPS), popSearch: linesOf(SQ_POP) },
   // Сайтын бусад бүх агуулга (admin-аас засагдана). ord: жагсаалтын дараалал.
   mediaitems: MEDIA.map((m, i) => Object.assign({ id: 'm' + (i + 1), ord: (i + 1) * 10 }, cloneJ(m))),
   banners: cloneJ(BANNERS),
@@ -122,7 +126,7 @@ export function applyOverlay() {
   GOV.splice(0, GOV.length, ...(SET.gov || []).filter((id) => NEWS_BY[id]).slice(0, 3));
   CHAT_CHIPS.splice(0, CHAT_CHIPS.length, ...pairsOf(SET.chatChips));
   SQ_POP.splice(0, SQ_POP.length, ...pairsOf(SET.popSearch));
-  ALERTS.splice(0, ALERTS.length, ...mergedItems('alerts').filter((a) => !a.off));
+  ALERTS.splice(0, ALERTS.length, ...mergedItems('alerts').filter((a) => !a.off && !(parseUB(a.to) && parseUB(a.to) < ubNow())));   // дууссан анхааруулга автоматаар алга
   EVENTS.splice(0, EVENTS.length, ...mergedItems('events').map((e) => { if (!ECAT[e.c]) e.c = 'civic'; e.x = Math.max(5, Math.min(995, +e.x || 560)); e.y = Math.max(5, Math.min(615, +e.y || 285)); if (e.date) e.w = dayOffset(e.date); return e; }));
   PROJECTS.splice(0, PROJECTS.length, ...mergedItems('projects').map((p) => Object.assign(p, { p: p.p == null || p.p === '' ? null : Math.max(0, Math.min(100, +p.p || 0)), c: PCAT[p.c] ? p.c : 'transport', x: Math.max(5, Math.min(995, +p.x || 560)), y: Math.max(5, Math.min(615, +p.y || 300)), bud: +p.bud || 0 })));
   const svc = mergedItems('services').map((s) => Object.assign(s, { g: ['citizen', 'business', 'esys'].includes(s.g) ? s.g : 'citizen', m: ['on', 'off', 'sys'].includes(s.m) ? s.m : 'on' }));
